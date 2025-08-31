@@ -2,8 +2,7 @@
   "name": "backend",
   "packageManager": "yarn@4.9.1",
   "scripts": {
-    "start": "ts-node src/server.ts",
-    "start:dev": "NODE_ENV=development nodemon ./src/server.ts"
+    "dev": "NODE_ENV=development nodemon ./src/server.ts"
   },
   "dependencies": {
     "express": "^5.1.0",
