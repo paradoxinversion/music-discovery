@@ -1,0 +1,13 @@
+{
+  "name": "@common/types",
+  "packageManager": "yarn@4.9.1",
+  "version": "0.0.1",
+  "main": "./dist/types/index.js",
+  "types": "./dist/types/index.d.ts",
+  "scripts": {
+    "build": "tsc --build"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

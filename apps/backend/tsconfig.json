@@ -20,5 +20,10 @@
     "target": "esnext",
     "lib": ["esnext"],
     "types": ["node"],
-  }
+  },
+  "references": [
+    {
+      "path": "../../common/types"
+    }
+  ]
 }

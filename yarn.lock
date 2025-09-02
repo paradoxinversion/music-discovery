@@ -5,6 +5,14 @@ __metadata:
   version: 8
   cacheKey: 10c0
 
+"@common/types@workspace:^, @common/types@workspace:common/types":
+  version: 0.0.0-use.local
+  resolution: "@common/types@workspace:common/types"
+  dependencies:
+    typescript: "npm:^5.9.2"
+  languageName: unknown
+  linkType: soft
+
 "@cspotcode/source-map-support@npm:^0.8.0":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
@@ -336,6 +344,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backend@workspace:apps/backend"
   dependencies:
+    "@common/types": "workspace:^"
     "@types/express": "npm:^5.0.3"
     "@types/node": "npm:^24.3.0"
     express: "npm:^5.1.0"

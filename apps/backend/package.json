@@ -9,6 +9,7 @@
     "mongoose": "^8.18.0"
   },
   "devDependencies": {
+    "@common/types": "workspace:^",
     "@types/express": "^5.0.3",
     "@types/node": "^24.3.0",
     "nodemon": "^3.1.10",

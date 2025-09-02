@@ -36,4 +36,4 @@ interface User {
   favoriteArtists: Artist[];
 }
 
-export { Track, Album, Artist, User };
+export type { Track, Album, Artist, User };
