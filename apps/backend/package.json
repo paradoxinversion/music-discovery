@@ -2,18 +2,23 @@
   "name": "backend",
   "packageManager": "yarn@4.9.1",
   "scripts": {
-    "dev": "NODE_ENV=development nodemon ./src/server.ts"
+    "dev": "NODE_ENV=development nodemon ./src/server.ts",
+    "test": "NODE_ENV=test vitest run"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "express": "^5.1.0",
     "mongoose": "^8.18.0"
   },
   "devDependencies": {
     "@common/types": "workspace:^",
+    "@types/bcrypt": "^6",
+    "@types/expect": "^24.3.2",
     "@types/express": "^5.0.3",
     "@types/node": "^24.3.0",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
   }
 }
