@@ -1,39 +1,41 @@
 /**
  * A music track/song.
  */
-interface Track {
-  id: string;
+interface ITrack {
   title: string;
-  artist: string;
-  album: string;
+  artistId: string;
+  albumId: string;
   duration: number;
   isrc: string;
   genre: string;
 }
 
-interface Album {
-  id: string;
+interface IAlbum {
   title: string;
-  artist: string;
-  releaseDate: string;
+  artistId: string;
+  releaseDate: Date;
   genre: string;
-  trackCount: number;
 }
 
-interface Artist {
-  id: string;
+interface IArtist {
   name: string;
   genre: string;
   biography: string;
 }
 
-interface User {
-  id: string;
-  name: string;
+interface IUser {
+  username: string;
   email: string;
-  favoriteTracks: Track[];
-  favoriteAlbums: Album[];
-  favoriteArtists: Artist[];
+  password: string;
+  favoriteTracks: string[];
+  favoriteAlbums: string[];
+  favoriteArtists: string[];
 }
 
-export type { Track, Album, Artist, User };
+interface IUserSignup {
+  username: string;
+  email: string;
+  password: string;
+}
+
+export type { ITrack, IAlbum, IArtist, IUser, IUserSignup };
