@@ -1,0 +1,33 @@
+services:
+  mongo:
+    attach: false
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    networks:
+      - discovery-network
+    volumes:
+      - mongo-data:/data/db
+  backend:
+    build:
+      context: .
+      dockerfile: ./apps/backend/Dockerfile.test
+    develop:
+      watch:
+        - action: sync
+          path: ./apps/backend
+          target: /app/apps/backend
+    environment:
+      NODE_ENV: development
+    ports:
+      - 3001:3001
+    networks:
+      - discovery-network
+    depends_on:
+      - mongo
+networks: # allow services to talk to each other while providing isolation from other docker container, running on the same host
+  discovery-network:
+    driver: bridge
+volumes: # enable persistence of database data across container restart
+  mongo-data:
+    driver: local

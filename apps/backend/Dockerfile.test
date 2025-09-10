@@ -13,4 +13,5 @@ RUN corepack enable && yarn install
 
 EXPOSE 3001
 
-CMD [ "yarn", "workspace", "backend", "dev" ]
+CMD [ "yarn", "workspace", "backend", "test" ]
+# RUN yarn workspace backend test
