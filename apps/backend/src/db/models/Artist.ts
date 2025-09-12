@@ -14,6 +14,16 @@ const ArtistSchema: Schema<IArtist> = new Schema({
     type: String,
     required: true,
   },
+  links: {
+    type: Map,
+    of: String,
+    required: false,
+  },
+  managingUserId: {
+    type: String,
+    required: true,
+    ref: "User",
+  },
 });
 
 const Artist = model<IArtist>("Artist", ArtistSchema);

@@ -28,6 +28,11 @@ const TrackSchema: Schema<ITrack> = new Schema({
     type: String,
     required: true,
   },
+  links: {
+    type: Map,
+    of: String,
+    required: false,
+  },
 });
 
 const Track = model<ITrack>("Track", TrackSchema);

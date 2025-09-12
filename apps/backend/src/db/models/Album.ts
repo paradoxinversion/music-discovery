@@ -19,6 +19,11 @@ const AlbumSchema: Schema<IAlbum> = new Schema({
     type: String,
     required: true,
   },
+  links: {
+    type: Map,
+    of: String,
+    required: false,
+  },
 });
 
 const Album = model<IAlbum>("Album", AlbumSchema);

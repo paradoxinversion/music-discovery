@@ -1,4 +1,26 @@
 /**
+ * Common types for the music streaming service.
+ */
+type CommonLinkKeyMusic =
+  | 'soundcloud'
+  | 'spotify'
+  | 'youtube'
+  | 'appleMusic'
+  | 'bandcamp';
+
+  /**
+   * Common social media and website links.
+   */
+type CommonLinkKeySocial =
+  | 'facebook'
+  | 'instagram'
+  | 'twitterX'
+  | 'tiktok'
+  | 'website'
+  | 'bluesky';
+
+
+/**
  * A music track/song.
  */
 interface ITrack {
@@ -8,21 +30,43 @@ interface ITrack {
   duration: number;
   isrc: string;
   genre: string;
+  links?: {
+    [key in CommonLinkKeyMusic]?: string;
+  }
 }
 
+/**
+ * A music album.
+ */
 interface IAlbum {
   title: string;
   artistId: string;
   releaseDate: Date;
   genre: string;
+  links?: {
+    [key in CommonLinkKeyMusic]?: string;
+  }
 }
 
+/**
+ * A music artist/band.
+ */
 interface IArtist {
   name: string;
   genre: string;
   biography: string;
+  /**
+   * ID of the user managing this artist's profile.
+   */
+  managingUserId: string;
+  links?: {
+    [key in CommonLinkKeySocial]?: string;
+  }
 }
 
+/**
+ * A user of the service.
+ */
 interface IUser {
   username: string;
   email: string;
@@ -32,10 +76,13 @@ interface IUser {
   favoriteArtists: string[];
 }
 
+/**
+ * Data required for user signup.
+ */
 interface IUserSignup {
   username: string;
   email: string;
   password: string;
 }
 
-export type { ITrack, IAlbum, IArtist, IUser, IUserSignup };
+export type { ITrack, IAlbum, IArtist, IUser, IUserSignup, CommonLinkKeyMusic, CommonLinkKeySocial };
