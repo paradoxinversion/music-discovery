@@ -1,9 +1,25 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import User from "../models/User";
 import mongoose from "mongoose";
-import { addFavoriteArtist, createUser, getUserById, removeFavoriteArtist, deleteUser } from "./User";
+import { 
+    addFavoriteArtist,
+    createUser,
+    getUserById,
+    removeFavoriteArtist,
+    deleteUser,
+    addFavoriteAlbum,
+    removeFavoriteAlbum,
+    addFavoriteTrack,
+    removeFavoriteTrack
+} from "./User";
 import Artist from "../models/Artist";
-import {DEFAULT_TEST_ALBUM_DATA, DEFAULT_TEST_ARTIST_DATA, DEFAULT_TEST_TRACK_DATA, DEFAULT_TEST_USER_DATA, DEFAULT_TEST_USER_SIGNUP} from "../../../test-helpers/dbData";
+import {
+    DEFAULT_TEST_ALBUM_DATA,
+    DEFAULT_TEST_ARTIST_DATA,
+    DEFAULT_TEST_TRACK_DATA,
+    DEFAULT_TEST_USER_DATA,
+    DEFAULT_TEST_USER_SIGNUP
+} from "../../../test-helpers/dbData";
 import Album from "../models/Album";
 import Track from "../models/Track";
 
@@ -163,7 +179,285 @@ describe("Remove favorite artist", ()=>{
         const fakeArtistId = new mongoose.Types.ObjectId().toString();
         await expect(removeFavoriteArtist(user._id.toString(), fakeArtistId)).rejects.toThrow();
     });
-})
+});
+
+describe("Add favorite Album", () => {
+    it("Adds a favorite album to user", async ()=>{
+        const user = new User(DEFAULT_TEST_USER_DATA);
+        await user.save();
+        const artist = new Artist({
+            ...DEFAULT_TEST_ARTIST_DATA,
+            managingUserId: user._id.toString()
+        });
+        const album = new Album({
+            ...DEFAULT_TEST_ALBUM_DATA,
+            artistId: artist._id.toString(),
+        });
+        await artist.save();
+        await album.save();
+        await addFavoriteAlbum(user._id.toString(), album._id.toString());
+        const updatedUser = await User.findById(user._id);
+        expect(updatedUser).toBeDefined();
+        expect(updatedUser?.favoriteAlbums.length).toBe(1);
+        expect(updatedUser?.favoriteAlbums[0]?.toString()).toBe(album._id.toString());
+    });
+    it("Throws an error if the user already has the album as favorite", async ()=>{
+        const user = new User(DEFAULT_TEST_USER_DATA);
+        await user.save();
+        const artist = new Artist({
+            ...DEFAULT_TEST_ARTIST_DATA,
+            managingUserId: user._id.toString()
+        });
+        const album = new Album({
+            ...DEFAULT_TEST_ALBUM_DATA,
+            artistId: artist._id.toString(),
+        });
+        await artist.save();
+        await album.save();
+        await addFavoriteAlbum(user._id.toString(), album._id.toString());
+        await expect(addFavoriteAlbum(user._id.toString(), album._id.toString())).rejects.toThrow();
+    });
+
+    it ("Throws an error if the user does not exist", async ()=>{
+        const fakeUserId = new mongoose.Types.ObjectId().toString();
+        const artist = new Artist({
+            ...DEFAULT_TEST_ARTIST_DATA,
+            managingUserId: fakeUserId
+        });
+        const album = new Album({
+            ...DEFAULT_TEST_ALBUM_DATA,
+            artistId: artist._id.toString(),
+        });
+        await artist.save();
+        await album.save();
+        await expect(addFavoriteAlbum(fakeUserId, album._id.toString())).rejects.toThrow();
+    });
+    
+    it ("Throws an error if the album does not exist", async ()=>{
+        const user = new User(DEFAULT_TEST_USER_DATA);
+        await user.save();
+        const fakeAlbumId = new mongoose.Types.ObjectId().toString();
+        await expect(addFavoriteAlbum(user._id.toString(), fakeAlbumId)).rejects.toThrow();
+    });
+});
+
+describe("Remove favorite Album", ()=>{
+    it("Removes a favorite album from user", async ()=>{
+        const user = new User(DEFAULT_TEST_USER_DATA);
+        await user.save();
+        const artist = new Artist({
+            ...DEFAULT_TEST_ARTIST_DATA,
+            managingUserId: user._id.toString()
+        });
+        const album = new Album({
+            ...DEFAULT_TEST_ALBUM_DATA,
+            artistId: artist._id.toString(),
+        });
+        await artist.save();
+        await album.save();
+        await user.favoriteAlbums.push(album._id.toString());
+        await user.save();
+        await removeFavoriteAlbum(user._id.toString(), album._id.toString());
+        const updatedUser = await User.findById(user._id);
+        expect(updatedUser).toBeDefined();
+        expect(updatedUser?.favoriteAlbums.length).toBe(0);
+    });
+
+    it("Throws an error if the user does not have the album as favorite", async ()=>{
+        const user = new User(DEFAULT_TEST_USER_DATA);
+        await user.save();
+        const artist = new Artist({
+            ...DEFAULT_TEST_ARTIST_DATA,
+            managingUserId: user._id.toString()
+        });
+        const album = new Album({
+            ...DEFAULT_TEST_ALBUM_DATA,
+            artistId: artist._id.toString(),
+        });
+        await artist.save();
+        await album.save();
+        await expect(removeFavoriteAlbum(user._id.toString(), album._id.toString())).rejects.toThrow();
+    });
+
+    it ("Throws an error if the user does not exist", async ()=>{
+        const fakeUserId = new mongoose.Types.ObjectId().toString();
+        const artist = new Artist({
+            ...DEFAULT_TEST_ARTIST_DATA,
+            managingUserId: fakeUserId
+        });
+        const album = new Album({
+            ...DEFAULT_TEST_ALBUM_DATA,
+            artistId: artist._id.toString(),
+        });
+        await artist.save();
+        await album.save();
+        await expect(removeFavoriteAlbum(fakeUserId, album._id.toString())).rejects.toThrow();
+    });
+    
+    it ("Throws an error if the album does not exist", async ()=>{
+        const user = new User(DEFAULT_TEST_USER_DATA);
+        await user.save();
+        const fakeAlbumId = new mongoose.Types.ObjectId().toString();
+        await expect(removeFavoriteAlbum(user._id.toString(), fakeAlbumId)).rejects.toThrow();
+    });
+});
+
+describe("Add favorite Track", () => {
+    it("Adds a favorite track to user", async ()=>{
+        const user = new User(DEFAULT_TEST_USER_DATA);
+        await user.save();
+        const artist = new Artist({
+            ...DEFAULT_TEST_ARTIST_DATA,
+            managingUserId: user._id.toString()
+        });
+        const album = new Album({
+            ...DEFAULT_TEST_ALBUM_DATA,
+            artistId: artist._id.toString(),
+        });
+        const track = new Track({
+            ...DEFAULT_TEST_TRACK_DATA,
+            artistId: artist._id.toString(),
+            albumId: album._id.toString(),
+        });
+        await artist.save();
+        await album.save();
+        await track.save();
+        await addFavoriteTrack(user._id.toString(), track._id.toString());
+        const updatedUser = await User.findById(user._id);
+        expect(updatedUser).toBeDefined();
+        expect(updatedUser?.favoriteTracks.length).toBe(1);
+        expect(updatedUser?.favoriteTracks[0]?.toString()).toBe(track._id.toString());
+    });
+    it("Throws an error if the user already has the track as favorite", async ()=>{
+        const user = new User(DEFAULT_TEST_USER_DATA);
+        await user.save();
+        const artist = new Artist({
+            ...DEFAULT_TEST_ARTIST_DATA,
+            managingUserId: user._id.toString()
+        });
+        const album = new Album({
+            ...DEFAULT_TEST_ALBUM_DATA,
+            artistId: artist._id.toString(),
+        });
+        const track = new Track({
+            ...DEFAULT_TEST_TRACK_DATA,
+            artistId: artist._id.toString(),
+            albumId: album._id.toString(),
+        });
+        await artist.save();
+        await album.save();
+        await track.save();
+        await addFavoriteTrack(user._id.toString(), track._id.toString());
+        await expect(addFavoriteTrack(user._id.toString(), track._id.toString())).rejects.toThrow();
+    });
+
+    it ("Throws an error if the user does not exist", async ()=>{
+        const fakeUserId = new mongoose.Types.ObjectId().toString();
+        const artist = new Artist({
+            ...DEFAULT_TEST_ARTIST_DATA,
+            managingUserId: fakeUserId
+        });
+        const album = new Album({
+            ...DEFAULT_TEST_ALBUM_DATA,
+            artistId: artist._id.toString(),
+        });
+        const track = new Track({
+            ...DEFAULT_TEST_TRACK_DATA,
+            artistId: artist._id.toString(),
+            albumId: album._id.toString(),
+        });
+        await artist.save();
+        await album.save();
+        await track.save();
+        await expect(addFavoriteTrack(fakeUserId, track._id.toString())).rejects.toThrow();
+    });
+    
+    it ("Throws an error if the track does not exist", async ()=>{
+        const user = new User(DEFAULT_TEST_USER_DATA);
+        await user.save();
+        const fakeTrackId = new mongoose.Types.ObjectId().toString();
+        await expect(addFavoriteTrack(user._id.toString(), fakeTrackId)).rejects.toThrow();
+    });
+});
+
+describe("Remove favorite Track", ()=>{
+    it("Removes a favorite track from user", async ()=>{
+        const user = new User(DEFAULT_TEST_USER_DATA);
+        await user.save();
+        const artist = new Artist({
+            ...DEFAULT_TEST_ARTIST_DATA,
+            managingUserId: user._id.toString()
+        });
+        const album = new Album({
+            ...DEFAULT_TEST_ALBUM_DATA,
+            artistId: artist._id.toString(),
+        });
+        const track = new Track({
+            ...DEFAULT_TEST_TRACK_DATA,
+            artistId: artist._id.toString(),
+            albumId: album._id.toString(),
+        });
+        await artist.save();
+        await album.save();
+        await track.save();
+        await user.favoriteTracks.push(track._id.toString());
+        await user.save();
+        await removeFavoriteTrack(user._id.toString(), track._id.toString());
+        const updatedUser = await User.findById(user._id);
+        expect(updatedUser).toBeDefined();
+        expect(updatedUser?.favoriteTracks.length).toBe(0);
+    });
+
+    it("Throws an error if the user does not have the track as favorite", async ()=>{
+        const user = new User(DEFAULT_TEST_USER_DATA);
+        await user.save();
+        const artist = new Artist({
+            ...DEFAULT_TEST_ARTIST_DATA,
+            managingUserId: user._id.toString()
+        });
+        const album = new Album({
+            ...DEFAULT_TEST_ALBUM_DATA,
+            artistId: artist._id.toString(),
+        });
+        const track = new Track({
+            ...DEFAULT_TEST_TRACK_DATA,
+            artistId: artist._id.toString(),
+            albumId: album._id.toString(),
+        });
+        await artist.save();
+        await album.save();
+        await track.save();
+        await expect(removeFavoriteTrack(user._id.toString(), track._id.toString())).rejects.toThrow();
+    });
+
+    it ("Throws an error if the user does not exist", async ()=>{
+        const fakeUserId = new mongoose.Types.ObjectId().toString();
+        const artist = new Artist({
+            ...DEFAULT_TEST_ARTIST_DATA,
+            managingUserId: fakeUserId
+        });
+        const album = new Album({
+            ...DEFAULT_TEST_ALBUM_DATA,
+            artistId: artist._id.toString(),
+        });
+        const track = new Track({
+            ...DEFAULT_TEST_TRACK_DATA,
+            artistId: artist._id.toString(),
+            albumId: album._id.toString(),
+        });
+        await artist.save();
+        await album.save();
+        await track.save();
+        await expect(removeFavoriteTrack(fakeUserId, track._id.toString())).rejects.toThrow();
+    });
+    
+    it ("Throws an error if the track does not exist", async ()=>{
+        const user = new User(DEFAULT_TEST_USER_DATA);
+        await user.save();
+        const fakeTrackId = new mongoose.Types.ObjectId().toString();
+        await expect(removeFavoriteTrack(user._id.toString(), fakeTrackId)).rejects.toThrow();
+    });
+});
 
 describe("Delete User", ()=>{
     it("Deletes a user successfully", async ()=>{
