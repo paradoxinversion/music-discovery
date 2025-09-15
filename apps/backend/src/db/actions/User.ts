@@ -1,6 +1,8 @@
-import { IUserSignup } from "@common/types/src/types";
+import { IUser, IUserSignup } from "@common/types/src/types";
 import User from "../models/User";
 import Artist from "../models/Artist";
+import Track from "../models/Track";
+import Album from "../models/Album";
 
 /**
  * Create a new user in the database. Duplicate usernames or emails will throw an error.
@@ -9,15 +11,52 @@ import Artist from "../models/Artist";
  * @throws Error if username or email is already in use
  */
 export const createUser = async (user: IUserSignup) => {
-  const newUser = new User({
-    username: user.username,
-    email: user.email,
-    password: user.password,
-  });
-  await newUser.save();
-  return newUser;
+  try{
+
+    const newUser = new User({
+      username: user.username,
+      email: user.email,
+      password: user.password,
+    });
+    await newUser.save();
+    return newUser;
+  } catch (error) {
+    throw new Error(`Error creating user: ${error}`);
+  }
 };
 
+/**
+ * Retrieve a user by their ID.
+ * @param userId - The ID of the user to retrieve
+ * @returns The user document or null if not found
+ */
+export const getUserById = async (userId: string) => {
+  try {
+    const user = await User.findById(userId);
+    return user;
+  } catch (error) {
+    throw new Error(`Error retrieving user: ${error}`);
+  }
+}
+
+/**
+ * Update a user's information.
+ * @param userId - The ID of the user to update
+ * @param updates - The updates to apply
+ * @returns The updated user document
+ * @throws Error if user is not found
+ */
+export const updateUser = async (userId: string, updates: Partial<IUser>) => {
+  try {
+    const user = await User.findByIdAndUpdate(userId, updates, { new: true });
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    return user;
+  } catch (error) {
+    throw new Error(`Error updating user: ${error}`);
+  }
+}
 /**
  * Add a favorite artist to a user's profile.
  * @param userId - The ID of the user
@@ -69,4 +108,22 @@ export const removeFavoriteArtist = async (userId: string, artistId: string) => 
 
   await user.save();
   return user;
+};
+
+export const deleteUser = async (userId: string) => {
+    const deletedUser = await User.findByIdAndDelete(userId);
+    if (!deletedUser) {
+        throw new Error(`User with ID ${userId} not found`);
+    }
+
+    const artistsManaged = await Artist.find({ managingUserId: userId });
+    if (artistsManaged.length > 0){
+      for (const artist of artistsManaged) {
+          const artistId = artist._id.toString();
+          await Track.deleteMany({ artistId });
+          await Album.deleteMany({ artistId });
+          await artist.deleteOne();
+      }
+    }
+    return true;
 };

@@ -28,7 +28,7 @@ interface ITrack {
   artistId: string;
   albumId: string;
   duration: number;
-  isrc: string;
+  isrc?: string;
   genre: string;
   links?: {
     [key in CommonLinkKeyMusic]?: string;
@@ -48,6 +48,8 @@ interface IAlbum {
   }
 }
 
+type EditableAlbum = Partial<Omit<IAlbum, 'artistId'>>;
+
 /**
  * A music artist/band.
  */
@@ -63,6 +65,8 @@ interface IArtist {
     [key in CommonLinkKeySocial]?: string;
   }
 }
+
+type EditableArtist = Partial<Omit<IArtist, 'managingUserId'>>;
 
 /**
  * A user of the service.
@@ -85,4 +89,14 @@ interface IUserSignup {
   password: string;
 }
 
-export type { ITrack, IAlbum, IArtist, IUser, IUserSignup, CommonLinkKeyMusic, CommonLinkKeySocial };
+export type { 
+  ITrack, 
+  IAlbum, 
+  IArtist, 
+  IUser, 
+  IUserSignup, 
+  CommonLinkKeyMusic, 
+  CommonLinkKeySocial, 
+  EditableArtist, 
+  EditableAlbum
+};

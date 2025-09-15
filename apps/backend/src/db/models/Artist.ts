@@ -5,6 +5,7 @@ const ArtistSchema: Schema<IArtist> = new Schema({
   name: {
     type: String,
     required: true,
+    unique: true,
   },
   genre: {
     type: String,

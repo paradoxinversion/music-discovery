@@ -21,7 +21,6 @@ const TrackSchema: Schema<ITrack> = new Schema({
   },
   isrc: {
     type: String,
-    required: true,
     unique: true,
   },
   genre: {

@@ -1,39 +1,17 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import {prepareDB} from "../../../test-helpers/prepareDB"
+import { beforeEach, describe, expect, it } from "vitest";
 import User from "../models/User";
 import mongoose from "mongoose";
-import { IArtist, IUser, IUserSignup } from "@common/types/src/types";
-import { addFavoriteArtist, createUser, removeFavoriteArtist } from "./User";
+import { addFavoriteArtist, createUser, getUserById, removeFavoriteArtist, deleteUser } from "./User";
 import Artist from "../models/Artist";
-
-const DEFAULT_TEST_USER_SIGNUP: IUserSignup = {
-    username: "testuser",
-    email: "testuser@example.com",
-    password: "password123"
-};
-
-const DEFAULT_TEST_USER_DATA: IUser = {
-    username: "testuser",
-    email: "testuser@example.com",
-    password: "password123",
-    favoriteArtists: [],
-    favoriteAlbums: [],
-    favoriteTracks: []
-};
-
-beforeAll(async () => {
-    console.log("Setting up tests...");
-    await prepareDB();
-})
-afterAll(async () => {
-    console.log("Tearing down tests...");
-    await mongoose.connection.dropDatabase();
-    await new Promise((resolve) => setTimeout(() => resolve(true), 500)); // Give some time for the DB to settle
-});
+import {DEFAULT_TEST_ALBUM_DATA, DEFAULT_TEST_ARTIST_DATA, DEFAULT_TEST_TRACK_DATA, DEFAULT_TEST_USER_DATA, DEFAULT_TEST_USER_SIGNUP} from "../../../test-helpers/dbData";
+import Album from "../models/Album";
+import Track from "../models/Track";
 
 beforeEach(async () => {
-    // Clear users before each test
     await User.deleteMany({});
+    await Artist.deleteMany({});
+    await Track.deleteMany({});
+    await Album.deleteMany({});
 });
 
 describe("Create User", () => {
@@ -60,6 +38,22 @@ describe("Create User", () => {
     });
 });
 
+describe ("Get User By ID", ()=>{
+    it("Retrieves a user by ID", async ()=>{
+        const createdUser = await createUser(DEFAULT_TEST_USER_SIGNUP);
+        expect(createdUser).toBeDefined();
+        const fetchedUser = await getUserById(createdUser._id.toString());
+        expect(fetchedUser).toBeDefined();
+        expect(fetchedUser?._id.toString()).toBe(createdUser._id.toString());
+    });
+    
+    it("Returns null if user does not exist", async ()=>{
+        const fakeUserId = new mongoose.Types.ObjectId().toString();
+        const fetchedUser = await getUserById(fakeUserId);
+        expect(fetchedUser).toBeNull();
+    });
+});
+
 describe("Add favorite artist", ()=>{
     it("Adds a favorite artist to user", async ()=>{
         const user = new User(DEFAULT_TEST_USER_DATA);
@@ -67,7 +61,8 @@ describe("Add favorite artist", ()=>{
         const artist = new Artist({
             "name": "The Crescendolls",
             "genre": "Electronic",
-            "biography": "An extraterrestrial band known for their catchy tunes."
+            "biography": "An extraterrestrial band known for their catchy tunes.",
+            "managingUserId": user._id.toString()
         });
         await artist.save();
         await addFavoriteArtist(user._id.toString(), artist._id.toString());
@@ -83,7 +78,8 @@ describe("Add favorite artist", ()=>{
         const artist = new Artist({
             "name": "The Crescendolls",
             "genre": "Electronic",
-            "biography": "An extraterrestrial band known for their catchy tunes."
+            "biography": "An extraterrestrial band known for their catchy tunes.",
+            managingUserId: user._id.toString()
         });
         await artist.save();
         await addFavoriteArtist(user._id.toString(), artist._id.toString());
@@ -95,7 +91,8 @@ describe("Add favorite artist", ()=>{
         const artist = new Artist({
             "name": "The Crescendolls",
             "genre": "Electronic",
-            "biography": "An extraterrestrial band known for their catchy tunes."
+            "biography": "An extraterrestrial band known for their catchy tunes.",
+            managingUserId: fakeUserId
         });
         await artist.save();
         await expect(addFavoriteArtist(fakeUserId, artist._id.toString())).rejects.toThrow();
@@ -116,7 +113,8 @@ describe("Remove favorite artist", ()=>{
         const artist = new Artist({
             "name": "The Crescendolls",
             "genre": "Electronic",
-            "biography": "An extraterrestrial band known for their catchy tunes."
+            "biography": "An extraterrestrial band known for their catchy tunes.",
+            managingUserId: user._id.toString()
         });
         await artist.save();
 
@@ -140,7 +138,8 @@ describe("Remove favorite artist", ()=>{
         const artist = new Artist({
             "name": "The Crescendolls",
             "genre": "Electronic",
-            "biography": "An extraterrestrial band known for their catchy tunes."
+            "biography": "An extraterrestrial band known for their catchy tunes.",
+            managingUserId: user._id.toString()
         });
         await artist.save();
         await expect(removeFavoriteArtist(user._id.toString(), artist._id.toString())).rejects.toThrow();
@@ -151,7 +150,8 @@ describe("Remove favorite artist", ()=>{
         const artist = new Artist({
             "name": "The Crescendolls",
             "genre": "Electronic",
-            "biography": "An extraterrestrial band known for their catchy tunes."
+            "biography": "An extraterrestrial band known for their catchy tunes.",
+            managingUserId: fakeUserId
         });
         await artist.save();
         await expect(removeFavoriteArtist(fakeUserId, artist._id.toString())).rejects.toThrow();
@@ -164,3 +164,54 @@ describe("Remove favorite artist", ()=>{
         await expect(removeFavoriteArtist(user._id.toString(), fakeArtistId)).rejects.toThrow();
     });
 })
+
+describe("Delete User", ()=>{
+    it("Deletes a user successfully", async ()=>{
+        const user = new User(DEFAULT_TEST_USER_DATA);
+        await user.save();
+        const deletionResult = await deleteUser(user._id.toString());
+        expect(deletionResult).toBe(true);
+        const fetchedUser = await User.findById(user._id.toString());
+        expect(fetchedUser).toBeNull();
+    });
+
+    it("Deletes a user and their managed artists along with associated albums and tracks", async ()=>{
+        const user = new User(DEFAULT_TEST_USER_DATA);
+        await user.save();
+        const artist = new Artist({
+            ...DEFAULT_TEST_ARTIST_DATA,
+            managingUserId: user._id.toString()
+        });
+        await artist.save();
+
+        const album = new Album({
+            ...DEFAULT_TEST_ALBUM_DATA,
+            artistId: artist._id.toString(),
+        });
+        await album.save();
+        const track = new Track({
+            ...DEFAULT_TEST_TRACK_DATA,
+            albumId: album._id.toString(),
+            artistId: artist._id.toString(),
+        });
+        await track.save();
+        const deletionResult = await deleteUser(user._id.toString());
+        expect(deletionResult).toBe(true);
+        const fetchedUser = await User.findById(user._id.toString());
+        expect(fetchedUser).toBeNull();
+
+        const fetchedArtist = await Artist.findById(artist._id.toString());
+        expect(fetchedArtist).toBeNull();
+
+        const fetchedAlbum = await Album.findById(album._id.toString());
+        expect(fetchedAlbum).toBeNull();
+
+        const fetchedTrack = await Track.findById(track._id.toString());
+        expect(fetchedTrack).toBeNull();
+    });
+
+    it("Throws an error when trying to delete a non-existent user", async ()=>{
+        const nonExistentId = new mongoose.Types.ObjectId().toString();
+        await expect(deleteUser(nonExistentId)).rejects.toThrow(`User with ID ${nonExistentId} not found`);
+    });
+});
