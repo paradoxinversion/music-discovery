@@ -1,12 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import User from "../models/User";
 import mongoose from "mongoose";
-import { addFavoriteArtist, createUser, getUserById, removeFavoriteArtist } from "./User";
 import Artist from "../models/Artist";
 import {DEFAULT_TEST_USER_DATA, DEFAULT_TEST_ARTIST_DATA, DEFAULT_TEST_ALBUM_DATA, DEFAULT_TEST_TRACK_DATA} from "../../../test-helpers/dbData";
 import Album from "../models/Album";
 import { createAlbum, deleteAlbum, getAlbumById, updateAlbum } from "./Album";
-import { IAlbum, ITrack } from "@common/types/src/types";
+import { IAlbum } from "@common/types/src/types";
 import Track from "../models/Track";
 
 beforeEach(async () => {
@@ -151,6 +150,35 @@ describe("Delete Album", ()=>{
         expect(deletedAlbum).toBe(true);
         expect(await Album.findById(album._id.toString())).toBeNull();
         expect(await Track.findById(track._id.toString())).toBeNull();
+    });
+
+    it("Removes album from users' favorites when deleted", async ()=>{
+        const user = new User(DEFAULT_TEST_USER_DATA);
+        await user.save();
+        const artist = new Artist({
+            ...DEFAULT_TEST_ARTIST_DATA,
+            managingUserId: user._id.toString()
+        });
+        await artist.save();
+        const album = new Album({
+            ...DEFAULT_TEST_ALBUM_DATA,
+            artistId: artist._id.toString(),
+        });
+        await album.save();
+        const track = new Track({
+            ...DEFAULT_TEST_TRACK_DATA,
+            artistId: artist._id.toString(),
+            albumId: album._id.toString(),
+        });
+        await track.save();
+        user.favoriteAlbums.push(album._id.toString());
+        user.favoriteTracks.push(track._id.toString());
+        await user.save();
+        const deletedAlbum = await deleteAlbum(album._id.toString());
+        expect(deletedAlbum).toBe(true);
+        const updatedUser = await User.findById(user._id.toString());
+        expect(updatedUser?.favoriteAlbums).not.toContain(album._id.toString());
+        expect(updatedUser?.favoriteTracks).not.toContain(track._id.toString());
     });
 
     it("Throws error if album to delete does not exist", async ()=>{

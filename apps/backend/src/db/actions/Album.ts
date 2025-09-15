@@ -1,6 +1,7 @@
 import { EditableAlbum, IAlbum } from "@common/types/src/types";
 import Album from "../models/Album";
 import Track from "../models/Track";
+import User from "../models/User";
 
 export const createAlbum = async (albumData: IAlbum) => {
     if (await Album.findOne({ title: albumData.title, artistId: albumData.artistId })) {
@@ -30,5 +31,13 @@ export const deleteAlbum = async (albumId: string) => {
         throw new Error(`Album with ID ${albumId} not found`);
     }
     await Track.deleteMany({ albumId });
+    await User.updateMany(
+        { favoriteTracks: { $in: await Track.find({ albumId }).distinct('_id') } },
+        { $pull: { favoriteTracks: { $in: await Track.find({ albumId }).distinct('_id') } } }
+    );
+    await User.updateMany(
+        { favoriteAlbums: albumId },
+        { $pull: { favoriteAlbums: albumId } }
+    );
     return true;
 }

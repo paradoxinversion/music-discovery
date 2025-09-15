@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import Artist from "../models/Artist";
 import {DEFAULT_TEST_ALBUM_DATA, DEFAULT_TEST_ARTIST_DATA, DEFAULT_TEST_TRACK_DATA, DEFAULT_TEST_USER_DATA, DEFAULT_TEST_USER_SIGNUP} from "../../../test-helpers/dbData";
 import Album from "../models/Album";
-import { IAlbum, ITrack } from "@common/types/src/types";
+import { ITrack } from "@common/types/src/types";
 import Track from "../models/Track";
 import { createTrack, getTrackById, updateTrack, deleteTrack } from "./Track";
 
