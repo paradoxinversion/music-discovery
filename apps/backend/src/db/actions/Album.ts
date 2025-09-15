@@ -30,7 +30,7 @@ export const deleteAlbum = async (albumId: string) => {
     if (!deletedAlbum) {
         throw new Error(`Album with ID ${albumId} not found`);
     }
-    await Track.deleteMany({ albumId });
+    
     await User.updateMany(
         { favoriteTracks: { $in: await Track.find({ albumId }).distinct('_id') } },
         { $pull: { favoriteTracks: { $in: await Track.find({ albumId }).distinct('_id') } } }
@@ -39,5 +39,6 @@ export const deleteAlbum = async (albumId: string) => {
         { favoriteAlbums: albumId },
         { $pull: { favoriteAlbums: albumId } }
     );
+    await Track.deleteMany({ albumId });
     return true;
 }
