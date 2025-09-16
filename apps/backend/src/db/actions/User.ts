@@ -11,8 +11,7 @@ import Album from "../models/Album";
  * @throws Error if username or email is already in use
  */
 export const createUser = async (user: IUserSignup) => {
-  try{
-
+  try {
     const newUser = new User({
       username: user.username,
       email: user.email,
@@ -37,7 +36,7 @@ export const getUserById = async (userId: string) => {
   } catch (error) {
     throw new Error(`Error retrieving user: ${error}`);
   }
-}
+};
 
 /**
  * Update a user's information.
@@ -48,7 +47,9 @@ export const getUserById = async (userId: string) => {
  */
 export const updateUser = async (userId: string, updates: Partial<IUser>) => {
   try {
-    const user = await User.findByIdAndUpdate(userId, updates, { new: true });
+    const user = await User.findByIdAndUpdate(userId, updates, {
+      new: true,
+    });
     if (!user) {
       throw new Error(`User with ID ${userId} not found`);
     }
@@ -56,7 +57,7 @@ export const updateUser = async (userId: string, updates: Partial<IUser>) => {
   } catch (error) {
     throw new Error(`Error updating user: ${error}`);
   }
-}
+};
 /**
  * Add a favorite artist to a user's profile.
  * @param userId - The ID of the user
@@ -76,7 +77,9 @@ export const addFavoriteArtist = async (userId: string, artistId: string) => {
   }
 
   if (user.favoriteArtists.includes(artistId)) {
-    throw new Error(`Artist with ID ${artistId} is already in user's favorite list`);
+    throw new Error(
+      `Artist with ID ${artistId} is already in user's favorite list`,
+    );
   }
   user.favoriteArtists.push(artistId);
   await user.save();
@@ -90,7 +93,10 @@ export const addFavoriteArtist = async (userId: string, artistId: string) => {
  * @returns The updated user document
  * @throws Error if user or artist is not found, or if the artist is not in the user's favorites
  */
-export const removeFavoriteArtist = async (userId: string, artistId: string) => {
+export const removeFavoriteArtist = async (
+  userId: string,
+  artistId: string,
+) => {
   const user = await User.findById(userId);
   if (!user) {
     throw new Error(`User with ID ${userId} not found`);
@@ -101,10 +107,14 @@ export const removeFavoriteArtist = async (userId: string, artistId: string) => 
   }
 
   if (!user.favoriteArtists.includes(artistId)) {
-    throw new Error(`Artist with ID ${artistId} is not in user's favorite list`);
+    throw new Error(
+      `Artist with ID ${artistId} is not in user's favorite list`,
+    );
   }
 
-  user.favoriteArtists = user.favoriteArtists.filter(fav => fav.toString() !== artist._id.toString());
+  user.favoriteArtists = user.favoriteArtists.filter(
+    (fav) => fav.toString() !== artist._id.toString(),
+  );
 
   await user.save();
   return user;
@@ -122,7 +132,9 @@ export const addFavoriteAlbum = async (userId: string, albumId: string) => {
   }
 
   if (user.favoriteAlbums.includes(albumId)) {
-    throw new Error(`Album with ID ${albumId} is already in user's favorite list`);
+    throw new Error(
+      `Album with ID ${albumId} is already in user's favorite list`,
+    );
   }
   user.favoriteAlbums.push(albumId);
   await user.save();
@@ -143,7 +155,9 @@ export const removeFavoriteAlbum = async (userId: string, albumId: string) => {
     throw new Error(`Album with ID ${albumId} is not in user's favorite list`);
   }
 
-  user.favoriteAlbums = user.favoriteAlbums.filter(fav => fav.toString() !== album._id.toString());
+  user.favoriteAlbums = user.favoriteAlbums.filter(
+    (fav) => fav.toString() !== album._id.toString(),
+  );
 
   await user.save();
   return user;
@@ -161,7 +175,9 @@ export const addFavoriteTrack = async (userId: string, trackId: string) => {
   }
 
   if (user.favoriteTracks.includes(trackId)) {
-    throw new Error(`Track with ID ${trackId} is already in user's favorite list`);
+    throw new Error(
+      `Track with ID ${trackId} is already in user's favorite list`,
+    );
   }
   user.favoriteTracks.push(trackId);
   await user.save();
@@ -182,26 +198,28 @@ export const removeFavoriteTrack = async (userId: string, trackId: string) => {
     throw new Error(`Track with ID ${trackId} is not in user's favorite list`);
   }
 
-  user.favoriteTracks = user.favoriteTracks.filter(fav => fav.toString() !== track._id.toString());
+  user.favoriteTracks = user.favoriteTracks.filter(
+    (fav) => fav.toString() !== track._id.toString(),
+  );
 
   await user.save();
   return user;
 };
 
 export const deleteUser = async (userId: string) => {
-    const deletedUser = await User.findByIdAndDelete(userId);
-    if (!deletedUser) {
-        throw new Error(`User with ID ${userId} not found`);
-    }
+  const deletedUser = await User.findByIdAndDelete(userId);
+  if (!deletedUser) {
+    throw new Error(`User with ID ${userId} not found`);
+  }
 
-    const artistsManaged = await Artist.find({ managingUserId: userId });
-    if (artistsManaged.length > 0){
-      for (const artist of artistsManaged) {
-          const artistId = artist._id.toString();
-          await Track.deleteMany({ artistId });
-          await Album.deleteMany({ artistId });
-          await artist.deleteOne();
-      }
+  const artistsManaged = await Artist.find({ managingUserId: userId });
+  if (artistsManaged.length > 0) {
+    for (const artist of artistsManaged) {
+      const artistId = artist._id.toString();
+      await Track.deleteMany({ artistId });
+      await Album.deleteMany({ artistId });
+      await artist.deleteOne();
     }
-    return true;
+  }
+  return true;
 };

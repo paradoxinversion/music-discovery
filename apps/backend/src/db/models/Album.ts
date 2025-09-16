@@ -1,5 +1,5 @@
 import { IAlbum } from "@common/types/src/types";
-import { Types, Schema, model } from "mongoose";
+import { Schema, model } from "mongoose";
 
 const AlbumSchema: Schema<IAlbum> = new Schema({
   title: {

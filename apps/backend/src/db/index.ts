@@ -1,3 +1,3 @@
-import {connectToDatabase} from "./connect";
+import { connectToDatabase } from "./connect";
 
-export {connectToDatabase};
+export { connectToDatabase };

@@ -1,6 +1,6 @@
 import { ITrack } from "@common/types/src/types";
 
-import { Types, Schema, model } from "mongoose";
+import { Schema, model } from "mongoose";
 
 const TrackSchema: Schema<ITrack> = new Schema({
   title: {

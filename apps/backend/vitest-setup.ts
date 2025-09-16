@@ -7,12 +7,12 @@ import Track from "./src/db/models/Track";
 import Album from "./src/db/models/Album";
 
 beforeAll(async () => {
-    await prepareDB();
+  await prepareDB();
 });
 afterAll(async () => {
-    await User.deleteMany({});
-    await Artist.deleteMany({});
-    await Track.deleteMany({});
-    await Album.deleteMany({});
-    await mongoose.connection.dropDatabase();
+  await User.deleteMany({});
+  await Artist.deleteMany({});
+  await Track.deleteMany({});
+  await Album.deleteMany({});
+  await mongoose.connection.dropDatabase();
 });

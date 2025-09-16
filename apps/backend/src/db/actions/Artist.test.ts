@@ -1,6 +1,16 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createArtist, deleteArtist, getArtistById, updateArtist } from "./Artist";
-import { DEFAULT_TEST_USER_DATA, DEFAULT_TEST_ARTIST_DATA, DEFAULT_TEST_ALBUM_DATA, DEFAULT_TEST_TRACK_DATA } from "../../../test-helpers/dbData";
+import {
+  createArtist,
+  deleteArtist,
+  getArtistById,
+  updateArtist,
+} from "./Artist";
+import {
+  DEFAULT_TEST_USER_DATA,
+  DEFAULT_TEST_ARTIST_DATA,
+  DEFAULT_TEST_ALBUM_DATA,
+  DEFAULT_TEST_TRACK_DATA,
+} from "../../../test-helpers/dbData";
 import User from "../models/User";
 import mongoose from "mongoose";
 import Artist from "../models/Artist";
@@ -9,10 +19,10 @@ import Album from "../models/Album";
 import { EditableArtist, IArtist } from "@common/types/src/types";
 
 beforeEach(async () => {
-    await User.deleteMany({});
-    await Artist.deleteMany({});
-    await Track.deleteMany({});
-    await Album.deleteMany({});
+  await User.deleteMany({});
+  await Artist.deleteMany({});
+  await Track.deleteMany({});
+  await Album.deleteMany({});
 });
 
 describe("Create Artist", () => {
@@ -39,140 +49,145 @@ describe("Create Artist", () => {
     await expect(createArtist(fakeUserId, artistData)).rejects.toThrow();
   });
 
-  it("Should throw an error if the artist name is not unique", async ()=>{
+  it("Should throw an error if the artist name is not unique", async () => {
     const user = new User(DEFAULT_TEST_USER_DATA);
     await user.save();
 
     const artistData = {
-        ...DEFAULT_TEST_ARTIST_DATA,
-        managingUserId: user._id.toString()
+      ...DEFAULT_TEST_ARTIST_DATA,
+      managingUserId: user._id.toString(),
     } as IArtist;
 
     await createArtist(user._id.toString(), artistData);
-    await expect(createArtist(user._id.toString(), artistData)).rejects.toThrow();
-    });
+    await expect(
+      createArtist(user._id.toString(), artistData),
+    ).rejects.toThrow();
+  });
 });
 
-describe("Get Artist", ()=>{
-    it("Fetches an artist by ID", async ()=>{
-        const user = new User(DEFAULT_TEST_USER_DATA);
-        await user.save();
+describe("Get Artist", () => {
+  it("Fetches an artist by ID", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    await user.save();
 
-        const artist = new Artist({
-            ...DEFAULT_TEST_ARTIST_DATA,
-            managingUserId: user._id.toString()
-        });
-        await artist.save();
-
-        const fetchedArtist = await getArtistById(artist._id.toString());
-        expect(fetchedArtist).toBeDefined();
-        expect(fetchedArtist?._id).toEqual(artist._id);
+    const artist = new Artist({
+      ...DEFAULT_TEST_ARTIST_DATA,
+      managingUserId: user._id.toString(),
     });
+    await artist.save();
 
-    it("Returns null if artist does not exist", async ()=>{
-        const fakeArtistId = new mongoose.Types.ObjectId().toString();
-        const fetchedArtist = await getArtistById(fakeArtistId);
-        expect(fetchedArtist).toBeNull();
-    });
+    const fetchedArtist = await getArtistById(artist._id.toString());
+    expect(fetchedArtist).toBeDefined();
+    expect(fetchedArtist?._id).toEqual(artist._id);
+  });
+
+  it("Returns null if artist does not exist", async () => {
+    const fakeArtistId = new mongoose.Types.ObjectId().toString();
+    const fetchedArtist = await getArtistById(fakeArtistId);
+    expect(fetchedArtist).toBeNull();
+  });
 });
 
-describe("Update Artist", ()=>{
-    it("Updates an artist's details", async ()=>{
-        const user = new User(DEFAULT_TEST_USER_DATA);
-        await user.save();
-        const artistData = {
-            ...DEFAULT_TEST_ARTIST_DATA,
-            managingUserId: user._id.toString()
-        };
-        const artist = new Artist(artistData);
-        await artist.save();
-        const updateData: EditableArtist = {
-            name: "Test Artist Update",
-            links: {
-                instagram: "https://instagram.com/testartist"
-            }
-        };
-        const updatedArtist = await updateArtist(artist._id.toString(), updateData);
-        expect(updatedArtist).toHaveProperty("_id", artist._id);
-        expect(updatedArtist?.name).toBe(updateData.name);
-        expect(updatedArtist?.links).toEqual(updateData.links);
-         const updateData2: EditableArtist = {
-            name: "Test Artist Update",
-            links: {}
-        };
-        const updatedArtist2 = await updateArtist(artist._id.toString(), updateData2);
-        expect(updatedArtist2?.links).toEqual({});
-    });
+describe("Update Artist", () => {
+  it("Updates an artist's details", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    await user.save();
+    const artistData = {
+      ...DEFAULT_TEST_ARTIST_DATA,
+      managingUserId: user._id.toString(),
+    };
+    const artist = new Artist(artistData);
+    await artist.save();
+    const updateData: EditableArtist = {
+      name: "Test Artist Update",
+      links: {
+        instagram: "https://instagram.com/testartist",
+      },
+    };
+    const updatedArtist = await updateArtist(artist._id.toString(), updateData);
+    expect(updatedArtist).toHaveProperty("_id", artist._id);
+    expect(updatedArtist?.name).toBe(updateData.name);
+    expect(updatedArtist?.links).toEqual(updateData.links);
+    const updateData2: EditableArtist = {
+      name: "Test Artist Update",
+      links: {},
+    };
+    const updatedArtist2 = await updateArtist(
+      artist._id.toString(),
+      updateData2,
+    );
+    expect(updatedArtist2?.links).toEqual({});
+  });
 
-    it("Throws an error if artist does not exist", async ()=>{
-        const fakeArtistId = new mongoose.Types.ObjectId().toString();
-        const updateData: EditableArtist = {
-            name: "Non-existent Artist"
-        };
-        await expect(updateArtist(fakeArtistId, updateData)).rejects.toThrow();
-    });
+  it("Throws an error if artist does not exist", async () => {
+    const fakeArtistId = new mongoose.Types.ObjectId().toString();
+    const updateData: EditableArtist = {
+      name: "Non-existent Artist",
+    };
+    await expect(updateArtist(fakeArtistId, updateData)).rejects.toThrow();
+  });
 });
 
-describe("Delete Artist", ()=>{
-    it("Deletes an artist by ID", async ()=>{
-        const user = new User(DEFAULT_TEST_USER_DATA);
-        await user.save();
+describe("Delete Artist", () => {
+  it("Deletes an artist by ID", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    await user.save();
 
-        const artist = new Artist({
-            ...DEFAULT_TEST_ARTIST_DATA,
-            managingUserId: user._id.toString()
-        });
-        await artist.save();
-
-        const deletedArtist = await deleteArtist(artist._id.toString());
-        expect(deletedArtist).toBe(true);
-        expect(await Artist.findById(artist._id.toString())).toBeNull();
+    const artist = new Artist({
+      ...DEFAULT_TEST_ARTIST_DATA,
+      managingUserId: user._id.toString(),
     });
+    await artist.save();
 
-    it("Also deletes associated albums and tracks, and removes artist from users' favorites", async ()=>{
-        const user = new User({
-            ...DEFAULT_TEST_USER_DATA,
-            favoriteArtists: [],
-            favoriteAlbums: [],
-            favoriteTracks: []
-        });
-        await user.save();
+    const deletedArtist = await deleteArtist(artist._id.toString());
+    expect(deletedArtist).toBe(true);
+    expect(await Artist.findById(artist._id.toString())).toBeNull();
+  });
 
-        const artist = new Artist({
-            ...DEFAULT_TEST_ARTIST_DATA,
-            managingUserId: user._id.toString()
-        });
-        await artist.save();
-
-        const album = new Album({
-            ...DEFAULT_TEST_ALBUM_DATA,
-            artistId: artist._id.toString()
-        });
-        await album.save();
-
-        const track = new Track({
-            ...DEFAULT_TEST_TRACK_DATA,
-            artistId: artist._id.toString(),
-            albumId: album._id.toString()
-        });
-        await track.save();
-
-        // Add artist to user's favorites
-        user.favoriteArtists.push(artist._id.toString());
-        await user.save();
-
-        const deletedArtist = await deleteArtist(artist._id.toString());
-        expect(deletedArtist).toBe(true);
-        expect(await Artist.findById(artist._id.toString())).toBeNull();
-        expect(await Album.findById(album._id.toString())).toBeNull();
-        expect(await Track.findById(track._id.toString())).toBeNull();
-        // Verify artist is removed from user's favorites
-        const updatedUser = await User.findById(user._id.toString());
-        expect(updatedUser?.favoriteArtists).not.toContain(artist._id.toString());
+  it("Also deletes associated albums and tracks, and removes artist from users' favorites", async () => {
+    const user = new User({
+      ...DEFAULT_TEST_USER_DATA,
+      favoriteArtists: [],
+      favoriteAlbums: [],
+      favoriteTracks: [],
     });
+    await user.save();
 
-    it("Throws an error if artist does not exist", async ()=>{
-        const fakeArtistId = new mongoose.Types.ObjectId().toString();
-        await expect(deleteArtist(fakeArtistId)).rejects.toThrow();
+    const artist = new Artist({
+      ...DEFAULT_TEST_ARTIST_DATA,
+      managingUserId: user._id.toString(),
     });
+    await artist.save();
+
+    const album = new Album({
+      ...DEFAULT_TEST_ALBUM_DATA,
+      artistId: artist._id.toString(),
+    });
+    await album.save();
+
+    const track = new Track({
+      ...DEFAULT_TEST_TRACK_DATA,
+      artistId: artist._id.toString(),
+      albumId: album._id.toString(),
+    });
+    await track.save();
+
+    // Add artist to user's favorites
+    user.favoriteArtists.push(artist._id.toString());
+    await user.save();
+
+    const deletedArtist = await deleteArtist(artist._id.toString());
+    expect(deletedArtist).toBe(true);
+    expect(await Artist.findById(artist._id.toString())).toBeNull();
+    expect(await Album.findById(album._id.toString())).toBeNull();
+    expect(await Track.findById(track._id.toString())).toBeNull();
+    // Verify artist is removed from user's favorites
+    const updatedUser = await User.findById(user._id.toString());
+    expect(updatedUser?.favoriteArtists).not.toContain(artist._id.toString());
+  });
+
+  it("Throws an error if artist does not exist", async () => {
+    const fakeArtistId = new mongoose.Types.ObjectId().toString();
+    await expect(deleteArtist(fakeArtistId)).rejects.toThrow();
+  });
 });
