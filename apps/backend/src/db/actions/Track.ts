@@ -21,6 +21,10 @@ export const createTrack = async (trackData: ITrack) => {
   await track.save();
   return track;
 };
+export const getAllTracks = async (): Promise<ITrack[]> => {
+  const tracks = await Track.find();
+  return tracks.map((track) => track.toJSON({ flattenMaps: true })) as ITrack[];
+};
 
 export const getTrackById = async (trackId: string) => {
   const track = await Track.findById(trackId);

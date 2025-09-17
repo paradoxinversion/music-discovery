@@ -16,7 +16,7 @@ import Track from "../models/Track";
  */
 export const createArtist = async (
   userId: string,
-  artistData: IArtist,
+  artistData: Omit<IArtist, "managingUserId">,
 ): Promise<IArtist> => {
   try {
     const managingUser = await User.findById(userId);
@@ -28,6 +28,17 @@ export const createArtist = async (
     return newArtist.toJSON({ flattenMaps: true });
   } catch (error) {
     throw new Error(`Error creating artist: ${error}`);
+  }
+};
+
+export const getAllArtists = async (): Promise<IArtist[]> => {
+  try {
+    const artists = await Artist.find();
+    return artists.map((artist) =>
+      artist.toJSON({ flattenMaps: true }),
+    ) as IArtist[];
+  } catch (error) {
+    throw new Error(`Error retrieving artists: ${error}`);
   }
 };
 
@@ -71,15 +82,21 @@ export const updateArtist = async (
 
 /**
  * Delete an artist by their ID. Also deletes associated albums and tracks, and removes the artist from users' favorites.
+ * @param userId - The ID of the user attempting to delete the artist
  * @param artistId - The ID of the artist to delete
  * @returns True if deletion was successful
  * @throws Error if artist is not found
  */
-export const deleteArtist = async (artistId: string) => {
+export const deleteArtist = async (userId: string, artistId: string) => {
   try {
-    const deletedArtist = await Artist.findByIdAndDelete(artistId);
+    const deletedArtist = await Artist.findByIdAndDelete({
+      _id: artistId,
+      managingUserId: userId,
+    });
     if (!deletedArtist) {
-      throw new Error(`Artist with ID ${artistId} not found`);
+      throw new Error(
+        `Artist with ID ${artistId} not found or user not authorized`,
+      );
     }
     await Album.deleteMany({ artistId: artistId });
     await Track.deleteMany({ artistId: artistId });

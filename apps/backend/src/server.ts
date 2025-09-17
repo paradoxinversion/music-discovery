@@ -2,6 +2,9 @@ import "dotenv/config";
 import express from "express";
 import passport from "passport";
 import morgan from "morgan";
+import coookieParser from "cookie-parser";
+import bodyParser from "body-parser";
+import expressSession from "express-session";
 import { connectToDatabase } from "./db";
 import { Strategy as LocalStrategy } from "passport-local";
 import User, { IUserDoc } from "./db/models/User";
@@ -11,6 +14,17 @@ const appName = "Music Discovery App";
 const app = express();
 app.use(morgan("dev"));
 app.use(express.json());
+app.use(coookieParser());
+app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(
+  expressSession({
+    secret: process.env.SESSION_SECRET || "default_secret",
+    resave: true,
+    saveUninitialized: true,
+    cookie: { secure: false },
+  }),
+);
 connectToDatabase();
 
 passport.use(
@@ -37,6 +51,7 @@ passport.deserializeUser(async function (id, done) {
 });
 
 app.use(passport.initialize());
+app.use(passport.session());
 app.use("/api/v1", api);
 
 app.listen(process.env.PORT, () => {
