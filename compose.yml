@@ -11,6 +11,10 @@ services:
     build:
       context: .
       dockerfile: ./apps/backend/Dockerfile
+    develop:
+      watch:
+        - path: ./apps/backend/src
+          action: rebuild
     environment:
       NODE_ENV: development
     ports:
