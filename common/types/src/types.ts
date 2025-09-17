@@ -29,6 +29,7 @@ interface ITrack {
   duration: number;
   isrc?: string;
   genre: string;
+  managingUserId: string;
   links?: {
     [key in CommonLinkKeyMusic]?: string;
   };
@@ -42,6 +43,7 @@ interface IAlbum {
   artistId: string;
   releaseDate: Date;
   genre: string;
+  managingUserId: string;
   links?: {
     [key in CommonLinkKeyMusic]?: string;
   };

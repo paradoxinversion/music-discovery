@@ -32,6 +32,11 @@ const TrackSchema: Schema<ITrack> = new Schema({
     of: String,
     required: false,
   },
+  managingUserId: {
+    type: String,
+    required: true,
+    ref: "User",
+  },
 });
 
 const Track = model<ITrack>("Track", TrackSchema);

@@ -60,9 +60,9 @@ describe("Get User By ID", () => {
   it("Retrieves a user by ID", async () => {
     const createdUser = await createUser(DEFAULT_TEST_USER_SIGNUP);
     expect(createdUser).toBeDefined();
-    const fetchedUser = await getUserById(createdUser._id.toString());
+    const fetchedUser = await getUserById(createdUser.id.toString());
     expect(fetchedUser).toBeDefined();
-    expect(fetchedUser?._id.toString()).toBe(createdUser._id.toString());
+    expect(fetchedUser?.id.toString()).toBe(createdUser.id.toString());
   });
 
   it("Returns null if user does not exist", async () => {
@@ -80,11 +80,11 @@ describe("Add favorite artist", () => {
       name: "The Crescendolls",
       genre: "Electronic",
       biography: "An extraterrestrial band known for their catchy tunes.",
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
-    await addFavoriteArtist(user._id.toString(), artist._id.toString());
-    const updatedUser = await User.findById(user._id);
+    await addFavoriteArtist(user.id.toString(), artist.id.toString());
+    const updatedUser = await User.findById(user.id);
     expect(updatedUser).toBeDefined();
     expect(updatedUser?.favoriteArtists.length).toBe(1);
     expect(updatedUser?.favoriteArtists[0]?.toString()).toBe(
@@ -99,12 +99,12 @@ describe("Add favorite artist", () => {
       name: "The Crescendolls",
       genre: "Electronic",
       biography: "An extraterrestrial band known for their catchy tunes.",
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
-    await addFavoriteArtist(user._id.toString(), artist._id.toString());
+    await addFavoriteArtist(user.id.toString(), artist.id.toString());
     await expect(
-      addFavoriteArtist(user._id.toString(), artist._id.toString()),
+      addFavoriteArtist(user.id.toString(), artist.id.toString()),
     ).rejects.toThrow();
   });
 
@@ -127,7 +127,7 @@ describe("Add favorite artist", () => {
     await user.save();
     const fakeArtistId = new mongoose.Types.ObjectId().toString();
     await expect(
-      addFavoriteArtist(user._id.toString(), fakeArtistId),
+      addFavoriteArtist(user.id.toString(), fakeArtistId),
     ).rejects.toThrow();
   });
 });
@@ -140,12 +140,12 @@ describe("Remove favorite artist", () => {
       name: "The Crescendolls",
       genre: "Electronic",
       biography: "An extraterrestrial band known for their catchy tunes.",
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
 
     await User.updateOne(
-      { _id: user._id },
+      { _id: user.id },
       { $push: { favoriteArtists: artist._id.toString() } },
     );
     await user.save();
@@ -157,7 +157,7 @@ describe("Remove favorite artist", () => {
     );
 
     // Now remove the artist
-    await removeFavoriteArtist(user._id.toString(), artist._id.toString());
+    await removeFavoriteArtist(user.id.toString(), artist._id.toString());
     const userAfterRemoval = await User.findById(user._id);
     expect(userAfterRemoval).toBeDefined();
     expect(userAfterRemoval?.favoriteArtists.length).toBe(0);
@@ -170,11 +170,11 @@ describe("Remove favorite artist", () => {
       name: "The Crescendolls",
       genre: "Electronic",
       biography: "An extraterrestrial band known for their catchy tunes.",
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
     await expect(
-      removeFavoriteArtist(user._id.toString(), artist._id.toString()),
+      removeFavoriteArtist(user.id.toString(), artist._id.toString()),
     ).rejects.toThrow();
   });
 
@@ -197,7 +197,7 @@ describe("Remove favorite artist", () => {
     await user.save();
     const fakeArtistId = new mongoose.Types.ObjectId().toString();
     await expect(
-      removeFavoriteArtist(user._id.toString(), fakeArtistId),
+      removeFavoriteArtist(user.id.toString(), fakeArtistId),
     ).rejects.toThrow();
   });
 });
@@ -208,20 +208,21 @@ describe("Add favorite Album", () => {
     await user.save();
     const artist = new Artist({
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
-      artistId: artist._id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
     await album.save();
-    await addFavoriteAlbum(user._id.toString(), album._id.toString());
-    const updatedUser = await User.findById(user._id);
+    await addFavoriteAlbum(user.id.toString(), album.id.toString());
+    const updatedUser = await User.findById(user.id);
     expect(updatedUser).toBeDefined();
     expect(updatedUser?.favoriteAlbums.length).toBe(1);
     expect(updatedUser?.favoriteAlbums[0]?.toString()).toBe(
-      album._id.toString(),
+      album.id.toString(),
     );
   });
   it("Throws an error if the user already has the album as favorite", async () => {
@@ -229,17 +230,18 @@ describe("Add favorite Album", () => {
     await user.save();
     const artist = new Artist({
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
-      artistId: artist._id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
     await album.save();
-    await addFavoriteAlbum(user._id.toString(), album._id.toString());
+    await addFavoriteAlbum(user.id.toString(), album.id.toString());
     await expect(
-      addFavoriteAlbum(user._id.toString(), album._id.toString()),
+      addFavoriteAlbum(user.id.toString(), album.id.toString()),
     ).rejects.toThrow();
   });
 
@@ -251,12 +253,13 @@ describe("Add favorite Album", () => {
     });
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
-      artistId: artist._id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: fakeUserId,
     });
     await artist.save();
     await album.save();
     await expect(
-      addFavoriteAlbum(fakeUserId, album._id.toString()),
+      addFavoriteAlbum(fakeUserId, album.id.toString()),
     ).rejects.toThrow();
   });
 
@@ -265,7 +268,7 @@ describe("Add favorite Album", () => {
     await user.save();
     const fakeAlbumId = new mongoose.Types.ObjectId().toString();
     await expect(
-      addFavoriteAlbum(user._id.toString(), fakeAlbumId),
+      addFavoriteAlbum(user.id.toString(), fakeAlbumId),
     ).rejects.toThrow();
   });
 });
@@ -276,18 +279,19 @@ describe("Remove favorite Album", () => {
     await user.save();
     const artist = new Artist({
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
-      artistId: artist._id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
     await album.save();
-    await user.favoriteAlbums.push(album._id.toString());
+    await user.favoriteAlbums.push(album.id.toString());
     await user.save();
-    await removeFavoriteAlbum(user._id.toString(), album._id.toString());
-    const updatedUser = await User.findById(user._id);
+    await removeFavoriteAlbum(user.id.toString(), album.id.toString());
+    const updatedUser = await User.findById(user.id);
     expect(updatedUser).toBeDefined();
     expect(updatedUser?.favoriteAlbums.length).toBe(0);
   });
@@ -297,16 +301,17 @@ describe("Remove favorite Album", () => {
     await user.save();
     const artist = new Artist({
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
-      artistId: artist._id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
     await album.save();
     await expect(
-      removeFavoriteAlbum(user._id.toString(), album._id.toString()),
+      removeFavoriteAlbum(user.id.toString(), album.id.toString()),
     ).rejects.toThrow();
   });
 
@@ -318,12 +323,13 @@ describe("Remove favorite Album", () => {
     });
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
-      artistId: artist._id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: fakeUserId,
     });
     await artist.save();
     await album.save();
     await expect(
-      removeFavoriteAlbum(fakeUserId, album._id.toString()),
+      removeFavoriteAlbum(fakeUserId, album.id.toString()),
     ).rejects.toThrow();
   });
 
@@ -332,7 +338,7 @@ describe("Remove favorite Album", () => {
     await user.save();
     const fakeAlbumId = new mongoose.Types.ObjectId().toString();
     await expect(
-      removeFavoriteAlbum(user._id.toString(), fakeAlbumId),
+      removeFavoriteAlbum(user.id.toString(), fakeAlbumId),
     ).rejects.toThrow();
   });
 });
@@ -343,22 +349,24 @@ describe("Add favorite Track", () => {
     await user.save();
     const artist = new Artist({
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
-      artistId: artist._id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     });
     const track = new Track({
       ...DEFAULT_TEST_TRACK_DATA,
-      artistId: artist._id.toString(),
-      albumId: album._id.toString(),
+      artistId: artist.id.toString(),
+      albumId: album.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
     await album.save();
     await track.save();
-    await addFavoriteTrack(user._id.toString(), track._id.toString());
-    const updatedUser = await User.findById(user._id);
+    await addFavoriteTrack(user.id.toString(), track.id.toString());
+    const updatedUser = await User.findById(user.id);
     expect(updatedUser).toBeDefined();
     expect(updatedUser?.favoriteTracks.length).toBe(1);
     expect(updatedUser?.favoriteTracks[0]?.toString()).toBe(
@@ -370,23 +378,25 @@ describe("Add favorite Track", () => {
     await user.save();
     const artist = new Artist({
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
-      artistId: artist._id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     });
     const track = new Track({
       ...DEFAULT_TEST_TRACK_DATA,
-      artistId: artist._id.toString(),
-      albumId: album._id.toString(),
+      artistId: artist.id.toString(),
+      albumId: album.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
     await album.save();
     await track.save();
-    await addFavoriteTrack(user._id.toString(), track._id.toString());
+    await addFavoriteTrack(user.id.toString(), track.id.toString());
     await expect(
-      addFavoriteTrack(user._id.toString(), track._id.toString()),
+      addFavoriteTrack(user.id.toString(), track.id.toString()),
     ).rejects.toThrow();
   });
 
@@ -399,11 +409,13 @@ describe("Add favorite Track", () => {
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
       artistId: artist._id.toString(),
+      managingUserId: fakeUserId,
     });
     const track = new Track({
       ...DEFAULT_TEST_TRACK_DATA,
       artistId: artist._id.toString(),
       albumId: album._id.toString(),
+      managingUserId: fakeUserId,
     });
     await artist.save();
     await album.save();
@@ -418,7 +430,7 @@ describe("Add favorite Track", () => {
     await user.save();
     const fakeTrackId = new mongoose.Types.ObjectId().toString();
     await expect(
-      addFavoriteTrack(user._id.toString(), fakeTrackId),
+      addFavoriteTrack(user.id.toString(), fakeTrackId),
     ).rejects.toThrow();
   });
 });
@@ -429,24 +441,26 @@ describe("Remove favorite Track", () => {
     await user.save();
     const artist = new Artist({
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
-      artistId: artist._id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     });
     const track = new Track({
       ...DEFAULT_TEST_TRACK_DATA,
-      artistId: artist._id.toString(),
-      albumId: album._id.toString(),
+      artistId: artist.id.toString(),
+      albumId: album.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
     await album.save();
     await track.save();
-    await user.favoriteTracks.push(track._id.toString());
+    await user.favoriteTracks.push(track.id.toString());
     await user.save();
-    await removeFavoriteTrack(user._id.toString(), track._id.toString());
-    const updatedUser = await User.findById(user._id);
+    await removeFavoriteTrack(user.id.toString(), track.id.toString());
+    const updatedUser = await User.findById(user.id);
     expect(updatedUser).toBeDefined();
     expect(updatedUser?.favoriteTracks.length).toBe(0);
   });
@@ -456,22 +470,24 @@ describe("Remove favorite Track", () => {
     await user.save();
     const artist = new Artist({
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
-      artistId: artist._id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     });
     const track = new Track({
       ...DEFAULT_TEST_TRACK_DATA,
-      artistId: artist._id.toString(),
-      albumId: album._id.toString(),
+      artistId: artist.id.toString(),
+      albumId: album.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
     await album.save();
     await track.save();
     await expect(
-      removeFavoriteTrack(user._id.toString(), track._id.toString()),
+      removeFavoriteTrack(user.id.toString(), track.id.toString()),
     ).rejects.toThrow();
   });
 
@@ -483,12 +499,14 @@ describe("Remove favorite Track", () => {
     });
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
-      artistId: artist._id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: fakeUserId,
     });
     const track = new Track({
       ...DEFAULT_TEST_TRACK_DATA,
-      artistId: artist._id.toString(),
-      albumId: album._id.toString(),
+      artistId: artist.id.toString(),
+      albumId: album.id.toString(),
+      managingUserId: fakeUserId,
     });
     await artist.save();
     await album.save();
@@ -503,7 +521,7 @@ describe("Remove favorite Track", () => {
     await user.save();
     const fakeTrackId = new mongoose.Types.ObjectId().toString();
     await expect(
-      removeFavoriteTrack(user._id.toString(), fakeTrackId),
+      removeFavoriteTrack(user.id.toString(), fakeTrackId),
     ).rejects.toThrow();
   });
 });
@@ -512,9 +530,9 @@ describe("Delete User", () => {
   it("Deletes a user successfully", async () => {
     const user = new User(DEFAULT_TEST_USER_DATA);
     await user.save();
-    const deletionResult = await deleteUser(user._id.toString());
+    const deletionResult = await deleteUser(user.id.toString());
     expect(deletionResult).toBe(true);
-    const fetchedUser = await User.findById(user._id.toString());
+    const fetchedUser = await User.findById(user.id.toString());
     expect(fetchedUser).toBeNull();
   });
 
@@ -523,33 +541,35 @@ describe("Delete User", () => {
     await user.save();
     const artist = new Artist({
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
 
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
-      artistId: artist._id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await album.save();
     const track = new Track({
       ...DEFAULT_TEST_TRACK_DATA,
-      albumId: album._id.toString(),
-      artistId: artist._id.toString(),
+      albumId: album.id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await track.save();
-    const deletionResult = await deleteUser(user._id.toString());
+    const deletionResult = await deleteUser(user.id.toString());
     expect(deletionResult).toBe(true);
-    const fetchedUser = await User.findById(user._id.toString());
+    const fetchedUser = await User.findById(user.id.toString());
     expect(fetchedUser).toBeNull();
 
-    const fetchedArtist = await Artist.findById(artist._id.toString());
+    const fetchedArtist = await Artist.findById(artist.id.toString());
     expect(fetchedArtist).toBeNull();
 
-    const fetchedAlbum = await Album.findById(album._id.toString());
+    const fetchedAlbum = await Album.findById(album.id.toString());
     expect(fetchedAlbum).toBeNull();
 
-    const fetchedTrack = await Track.findById(track._id.toString());
+    const fetchedTrack = await Track.findById(track.id.toString());
     expect(fetchedTrack).toBeNull();
   });
 

@@ -31,10 +31,10 @@ describe("Create Artist", () => {
     await user.save();
     const artistData = {
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     } as IArtist;
 
-    const createdArtist = await createArtist(user._id.toString(), artistData);
+    const createdArtist = await createArtist(user.id.toString(), artistData);
     expect(createdArtist).toHaveProperty("_id");
     expect(createdArtist.name).toBe(artistData.name);
   });
@@ -55,12 +55,12 @@ describe("Create Artist", () => {
 
     const artistData = {
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     } as IArtist;
 
-    await createArtist(user._id.toString(), artistData);
+    await createArtist(user.id.toString(), artistData);
     await expect(
-      createArtist(user._id.toString(), artistData),
+      createArtist(user.id.toString(), artistData),
     ).rejects.toThrow();
   });
 });
@@ -72,11 +72,11 @@ describe("Get Artist", () => {
 
     const artist = new Artist({
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
 
-    const fetchedArtist = await getArtistById(artist._id.toString());
+    const fetchedArtist = await getArtistById(artist.id.toString());
     expect(fetchedArtist).toBeDefined();
     expect(fetchedArtist?._id).toEqual(artist._id);
   });
@@ -94,7 +94,7 @@ describe("Update Artist", () => {
     await user.save();
     const artistData = {
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     };
     const artist = new Artist(artistData);
     await artist.save();
@@ -104,7 +104,7 @@ describe("Update Artist", () => {
         instagram: "https://instagram.com/testartist",
       },
     };
-    const updatedArtist = await updateArtist(artist._id.toString(), updateData);
+    const updatedArtist = await updateArtist(artist.id.toString(), updateData);
     expect(updatedArtist).toHaveProperty("_id", artist._id);
     expect(updatedArtist?.name).toBe(updateData.name);
     expect(updatedArtist?.links).toEqual(updateData.links);
@@ -113,7 +113,7 @@ describe("Update Artist", () => {
       links: {},
     };
     const updatedArtist2 = await updateArtist(
-      artist._id.toString(),
+      artist.id.toString(),
       updateData2,
     );
     expect(updatedArtist2?.links).toEqual({});
@@ -135,13 +135,13 @@ describe("Delete Artist", () => {
 
     const artist = new Artist({
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
 
-    const deletedArtist = await deleteArtist(artist._id.toString());
+    const deletedArtist = await deleteArtist(user.id, artist.id.toString());
     expect(deletedArtist).toBe(true);
-    expect(await Artist.findById(artist._id.toString())).toBeNull();
+    expect(await Artist.findById(artist.id.toString())).toBeNull();
   });
 
   it("Also deletes associated albums and tracks, and removes artist from users' favorites", async () => {
@@ -155,39 +155,45 @@ describe("Delete Artist", () => {
 
     const artist = new Artist({
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
 
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
-      artistId: artist._id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await album.save();
 
     const track = new Track({
       ...DEFAULT_TEST_TRACK_DATA,
-      artistId: artist._id.toString(),
-      albumId: album._id.toString(),
+      artistId: artist.id.toString(),
+      albumId: album.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await track.save();
 
     // Add artist to user's favorites
-    user.favoriteArtists.push(artist._id.toString());
+    user.favoriteArtists.push(artist.id.toString());
     await user.save();
 
-    const deletedArtist = await deleteArtist(artist._id.toString());
+    const deletedArtist = await deleteArtist(user.id, artist.id.toString());
     expect(deletedArtist).toBe(true);
-    expect(await Artist.findById(artist._id.toString())).toBeNull();
-    expect(await Album.findById(album._id.toString())).toBeNull();
-    expect(await Track.findById(track._id.toString())).toBeNull();
+    expect(await Artist.findById(artist.id.toString())).toBeNull();
+    expect(await Album.findById(album.id.toString())).toBeNull();
+    expect(await Track.findById(track.id.toString())).toBeNull();
     // Verify artist is removed from user's favorites
-    const updatedUser = await User.findById(user._id.toString());
-    expect(updatedUser?.favoriteArtists).not.toContain(artist._id.toString());
+    const updatedUser = await User.findById(user.id.toString());
+    expect(updatedUser?.favoriteArtists).not.toContain(artist.id.toString());
   });
 
   it("Throws an error if artist does not exist", async () => {
+    const user = new User({
+      ...DEFAULT_TEST_USER_DATA,
+    });
+    await user.save();
     const fakeArtistId = new mongoose.Types.ObjectId().toString();
-    await expect(deleteArtist(fakeArtistId)).rejects.toThrow();
+    await expect(deleteArtist(user.id, fakeArtistId)).rejects.toThrow();
   });
 });

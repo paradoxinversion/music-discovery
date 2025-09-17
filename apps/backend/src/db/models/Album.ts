@@ -24,6 +24,11 @@ const AlbumSchema: Schema<IAlbum> = new Schema({
     of: String,
     required: false,
   },
+  managingUserId: {
+    type: String,
+    required: true,
+    ref: "User",
+  },
 });
 
 const Album = model<IAlbum>("Album", AlbumSchema);

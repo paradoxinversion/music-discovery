@@ -26,26 +26,28 @@ describe("Create Track", () => {
     await user.save();
     const artist = new Artist({
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
 
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
-      artistId: artist._id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await album.save();
 
     const trackData: ITrack = {
       ...DEFAULT_TEST_TRACK_DATA,
-      albumId: album._id.toString(),
-      artistId: artist._id.toString(),
+      albumId: album.id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     } as ITrack;
     const createdTrack = await createTrack(trackData);
     expect(createdTrack).toBeDefined();
     expect(createdTrack.title).toBe(trackData.title);
-    expect(createdTrack.albumId.toString()).toBe(album._id.toString());
-    expect(createdTrack.artistId.toString()).toBe(artist._id.toString());
+    expect(createdTrack.albumId.toString()).toBe(album.id.toString());
+    expect(createdTrack.artistId.toString()).toBe(artist.id.toString());
   });
 
   it("Prevents creating duplicate tracks in the same album", async () => {
@@ -53,20 +55,22 @@ describe("Create Track", () => {
     await user.save();
     const artist = new Artist({
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
 
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
-      artistId: artist._id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await album.save();
 
     const trackData: ITrack = {
       ...DEFAULT_TEST_TRACK_DATA,
-      albumId: album._id.toString(),
-      artistId: artist._id.toString(),
+      albumId: album.id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     } as ITrack;
     const createdTrack = await createTrack(trackData);
     expect(createdTrack).toBeDefined();
@@ -84,26 +88,28 @@ describe("Get Track By ID", () => {
     await user.save();
     const artist = new Artist({
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
 
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
-      artistId: artist._id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await album.save();
 
     const track = new Track({
       ...DEFAULT_TEST_TRACK_DATA,
-      albumId: album._id.toString(),
-      artistId: artist._id.toString(),
+      albumId: album.id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await track.save();
 
-    const fetchedTrack = getTrackById(track._id.toString());
+    const fetchedTrack = getTrackById(track.id.toString());
     expect(fetchedTrack).toBeDefined();
-    expect((await fetchedTrack)?._id.toString()).toBe(track._id.toString());
+    expect((await fetchedTrack)?.id.toString()).toBe(track.id.toString());
   });
 
   it("Returns null for non-existent track ID", async () => {
@@ -119,25 +125,27 @@ describe("Update Track", () => {
     await user.save();
     const artist = new Artist({
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
 
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
-      artistId: artist._id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await album.save();
 
     const track = new Track({
       ...DEFAULT_TEST_TRACK_DATA,
-      albumId: album._id.toString(),
-      artistId: artist._id.toString(),
+      albumId: album.id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await track.save();
 
     const newTitle = "Updated Track Title";
-    const updatedTrack = await updateTrack(track._id.toString(), {
+    const updatedTrack = await updateTrack(track.id.toString(), {
       title: newTitle,
     });
     expect(updatedTrack).toBeDefined();
@@ -159,20 +167,22 @@ describe("Delete Track", () => {
     await user.save();
     const artist = new Artist({
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user._id.toString(),
+      managingUserId: user.id.toString(),
     });
     await artist.save();
 
     const album = new Album({
       ...DEFAULT_TEST_ALBUM_DATA,
-      artistId: artist._id.toString(),
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
     });
     await album.save();
 
     const track = new Track({
       ...DEFAULT_TEST_TRACK_DATA,
-      albumId: album._id.toString(),
+      albumId: album.id.toString(),
       artistId: artist._id.toString(),
+      managingUserId: user.id.toString(),
     });
     await track.save();
 
