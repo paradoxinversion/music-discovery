@@ -1,8 +1,11 @@
 import { IUser } from "@common/types/src/types";
-import { Schema, model } from "mongoose";
+import { Document, Model, Schema, model } from "mongoose";
 import bcrypt from "bcrypt";
+export interface IUserDoc extends IUser, Document {
+  checkPassword(password: string): Promise<boolean>;
+}
 
-const UserSchema: Schema<IUser> = new Schema(
+const UserSchema: Schema<IUserDoc, Model<IUserDoc>> = new Schema(
   {
     username: {
       type: String,
@@ -39,12 +42,12 @@ const UserSchema: Schema<IUser> = new Schema(
   },
   {
     methods: {
-      checkPassword: async function (password: string) {
+      async checkPassword(password: string) {
         return bcrypt.compare(password, this.password);
       },
     },
   },
 );
 
-const User = model<IUser>("User", UserSchema);
+const User = model<IUserDoc, Model<IUserDoc>>("User", UserSchema);
 export default User;
