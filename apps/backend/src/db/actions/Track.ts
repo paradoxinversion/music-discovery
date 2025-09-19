@@ -1,5 +1,6 @@
 import { ITrack } from "@common/types/src/types";
 import Track from "../models/Track";
+import User from "../models/User";
 
 /**
  * Creates a new track in the database.
@@ -32,9 +33,20 @@ export const getTrackById = async (trackId: string) => {
 };
 
 export const updateTrack = async (
+  userId: string,
   trackId: string,
   updateData: Partial<ITrack>,
 ) => {
+  const user = await User.findById(userId);
+  const track = await Track.findById(trackId);
+  if (!user) {
+    throw new Error(`User with ID ${userId} not found`);
+  }
+  if (track?.managingUserId !== userId) {
+    throw new Error(
+      `User with ID ${userId} is not authorized to update this track`,
+    );
+  }
   const updatedTrack = await Track.findByIdAndUpdate(trackId, updateData, {
     new: true,
   });
@@ -44,7 +56,17 @@ export const updateTrack = async (
   return updatedTrack;
 };
 
-export const deleteTrack = async (trackId: string) => {
+export const deleteTrack = async (userId: string, trackId: string) => {
+  const user = await User.findById(userId);
+  const track = await Track.findById(trackId);
+  if (!user) {
+    throw new Error(`User with ID ${userId} not found`);
+  }
+  if (track?.managingUserId !== userId) {
+    throw new Error(
+      `User with ID ${userId} is not authorized to delete this track`,
+    );
+  }
   const deletedTrack = await Track.findByIdAndDelete(trackId);
   if (!deletedTrack) {
     throw new Error(`Track with ID ${trackId} not found`);

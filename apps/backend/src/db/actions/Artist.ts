@@ -64,10 +64,21 @@ export const getArtistById = async (artistId: string) => {
  * @throws Error if artist is not found
  */
 export const updateArtist = async (
+  userId: string,
   artistId: string,
   updateData: Partial<Omit<IArtist, "managingUserId">>,
 ) => {
   try {
+    const user = await User.findById(userId);
+    const artist = await Artist.findById(artistId);
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    if (artist?.managingUserId !== userId) {
+      throw new Error(
+        `User with ID ${userId} is not authorized to update this artist`,
+      );
+    }
     const updatedArtist = await Artist.findByIdAndUpdate(artistId, updateData, {
       new: true,
     });

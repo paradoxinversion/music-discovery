@@ -105,22 +105,29 @@ describe("Update Album", () => {
       releaseDate: new Date("2023-01-01"),
       managingUserId: user.id.toString(),
     };
-    const updatedAlbum = await updateAlbum(album.id.toString(), updateData);
+    const updatedAlbum = await updateAlbum(
+      user.id.toString(),
+      album.id.toString(),
+      updateData,
+    );
     expect(updatedAlbum).toBeDefined();
-    expect(updatedAlbum.title).toBe(updateData.title);
-    expect(updatedAlbum.releaseDate?.toISOString()).toBe(
+    expect(updatedAlbum!.title).toBe(updateData.title);
+    expect(updatedAlbum!.releaseDate?.toISOString()).toBe(
       updateData.releaseDate.toISOString(),
     );
   });
+
   it("Throws error if album to update does not exist", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    await user.save();
     const fakeAlbumId = new mongoose.Types.ObjectId().toString();
     const updateData = {
       title: "Updated Album Title",
       releaseDate: new Date("2023-01-01"),
     };
-    await expect(updateAlbum(fakeAlbumId, updateData)).rejects.toThrow(
-      `Album with ID ${fakeAlbumId} not found`,
-    );
+    await expect(
+      updateAlbum(user.id.toString(), fakeAlbumId, updateData),
+    ).rejects.toThrow(`Album with ID ${fakeAlbumId} not found`);
   });
 });
 
@@ -139,7 +146,7 @@ describe("Delete Album", () => {
       managingUserId: user.id.toString(),
     });
     await album.save();
-    const deletedAlbum = await deleteAlbum(album.id.toString());
+    const deletedAlbum = await deleteAlbum(user.id, album.id.toString());
     expect(deletedAlbum).toBe(true);
     expect(await Album.findById(album.id.toString())).toBeNull();
   });
@@ -165,7 +172,7 @@ describe("Delete Album", () => {
       managingUserId: user.id.toString(),
     });
     await track.save();
-    const deletedAlbum = await deleteAlbum(album.id.toString());
+    const deletedAlbum = await deleteAlbum(user.id, album.id.toString());
     expect(deletedAlbum).toBe(true);
     expect(await Album.findById(album.id.toString())).toBeNull();
     expect(await Track.findById(track.id.toString())).toBeNull();
@@ -195,7 +202,7 @@ describe("Delete Album", () => {
     user.favoriteAlbums.push(album.id.toString());
     user.favoriteTracks.push(track.id.toString());
     await user.save();
-    const deletedAlbum = await deleteAlbum(album.id.toString());
+    const deletedAlbum = await deleteAlbum(user.id, album.id.toString());
     expect(deletedAlbum).toBe(true);
     const updatedUser = await User.findById(user.id.toString());
     expect(updatedUser?.favoriteAlbums).not.toContain(album.id.toString());
@@ -203,9 +210,11 @@ describe("Delete Album", () => {
   });
 
   it("Throws error if album to delete does not exist", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    await user.save();
     const fakeAlbumId = new mongoose.Types.ObjectId().toString();
-    await expect(deleteAlbum(fakeAlbumId)).rejects.toThrow(
-      `Album with ID ${fakeAlbumId} not found`,
-    );
+    await expect(
+      deleteAlbum(user.id.toString(), fakeAlbumId),
+    ).rejects.toThrow();
   });
 });

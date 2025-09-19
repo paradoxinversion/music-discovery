@@ -25,19 +25,37 @@ export const getAlbumById = async (albumId: string) => {
 };
 
 export const updateAlbum = async (
+  userId: string,
   albumId: string,
   updateData: EditableAlbum,
 ) => {
-  const updatedAlbum = await Album.findByIdAndUpdate(albumId, updateData, {
-    new: true,
-  });
-  if (!updatedAlbum) {
+  const album = await Album.findById(albumId);
+  if (!album) {
     throw new Error(`Album with ID ${albumId} not found`);
   }
+  if (album.managingUserId !== userId) {
+    throw new Error(
+      `User with ID ${userId} is not authorized to update this album`,
+    );
+  }
+  const updatedAlbum = await Album.findOneAndUpdate(
+    { _id: albumId },
+    { ...updateData },
+    { new: true },
+  );
+
   return updatedAlbum;
 };
 
-export const deleteAlbum = async (albumId: string) => {
+export const deleteAlbum = async (userId: string, albumId: string) => {
+  const album = await Album.findById(albumId);
+
+  if (album?.managingUserId !== userId) {
+    throw new Error(
+      `User with ID ${userId} is not authorized to delete this album`,
+    );
+  }
+
   const deletedAlbum = await Album.findByIdAndDelete(albumId);
   if (!deletedAlbum) {
     throw new Error(`Album with ID ${albumId} not found`);

@@ -145,19 +145,25 @@ describe("Update Track", () => {
     await track.save();
 
     const newTitle = "Updated Track Title";
-    const updatedTrack = await updateTrack(track.id.toString(), {
-      title: newTitle,
-    });
+    const updatedTrack = await updateTrack(
+      user.id.toString(),
+      track.id.toString(),
+      {
+        title: newTitle,
+      },
+    );
     expect(updatedTrack).toBeDefined();
     expect(updatedTrack.title).toBe(newTitle);
     expect(updatedTrack.genre).toBe(track.genre); // unchanged
   });
 
   it("Throws error when updating non-existent track", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    await user.save();
     const nonExistentId = new mongoose.Types.ObjectId().toString();
     await expect(
-      updateTrack(nonExistentId, { title: "New Title" }),
-    ).rejects.toThrow(`Track with ID ${nonExistentId} not found`);
+      updateTrack(user.id.toString(), nonExistentId, { title: "New Title" }),
+    ).rejects.toThrow();
   });
 });
 
@@ -186,7 +192,10 @@ describe("Delete Track", () => {
     });
     await track.save();
 
-    const deletionResult = await deleteTrack(track._id.toString());
+    const deletionResult = await deleteTrack(
+      user.id.toString(),
+      track._id.toString(),
+    );
     expect(deletionResult).toBe(true);
 
     const fetchedTrack = await getTrackById(track._id.toString());
@@ -194,9 +203,11 @@ describe("Delete Track", () => {
   });
 
   it("Throws error when deleting non-existent track", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    await user.save();
     const nonExistentId = new mongoose.Types.ObjectId().toString();
-    await expect(deleteTrack(nonExistentId)).rejects.toThrow(
-      `Track with ID ${nonExistentId} not found`,
-    );
+    await expect(
+      deleteTrack(user.id.toString(), nonExistentId),
+    ).rejects.toThrow();
   });
 });

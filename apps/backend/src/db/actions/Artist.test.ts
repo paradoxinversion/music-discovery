@@ -104,7 +104,11 @@ describe("Update Artist", () => {
         instagram: "https://instagram.com/testartist",
       },
     };
-    const updatedArtist = await updateArtist(artist.id.toString(), updateData);
+    const updatedArtist = await updateArtist(
+      user.id.toString(),
+      artist.id.toString(),
+      updateData,
+    );
     expect(updatedArtist).toHaveProperty("_id", artist._id);
     expect(updatedArtist?.name).toBe(updateData.name);
     expect(updatedArtist?.links).toEqual(updateData.links);
@@ -113,6 +117,7 @@ describe("Update Artist", () => {
       links: {},
     };
     const updatedArtist2 = await updateArtist(
+      user.id.toString(),
       artist.id.toString(),
       updateData2,
     );
@@ -120,11 +125,15 @@ describe("Update Artist", () => {
   });
 
   it("Throws an error if artist does not exist", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    await user.save();
     const fakeArtistId = new mongoose.Types.ObjectId().toString();
     const updateData: EditableArtist = {
       name: "Non-existent Artist",
     };
-    await expect(updateArtist(fakeArtistId, updateData)).rejects.toThrow();
+    await expect(
+      updateArtist(user.id.toString(), fakeArtistId, updateData),
+    ).rejects.toThrow();
   });
 });
 
