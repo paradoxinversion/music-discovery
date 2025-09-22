@@ -7,15 +7,14 @@ import {
   updateArtist as updateArtistAction,
 } from "../db/actions/Artist";
 import { IArtist } from "@common/types/src/types";
-import {} from "../db/actions/Artist";
 export const createNewArtist = async (req: Request, res: Response) => {
   try {
-    console.log("Creating new artist with data:", req.body);
     const user = req.user;
     const artistData: Omit<IArtist, "managingUserId"> = {
       name: req.body.name,
       genre: req.body.genre,
       biography: req.body.biography,
+      links: req.body.links,
     };
     const artist = await createArtist(user._id, artistData);
     res.status(200).json({ status: "OK", data: artist });
@@ -56,7 +55,7 @@ export const updateArtist = async (req: Request, res: Response) => {
       .json({ status: "ERROR", message: "Update data is required" });
     return;
   }
-  await updateArtistAction(req.params.id, req.body);
+  await updateArtistAction(req.user._id, req.params.id, req.body);
   res
     .status(200)
     .json({ status: "OK", message: "Artist updated successfully" });

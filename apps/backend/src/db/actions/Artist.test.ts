@@ -39,6 +39,23 @@ describe("Create Artist", () => {
     expect(createdArtist.name).toBe(artistData.name);
   });
 
+  it("should create an artist with links successfully", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    await user.save();
+    const artistData = {
+      ...DEFAULT_TEST_ARTIST_DATA,
+      managingUserId: user.id.toString(),
+      links: {
+        soundcloud: "https://soundcloud.com/testartist",
+      },
+    } as IArtist;
+
+    const createdArtist = await createArtist(user.id.toString(), artistData);
+    expect(createdArtist).toHaveProperty("_id");
+    expect(createdArtist.name).toBe(artistData.name);
+    expect(createdArtist.links).toEqual(artistData.links);
+  });
+
   it("should throw an error if managing user does not exist", async () => {
     const fakeUserId = new mongoose.Types.ObjectId().toString();
     const artistData = {
@@ -69,16 +86,18 @@ describe("Get Artist", () => {
   it("Fetches an artist by ID", async () => {
     const user = new User(DEFAULT_TEST_USER_DATA);
     await user.save();
-
-    const artist = new Artist({
+    const data = {
       ...DEFAULT_TEST_ARTIST_DATA,
       managingUserId: user.id.toString(),
-    });
+      links: { soundcloud: "https://soundcloud.com/testartist" },
+    };
+    const artist = new Artist(data);
     await artist.save();
 
     const fetchedArtist = await getArtistById(artist.id.toString());
     expect(fetchedArtist).toBeDefined();
     expect(fetchedArtist?._id).toEqual(artist._id);
+    expect(fetchedArtist?.links).toEqual(data.links);
   });
 
   it("Returns null if artist does not exist", async () => {

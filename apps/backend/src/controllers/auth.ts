@@ -22,6 +22,5 @@ export const signUp = async (req: Request, res: Response) => {
 };
 
 export const login = (req: Request, res: Response) => {
-  console.log(req.user);
   res.status(200).json({ message: "Login successful" });
 };

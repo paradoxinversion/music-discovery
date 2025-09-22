@@ -3,18 +3,22 @@ import Album from "../models/Album";
 import Track from "../models/Track";
 import User from "../models/User";
 
-export const createAlbum = async (albumData: IAlbum) => {
+export const createAlbum = async (
+  userId: string,
+  albumData: Omit<IAlbum, "managingUserId">,
+) => {
   if (
     await Album.findOne({
       title: albumData.title,
       artistId: albumData.artistId,
+      managingUserId: userId,
     })
   ) {
     throw new Error(
       `Album with title ${albumData.title} by artist ${albumData.artistId} already exists`,
     );
   }
-  const album = new Album(albumData);
+  const album = new Album({ ...albumData, managingUserId: userId });
   await album.save();
   return album;
 };
@@ -33,7 +37,7 @@ export const updateAlbum = async (
   if (!album) {
     throw new Error(`Album with ID ${albumId} not found`);
   }
-  if (album.managingUserId !== userId) {
+  if (album.managingUserId.toString() !== userId.toString()) {
     throw new Error(
       `User with ID ${userId} is not authorized to update this album`,
     );
@@ -50,7 +54,7 @@ export const updateAlbum = async (
 export const deleteAlbum = async (userId: string, albumId: string) => {
   const album = await Album.findById(albumId);
 
-  if (album?.managingUserId !== userId) {
+  if (album?.managingUserId.toString() !== userId.toString()) {
     throw new Error(
       `User with ID ${userId} is not authorized to delete this album`,
     );

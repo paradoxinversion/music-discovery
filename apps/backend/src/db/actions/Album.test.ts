@@ -34,7 +34,7 @@ describe("Create Album", () => {
       artistId: artist._id.toString(),
       managingUserId: user.id.toString(),
     } as IAlbum;
-    const createdAlbum = await createAlbum(albumData);
+    const createdAlbum = await createAlbum(user.id.toString(), albumData);
     expect(createdAlbum).toBeDefined();
     expect(createdAlbum.title).toBe(albumData.title);
     expect(createdAlbum.artistId.toString()).toBe(artist._id.toString());
@@ -52,8 +52,8 @@ describe("Create Album", () => {
       artistId: artist.id.toString(),
       managingUserId: user.id.toString(),
     } as IAlbum;
-    await createAlbum(albumData);
-    await expect(createAlbum(albumData)).rejects.toThrow(
+    await createAlbum(user.id.toString(), albumData);
+    await expect(createAlbum(user.id.toString(), albumData)).rejects.toThrow(
       `Album with title ${albumData.title} by artist ${albumData.artistId} already exists`,
     );
   });

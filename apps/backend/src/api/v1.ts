@@ -10,6 +10,13 @@ import {
   getById,
   updateArtist,
 } from "../controllers/artist";
+import {
+  createAlbum,
+  deleteAlbum,
+  getAlbumById,
+  getAlbums,
+  updateAlbum,
+} from "../controllers/album";
 const router = express.Router();
 
 router.route("/health").get(healthCheck);
@@ -30,5 +37,13 @@ router
   .get(getById)
   .put(ensureLoggedIn(), updateArtist)
   .delete(ensureLoggedIn(), deleteArtist);
+
+router
+  .route("/albums/:id")
+  .get(getAlbumById)
+  .put(ensureLoggedIn(), updateAlbum)
+  .delete(ensureLoggedIn(), deleteAlbum);
+
+router.route("/albums").get(getAlbums).post(ensureLoggedIn(), createAlbum);
 
 export default router;
