@@ -3,7 +3,8 @@
   "packageManager": "yarn@4.9.1",
   "workspaces": [
     "apps/*",
-    "common/*"
+    "common/*",
+    "components"
   ],
   "devDependencies": {
     "@eslint/js": "^9.35.0",

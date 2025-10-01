@@ -2,6 +2,7 @@
   "name": "frontend",
   "packageManager": "yarn@4.9.1",
   "dependencies": {
+    "@mda/components": "workspace:^",
     "@tailwindcss/postcss": "^4.1.13",
     "next": "^15.5.3",
     "postcss": "^8.5.6",
