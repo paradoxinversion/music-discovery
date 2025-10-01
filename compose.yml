@@ -23,6 +23,22 @@ services:
       - discovery-network
     depends_on:
       - mongo
+  frontend:
+    build:
+      context: .
+      dockerfile: ./apps/frontend/Dockerfile
+    develop:
+      watch:
+        - path: ./apps/frontend/app
+          action: rebuild
+    environment:
+      NODE_ENV: development
+    ports:
+      - 3000:3000
+    networks:
+      - discovery-network
+    depends_on:
+      - backend
 networks: # allow services to talk to each other while providing isolation from other docker container, running on the same host
   discovery-network:
     driver: bridge
