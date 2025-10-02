@@ -10,7 +10,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: ./apps/backend/Dockerfile
+      dockerfile: ./apps/backend/Dockerfile.update
     develop:
       watch:
         - path: ./apps/backend/src
@@ -26,7 +26,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: ./apps/frontend/Dockerfile
+      dockerfile: ./apps/frontend/Dockerfile.update
     develop:
       watch:
         - path: ./apps/frontend/app
