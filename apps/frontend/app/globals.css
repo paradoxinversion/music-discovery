@@ -1,2 +1,12 @@
 @import "tailwindcss";
 @source "../../../components/";
+
+@layer base {
+  a {
+    text-decoration: underline;
+    color: blue;
+    &:hover {
+      text-decoration: none;
+    }
+  }
+}
