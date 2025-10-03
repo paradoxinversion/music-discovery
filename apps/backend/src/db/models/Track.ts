@@ -13,7 +13,7 @@ const TrackSchema: Schema<ITrack> = new Schema({
   },
   albumId: {
     type: String,
-    required: true,
+    required: false,
   },
   duration: {
     type: Number,
@@ -22,6 +22,7 @@ const TrackSchema: Schema<ITrack> = new Schema({
   isrc: {
     type: String,
     unique: true,
+    sparse: true,
   },
   genre: {
     type: String,
