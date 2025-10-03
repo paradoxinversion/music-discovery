@@ -1,17 +1,41 @@
+# syntax=docker/dockerfile:1
+# check=error=true;experimental=CopyIgnoredFile
+
 ARG NODE_VERSION=22.16.0
-FROM node:${NODE_VERSION}-alpine
+# FROM node:${NODE_VERSION}-alpine AS frontend-builder
+
+# WORKDIR /app
+
+# # Copy base dependencies
+# COPY package.json yarn.lock tsconfig.json ./
+# # Copy frontend dependencies
+# COPY apps/frontend/package.json apps/frontend/next-env.d.ts apps/frontend/postcss.config.mjs ./apps/frontend/
+# # App source may move to second stage to reduce image size
+# COPY apps/frontend/app ./apps/frontend/app 
+# # Copy component dependencies
+# COPY components/package.json components/tsconfig.json ./components/
+# # Component source may move to second stage to reduce image size
+# COPY components/src ./components/src/
+# # Install dependencies for all workspaces
+# RUN corepack enable && yarn install
+# # RUN corepack enable && yarn workspaces focus -A --production
+# RUN yarn workspace @mda/components build
+
+# Stage 2
+FROM node:${NODE_VERSION}-alpine AS frontend-dev
 
 WORKDIR /app
+# Copy root config & dependency artifacts
+COPY --from=base app/package.json app/tsconfig.json app/yarn.lock app/.pnp.cjs \
+app/.pnp.loader.mjs ./
+COPY --from=base /app/.yarn/ ./.yarn/
+# Copy component artifacts (& package.json for dependency resolution)
+COPY --from=base /app/components/package.json ./components/
+COPY --from=base /app/components/dist/ ./components/dist/
+# Copy full frontend dir for development
+COPY --from=base /app/apps/frontend/ ./apps/frontend/
 
-# Copy base dependencies
-COPY package.json yarn.lock tsconfig.json ./
-COPY apps/frontend ./apps/frontend
-COPY common/types ./common/types
-COPY components ./components
-
-# Install dependencies
-RUN corepack enable && yarn install
-RUN yarn workspace @mda/components build
+RUN corepack enable && yarn workspaces focus -A --production
 EXPOSE 3000
 
 CMD [ "yarn", "workspace", "frontend", "dev" ]

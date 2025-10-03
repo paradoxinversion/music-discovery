@@ -16,7 +16,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: ./apps/backend/Dockerfile.update
+      dockerfile: ./apps/backend/Dockerfile
       additional_contexts:
         base: service:base
     develop:
@@ -35,7 +35,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: ./apps/frontend/Dockerfile.update
+      dockerfile: ./apps/frontend/Dockerfile
       additional_contexts:
         base: service:base
     develop:
