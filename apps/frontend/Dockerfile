@@ -15,7 +15,7 @@ COPY --from=base /app/components/dist/ ./components/dist/
 # Copy full frontend dir for development
 COPY --from=base /app/apps/frontend/ ./apps/frontend/
 
-RUN corepack enable && yarn workspaces focus -A --production
+RUN corepack enable && yarn workspace frontend install
 EXPOSE 3000
 
 CMD [ "yarn", "workspace", "frontend", "dev" ]
