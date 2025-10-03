@@ -1,5 +1,6 @@
 "use client";
-interface ButtonProps {
+
+export interface ButtonProps {
   label: string;
   onClick: () => void;
 }
