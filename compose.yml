@@ -1,4 +1,9 @@
 services:
+  base:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.base
+
   mongo:
     image: mongo:latest
     ports:
@@ -7,10 +12,13 @@ services:
       - discovery-network
     volumes:
       - mongo-data:/data/db
+
   backend:
     build:
       context: .
       dockerfile: ./apps/backend/Dockerfile
+      additional_contexts:
+        base: service:base
     develop:
       watch:
         - path: ./apps/backend/src
@@ -23,10 +31,13 @@ services:
       - discovery-network
     depends_on:
       - mongo
+
   frontend:
     build:
       context: .
       dockerfile: ./apps/frontend/Dockerfile
+      additional_contexts:
+        base: service:base
     develop:
       watch:
         - path: ./apps/frontend/app
@@ -39,9 +50,11 @@ services:
       - discovery-network
     depends_on:
       - backend
+
 networks: # allow services to talk to each other while providing isolation from other docker container, running on the same host
   discovery-network:
     driver: bridge
+
 volumes: # enable persistence of database data across container restart
   mongo-data:
     driver: local
