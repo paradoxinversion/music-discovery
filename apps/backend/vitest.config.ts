@@ -4,5 +4,9 @@ export default defineConfig({
   test: {
     setupFiles: "./vitest-setup.ts",
     fileParallelism: false,
+    coverage: {
+      provider: "istanbul",
+      reporter: ["text", "json", "html"],
+    },
   },
 });
