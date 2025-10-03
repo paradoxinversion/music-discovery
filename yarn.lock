@@ -1976,6 +1976,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/chance@npm:^1":
+  version: 1.1.7
+  resolution: "@types/chance@npm:1.1.7"
+  checksum: 10c0/896288f0a0f87a738c873dfd8cb0893154225bfda11b1fac36842f4722bc4d73c3933bb986217a59873ad5bc97861ca8939dad370a09ecc32723a928534938bd
+  languageName: node
+  linkType: hard
+
 "@types/connect-ensure-login@npm:^0":
   version: 0.1.9
   resolution: "@types/connect-ensure-login@npm:0.1.9"
@@ -2857,6 +2864,7 @@ __metadata:
   dependencies:
     "@common/types": "workspace:^"
     "@types/bcrypt": "npm:^6"
+    "@types/chance": "npm:^1"
     "@types/connect-ensure-login": "npm:^0"
     "@types/cookie-parser": "npm:^1"
     "@types/expect": "npm:^24.3.2"
@@ -2869,6 +2877,7 @@ __metadata:
     "@vitest/coverage-istanbul": "npm:^3.2.4"
     bcrypt: "npm:^6.0.0"
     body-parser: "npm:^2.2.0"
+    chance: "npm:^1.1.13"
     connect-ensure-login: "npm:^0.1.1"
     cookie-parser: "npm:^1.4.7"
     dotenv: "npm:^17.2.2"
@@ -3099,6 +3108,13 @@ __metadata:
     ansi-styles: "npm:^4.1.0"
     supports-color: "npm:^7.1.0"
   checksum: 10c0/4a3fef5cc34975c898ffe77141450f679721df9dde00f6c304353fa9c8b571929123b26a0e4617bde5018977eb655b31970c297b91b63ee83bb82aeb04666880
+  languageName: node
+  linkType: hard
+
+"chance@npm:^1.1.13":
+  version: 1.1.13
+  resolution: "chance@npm:1.1.13"
+  checksum: 10c0/0e1523b0ef75061df5771c052e8bf8d5fb7d92e56a58e98e170e4be5f2166cceac2f70dd209e49e0605ea2e376ba99fb5e391987e8610c7037cd2fce19c35e3e
   languageName: node
   linkType: hard
 
