@@ -25,6 +25,9 @@ services:
           action: rebuild
     environment:
       NODE_ENV: development
+      DB_URI: mongodb://mongo:27017/music-discovery-app-dev
+      PORT: 3001
+      SESSION_SECRET: keyboardcat
     ports:
       - 3001:3001
     networks:
