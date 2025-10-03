@@ -24,5 +24,3 @@ RUN corepack enable && yarn install
 # To be copied to other stages
 RUN yarn workspace @common/types build
 RUN yarn workspace @mda/components build
-
-CMD ["tail", "-f", "/dev/null"]
