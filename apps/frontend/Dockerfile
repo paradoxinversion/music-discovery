@@ -2,26 +2,6 @@
 # check=error=true;experimental=CopyIgnoredFile
 
 ARG NODE_VERSION=22.16.0
-# FROM node:${NODE_VERSION}-alpine AS frontend-builder
-
-# WORKDIR /app
-
-# # Copy base dependencies
-# COPY package.json yarn.lock tsconfig.json ./
-# # Copy frontend dependencies
-# COPY apps/frontend/package.json apps/frontend/next-env.d.ts apps/frontend/postcss.config.mjs ./apps/frontend/
-# # App source may move to second stage to reduce image size
-# COPY apps/frontend/app ./apps/frontend/app 
-# # Copy component dependencies
-# COPY components/package.json components/tsconfig.json ./components/
-# # Component source may move to second stage to reduce image size
-# COPY components/src ./components/src/
-# # Install dependencies for all workspaces
-# RUN corepack enable && yarn install
-# # RUN corepack enable && yarn workspaces focus -A --production
-# RUN yarn workspace @mda/components build
-
-# Stage 2
 FROM node:${NODE_VERSION}-alpine AS frontend-dev
 
 WORKDIR /app

@@ -2,19 +2,6 @@
 # check=error=true;experimental=CopyIgnoredFile
 
 ARG NODE_VERSION=22.16.0
-# FROM node:${NODE_VERSION}-alpine AS backend-builder
-
-# WORKDIR /app
-
-# # Copy base dependencies
-# COPY package.json yarn.lock tsconfig.json ./
-# COPY apps/backend ./apps/backend
-# COPY common/types ./common/types
-
-# # Install dependencies
-# RUN corepack enable && yarn install
-# RUN yarn workspace @common/types build
-
 FROM node:${NODE_VERSION}-alpine AS backend-dev
 
 WORKDIR /app
@@ -35,5 +22,3 @@ RUN corepack enable && yarn install
 EXPOSE 3001
 
 CMD [ "yarn", "workspace", "backend", "dev" ]
-# CMD ["tail", "-f", "/dev/null"]
-
