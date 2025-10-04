@@ -5,6 +5,7 @@ import {
   getArtistById,
   deleteArtist as deleteArtistAction,
   updateArtist as updateArtistAction,
+  getRandomArtists,
 } from "../db/actions/Artist";
 import { IArtist } from "@common/types/src/types";
 export const createNewArtist = async (req: Request, res: Response) => {
@@ -42,6 +43,12 @@ export const getById = async (req: Request, res: Response) => {
   } else {
     res.status(404).json({ status: "ERROR", message: "Artist not found" });
   }
+};
+
+export const getRandom = async (req: Request, res: Response) => {
+  const count = 5;
+  const artists = await getRandomArtists(count);
+  res.status(200).json({ status: "OK", data: artists });
 };
 
 export const updateArtist = async (req: Request, res: Response) => {

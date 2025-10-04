@@ -9,6 +9,7 @@ const TrackSchema: Schema<ITrack> = new Schema({
   },
   artistId: {
     type: String,
+    ref: "Artist",
     required: true,
   },
   albumId: {
