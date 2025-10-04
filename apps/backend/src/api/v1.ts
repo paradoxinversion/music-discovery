@@ -8,6 +8,7 @@ import {
   deleteArtist,
   getArtists,
   getById,
+  getRandom,
   updateArtist,
 } from "../controllers/artist";
 import {
@@ -17,6 +18,14 @@ import {
   getAlbums,
   updateAlbum,
 } from "../controllers/album";
+
+import {
+  getRandom as getRandomTracks,
+  getSimilarTracks,
+  getTrack,
+  getTracks,
+} from "../controllers/track";
+import { getTracksByGenre } from "../db/actions/Track";
 const router = express.Router();
 
 router.route("/health").get(healthCheck);
@@ -32,6 +41,8 @@ router
   .get(getArtists)
   .post(ensureLoggedIn(), createNewArtist);
 
+router.route("/artists/random").get(getRandom);
+
 router
   .route("/artists/:id")
   .get(getById)
@@ -46,4 +57,8 @@ router
 
 router.route("/albums").get(getAlbums).post(ensureLoggedIn(), createAlbum);
 
+router.route("/tracks/random").get(getRandomTracks);
+router.route("/tracks/:trackId").get(getTrack);
+router.route("/tracks/:trackId/similar").get(getSimilarTracks);
+router.route("/tracks/genre/:genre").get(getTracks);
 export default router;

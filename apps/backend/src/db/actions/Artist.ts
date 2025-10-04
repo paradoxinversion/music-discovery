@@ -56,6 +56,15 @@ export const getArtistById = async (artistId: string) => {
   }
 };
 
+export const getRandomArtists = async (count: number) => {
+  try {
+    const artists = await Artist.aggregate([{ $sample: { size: count } }]);
+    return artists;
+  } catch (error) {
+    throw new Error(`Error retrieving random artists: ${error}`);
+  }
+};
+
 /**
  * Update an artist's information.
  * @param artistId - The ID of the artist to update

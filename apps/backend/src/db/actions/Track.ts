@@ -28,8 +28,67 @@ export const getAllTracks = async (): Promise<ITrack[]> => {
 };
 
 export const getTrackById = async (trackId: string) => {
-  const track = await Track.findById(trackId);
+  const track = await Track.findById(trackId).populate("artistId", "name");
   return track;
+};
+
+export const getRandomTracks = async (count: number) => {
+  try {
+    const tracks = await Track.aggregate([
+      { $sample: { size: count } },
+      { $addFields: { artistObjId: { $toObjectId: "$artistId" } } }, // convert artistId to ObjectId
+      {
+        $lookup: {
+          from: "artists",
+          localField: "artistObjId",
+          foreignField: "_id",
+          as: "artist",
+        },
+      },
+      { $unwind: "$artist" }, // flatten the artist array
+      {
+        $project: {
+          title: 1,
+          albumId: 1,
+          artistId: 1,
+          duration: 1,
+          isrc: 1,
+          genre: 1,
+          links: 1,
+          managingUserId: 1,
+          artistName: "$artist.name", // include artist name
+        },
+      },
+    ]).exec();
+    return tracks;
+  } catch (error) {
+    throw new Error(`Error retrieving random tracks: ${error}`);
+  }
+};
+
+export const getTracksByGenre = async (genre: string, limit: number) => {
+  // const tracks = await Track.find({ genre }).limit(limit);
+  const tracks = await Track.aggregate([
+    { $match: { genre } },
+    { $sample: { size: limit } },
+    { $addFields: { artistObjId: { $toObjectId: "$artistId" } } }, // convert artistId to ObjectId
+    {
+      $lookup: {
+        from: "artists",
+        localField: "artistObjId",
+        foreignField: "_id",
+        as: "artist",
+      },
+    },
+    { $unwind: "$artist" }, // flatten the artist array
+    {
+      $project: {
+        title: 1,
+        artistName: "$artist.name", // include artist name
+      },
+    },
+  ]).exec();
+  return tracks;
 };
 
 export const updateTrack = async (
