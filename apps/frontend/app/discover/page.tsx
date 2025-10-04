@@ -1,5 +1,24 @@
 "use client";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
 export default function Page() {
+  const router = useRouter();
+
+  const [tracks, setTracks] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/tracks/random`,
+      );
+      console.log(response.data);
+      setTracks(response.data.data);
+    };
+    fetchData();
+  }, []);
+
   return (
     <div className="flex flex-col items-center min-h-screen py-2">
       <h1 className="text-3xl font-bold mb-2">
@@ -21,20 +40,21 @@ export default function Page() {
 
       <div>
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
+          {tracks.map((item) => (
             <div
-              key={item}
-              className="hover:scale-105 transition-transform duration-200 border border-gray-300 rounded p-4 flex flex-col items-center"
+              key={item._id}
+              className="cursor-pointer hover:scale-105 transition-transform duration-200 border border-gray-300 rounded p-4 flex flex-col items-center"
+              onClick={() => router.push(`/track/${item._id}`)}
             >
               <div className="bg-gray-200 h-32 w-32 mb-4 flex items-center justify-center">
                 <img
-                  src={`https://picsum.photos/512?random=${item}`}
-                  alt={`Album ${item}`}
+                  src={`https://picsum.photos/512?random=${item._id}`}
+                  alt={`Album ${item.title}`}
                   className="h-full w-full object-cover"
                 />
               </div>
-              <h2 className="font-bold">Song Title {item}</h2>
-              <p className="text-sm text-gray-600">Artist Name</p>
+              <h2 className="font-bold">{item.title}</h2>
+              <p className="text-sm text-gray-600">{item.artistName}</p>
             </div>
           ))}
         </div>
