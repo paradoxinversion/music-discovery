@@ -1,3 +1,4 @@
+import cors from "cors";
 import express from "express";
 import passport from "passport";
 import morgan from "morgan";
@@ -11,6 +12,8 @@ import api from "./api/v1";
 const appName = "Music Discovery App";
 
 const app = express();
+app.use(cors());
+
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(coookieParser());
