@@ -5,7 +5,24 @@ import User from "./models/User";
 import Artist from "./models/Artist";
 import Track from "./models/Track";
 const chance = new Chance();
-const userCount = 10;
+const userCount = 50;
+
+const genres = [
+  "Pop",
+  "Rock",
+  "Hip Hop",
+  "Jazz",
+  "Classical",
+  "Electronic",
+  "Country",
+  "Reggae",
+  "Blues",
+  "Metal",
+];
+
+const pickRandomGenre = () => {
+  return genres[Math.floor(Math.random() * genres.length)];
+};
 
 export const seedDatabase = async () => {
   const usersData = [];
@@ -43,7 +60,7 @@ export const seedDatabase = async () => {
       duration: chance.integer({ min: 60, max: 300 }),
       artistId: artist._id,
       managingUserId: artist.managingUserId,
-      genre: "Pop",
+      genre: pickRandomGenre()?.toLowerCase(),
       links: {
         spotify:
           "https://open.spotify.com/track/" + chance.string({ length: 10 }),
