@@ -51,32 +51,34 @@ export default function TrackPage({
     return <div>Loading...</div>;
   }
   return (
-    <div className="flex flex-col items-center min-h-screen py-2">
-      <h1 className="text-2xl font-bold">{trackData.title}</h1>
-      {trackData.artistId?.name && (
-        <a href={`/artists/${trackData.artistId._id}`}>
-          {trackData.artistId.name}
-        </a>
-      )}
-      {trackData.album && <a href="#">{trackData.album}</a>}
-      {/* <p>Release Date: YYYY-MM-DD</p> */}
-      <p>Duration: {formatSecondsToMMSS(trackData.duration)}</p>
-      <img
-        src="https://picsum.photos/512/512?random=1"
-        alt="Album Art"
-        className="h-64 object-cover rounded-lg"
-      />
-      <div id="track-external-links">
+    <div className="flex flex-grow py-2 px-4">
+      <div id="track-details" className="mr-8 w-1/3">
+        <img
+          src="https://picsum.photos/512/512?random=1"
+          alt="Album Art"
+          className="my-4 h-64 object-cover rounded-lg"
+        />
+        <h1 className="text-2xl font-bold">{trackData.title}</h1>
+        {trackData.artistId?.name && (
+          <a href={`/artists/${trackData.artistId._id}`}>
+            {trackData.artistId.name}
+          </a>
+        )}
+        {trackData.album && <a href="#">{trackData.album}</a>}
+        <p>Duration: {formatSecondsToMMSS(trackData.duration)}</p>
+      </div>
+      <div id="track-external-links" className="w-1/3">
+        <h1 className="text-2xl font-bold">Listen on:</h1>
         <a href={`https://open.spotify.com/track/${trackId}`} target="_blank">
-          Listen on Spotify
+          Spotify
         </a>
         <br />
         <a href={`https://music.apple.com/us/album/${trackId}`} target="_blank">
-          Listen on Apple Music
+          Apple Music
         </a>
       </div>
-      <div id="suggestions">
-        <h2 className="text-xl font-semibold mt-4">You might also like:</h2>
+      <div id="track-suggestions">
+        <h2 className="text-xl font-semibold">You might also like:</h2>
         {similarTracks.length > 0 ? (
           <ul className="list-disc list-inside">
             {similarTracks.map((track) => (

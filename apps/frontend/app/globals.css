@@ -2,9 +2,13 @@
 @source "../../../components/";
 
 @layer base {
+  body {
+    background-color: black;
+    color: white;
+  }
   a {
     text-decoration: underline;
-    color: blue;
+    color: white;
     &:hover {
       text-decoration: none;
     }

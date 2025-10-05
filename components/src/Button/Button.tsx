@@ -2,7 +2,7 @@
 
 export interface ButtonProps {
   label: string;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 export const Button = ({ label, onClick }: ButtonProps) => {

@@ -1,6 +1,7 @@
 "use client";
 import axios from "axios";
 import { useEffect, useState, use } from "react";
+import Link from "next/link";
 
 export default function ArtistPage({
   params,
@@ -30,21 +31,31 @@ export default function ArtistPage({
   }
 
   return (
-    <div className="flex flex-col items-center min-h-screen py-2">
-      <h1 className="text-2xl font-bold">{artistData.name}</h1>
-      <p>Genre: {artistData.genre}</p>
-      <p>Bio: {artistData.biography}</p>
-      <div id="artist-external-links">
-        <a href={`https://open.spotify.com/artist/${artistId}`} target="_blank">
-          Listen on Spotify
-        </a>
-        <br />
-        <a
-          href={`https://music.apple.com/us/artist/${artistId}`}
-          target="_blank"
-        >
-          Listen on Apple Music
-        </a>
+    <div className="flex flex-grow py-2 px-4">
+      <div id="artist-details" className="mr-8 w-1/2">
+        <h1 className="text-2xl font-bold">{artistData.name}</h1>
+        <img
+          src={"https://picsum.photos/1024/1024?random=1"}
+          alt={artistData.name}
+          className="my-4 w-64 h-64 object-cover rounded"
+        />
+        <p>{artistData.biography}</p>
+        <div id="artist-external-links" className="mt-2">
+          <h2 className="text-xl font-semibold">Social Links</h2>
+          <a
+            href={`https://open.spotify.com/artist/${artistId}`}
+            target="_blank"
+          >
+            Listen on Spotify
+          </a>
+          <br />
+          <a
+            href={`https://music.apple.com/us/artist/${artistId}`}
+            target="_blank"
+          >
+            Listen on Apple Music
+          </a>
+        </div>
       </div>
       <div id="suggestions">
         <h2 className="text-xl font-semibold mt-4">You might also like:</h2>

@@ -2,29 +2,30 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@mda/components";
 
 export default function Page() {
   const router = useRouter();
 
   const [tracks, setTracks] = useState([]);
-
+  const fetchRandomTracks = async () => {
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_API_URL}/tracks/random`,
+    );
+    setTracks(response.data.data);
+  };
   useEffect(() => {
-    const fetchData = async () => {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/tracks/random`,
-      );
-      console.log(response.data);
-      setTracks(response.data.data);
-    };
-    fetchData();
+    fetchRandomTracks();
   }, []);
 
   return (
-    <div className="flex flex-col items-center min-h-screen py-2">
-      <h1 className="text-3xl font-bold mb-2">
-        Discover something you'll love
-      </h1>
-      <p>Select a genre to explore new music:</p>
+    <div className="px-4 py-2">
+      <header>
+        <h1 className="text-3xl font-bold mb-2">
+          Discover something you'll love
+        </h1>
+      </header>
+      {/* <p>Select a genre to explore new music:</p>
       <div className="mt-4 space-x-2">
         <select className="border border-gray-300 rounded px-2 py-1">
           <option>Pop</option>
@@ -36,7 +37,7 @@ export default function Page() {
         <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
           Explore
         </button>
-      </div>
+      </div> */}
 
       <div>
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -54,26 +55,20 @@ export default function Page() {
                 />
               </div>
               <h2 className="font-bold">{item.title}</h2>
-              <p className="text-sm text-gray-600">{item.artistName}</p>
+              <p className="text-sm text-gray-400">{item.artistName}</p>
             </div>
           ))}
         </div>
-        <div className="mt-4">
-          {/* next page button */}
-          <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 float-left">
-            Previous Page
-          </button>
-          <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 float-right">
-            Next Page
-          </button>
+        <div className="flex mt-4 justify-center">
+          <Button label="Refresh" onClick={() => fetchRandomTracks()} />
         </div>
       </div>
 
-      <footer className="mt-auto py-4">
+      {/* <footer className="mt-auto py-4">
         <p className="text-sm text-gray-500">
           &copy; {new Date().getFullYear()} Jedai Saboteur. All rights reserved.
         </p>
-      </footer>
+      </footer> */}
     </div>
   );
 }
