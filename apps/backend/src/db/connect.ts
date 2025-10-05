@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { seedDatabase } from "./seed";
+import User from "./models/User";
 
 export const connectToDatabase = async () => {
   console.log("Connecting to database:", process.env.DB_URI);
@@ -9,6 +10,10 @@ export const connectToDatabase = async () => {
   await mongoose.connect(process.env.DB_URI || "");
 
   if (process.env.NODE_ENV === "development" && mongoose.connection.db) {
+    if ((await User.countDocuments({})) > 0) {
+      console.log("Database already seeded");
+      return;
+    }
     await mongoose.connection.db.dropDatabase();
     console.log("Dropped existing database for development environment");
     await seedDatabase();

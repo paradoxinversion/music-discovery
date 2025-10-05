@@ -10,7 +10,7 @@ import { Strategy as LocalStrategy } from "passport-local";
 import User, { IUserDoc } from "./db/models/User";
 import api from "./api/v1";
 const appName = "Music Discovery App";
-
+console.log(`Starting ${appName}...`);
 const app = express();
 app.use(cors());
 
@@ -28,7 +28,6 @@ app.use(
   }),
 );
 connectToDatabase();
-
 passport.use(
   new LocalStrategy(async function (username, password, done) {
     const user = await User.findOne({ username: username });
