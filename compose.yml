@@ -19,10 +19,10 @@ services:
       dockerfile: ./apps/backend/Dockerfile
       additional_contexts:
         base: service:base
-    develop:
-      watch:
-        - path: ./apps/backend/src
-          action: rebuild
+    volumes:
+      - type: bind
+        source: ./apps/backend
+        target: /app/apps/backend
     environment:
       NODE_ENV: development
       DB_URI: mongodb://mongo:27017/music-discovery-app-dev
@@ -34,6 +34,12 @@ services:
       - discovery-network
     depends_on:
       - mongo
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/v1/health"]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
 
   frontend:
     build:
@@ -41,10 +47,10 @@ services:
       dockerfile: ./apps/frontend/Dockerfile
       additional_contexts:
         base: service:base
-    develop:
-      watch:
-        - path: ./apps/frontend/app
-          action: rebuild
+    volumes:
+      - type: bind
+        source: ./apps/frontend
+        target: /app/apps/frontend
     environment:
       NODE_ENV: development
     ports:
