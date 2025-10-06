@@ -2,7 +2,7 @@ import express from "express";
 import passport from "passport";
 import { ensureLoggedIn } from "connect-ensure-login";
 import { healthCheck } from "../controllers/health";
-import { login, signUp } from "../controllers/auth";
+import { checkAuth, login, signUp } from "../controllers/auth";
 import {
   createNewArtist,
   deleteArtist,
@@ -25,8 +25,8 @@ import {
   getSimilarTracks,
   getTrack,
   getTracks,
+  setFavorite,
 } from "../controllers/track";
-import { getTracksByGenre } from "../db/actions/Track";
 const router = express.Router();
 
 router.route("/health").get(healthCheck);
@@ -36,6 +36,8 @@ router.route("/auth/sign-up").post(signUp);
 router
   .route("/auth/log-in")
   .post(passport.authenticate("local", { session: true }), login);
+
+router.route("/auth/check-auth").get(ensureLoggedIn(), checkAuth);
 
 router
   .route("/artists")
@@ -62,6 +64,7 @@ router.route("/albums").get(getAlbums).post(ensureLoggedIn(), createAlbum);
 
 router.route("/tracks/random").get(getRandomTracks);
 router.route("/tracks/:trackId").get(getTrack);
+router.route("/tracks/:trackId/favorite").post(ensureLoggedIn(), setFavorite);
 router.route("/tracks/:trackId/similar").get(getSimilarTracks);
 router.route("/tracks/genre/:genre").get(getTracks);
 export default router;

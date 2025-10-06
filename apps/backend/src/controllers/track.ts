@@ -4,6 +4,8 @@ import {
   getTrackById,
   getTracksByGenre,
 } from "../db/actions/Track";
+import Joi from "joi";
+import { addFavoriteTrack, removeFavoriteTrack } from "../db/actions/User";
 
 const submitTrack = (req: Request, res: Response) => {
   res.status(200).json({ status: "NOT IMPLEMENTED" });
@@ -79,6 +81,29 @@ const updateTrack = (req: Request, res: Response) => {
   res.status(200).json({ status: "NOT IMPLEMENTED" });
 };
 
+const setFavorite = async (req: Request, res: Response) => {
+  const favoriteSchema = Joi.object({
+    trackId: Joi.string().required(),
+    remove: Joi.boolean().default(false),
+  });
+  const userId = req.user._id;
+  try {
+    const { trackId, remove } = req.body;
+    const { error } = favoriteSchema.validate({ trackId, remove });
+    if (error) {
+      throw new Error(error.message);
+    }
+    if (remove) {
+      const favoriteTracks = await removeFavoriteTrack(userId, trackId);
+      return res.status(200).json({ status: "OK", data: favoriteTracks });
+    }
+    const favoriteTracks = await addFavoriteTrack(userId, trackId);
+    return res.status(200).json({ status: "OK", data: favoriteTracks });
+  } catch (error) {
+    return res.status(400).json({ status: "ERROR", message: error.message });
+  }
+};
+
 export {
   submitTrack,
   getTrack,
@@ -87,4 +112,5 @@ export {
   getRandom,
   getTracks,
   getSimilarTracks,
+  setFavorite,
 };

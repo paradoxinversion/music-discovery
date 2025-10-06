@@ -170,7 +170,7 @@ export const addFavoriteTrack = async (userId: string, trackId: string) => {
       { $push: { favoriteTracks: trackId } },
       { new: true },
     );
-    return user;
+    return user?.favoriteTracks;
   } catch (error) {
     throw new Error(`Error adding favorite track: ${error}`);
   }
@@ -183,7 +183,7 @@ export const removeFavoriteTrack = async (userId: string, trackId: string) => {
       { $pull: { favoriteTracks: trackId } },
       { new: true },
     );
-    return user;
+    return user?.favoriteTracks;
   } catch (error) {
     throw new Error(`Error removing favorite track: ${error}`);
   }
