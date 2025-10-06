@@ -1,12 +1,24 @@
 import { Request, Response } from "express";
 import { createUser } from "../db/actions/User";
+import joi from "joi";
+import { IUserSignup } from "@common/types/src/types";
 
-export const signUp = async (req: Request, res: Response) => {
+const signUpSchema = joi.object<IUserSignup>({
+  username: joi.string().min(3).max(30).required(),
+  email: joi.string().email().required(),
+  password: joi.string().min(6).required(),
+});
+
+export const signUp = async (
+  req: Request<{ body: IUserSignup }>,
+  res: Response,
+) => {
   try {
-    if (!req.body) {
-      return res.status(400).json({ message: "Request body is missing" });
+    const { error, value } = signUpSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0]?.message });
     }
-    const { username, password, email } = req.body;
+    const { username, password, email } = value;
     if (!username || !password || !email) {
       return res
         .status(400)
@@ -14,13 +26,21 @@ export const signUp = async (req: Request, res: Response) => {
     }
 
     await createUser({ username, password, email });
-    res.status(200).json({ message: "Sign up successful" });
+    return res.status(200).json({ message: "Sign up successful" });
   } catch (error) {
     console.error("Error during sign up:", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
 export const login = (req: Request, res: Response) => {
-  res.status(200).json({ message: "Login successful" });
+  return res.status(200).json({ message: "Login successful" });
+};
+
+export const checkAuth = (req: Request, res: Response) => {
+  if (req.isAuthenticated()) {
+    return res.status(200).json({ authenticated: true, user: req.user });
+  } else {
+    return res.status(200).json({ authenticated: false });
+  }
 };
