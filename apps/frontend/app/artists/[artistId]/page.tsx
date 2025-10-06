@@ -10,7 +10,32 @@ export default function ArtistPage({
 }) {
   const artistId = use(params).artistId;
   const [artistData, setArtistData] = useState(null);
-
+  const [similarArtists, setSimilarArtists] = useState([]);
+  const [otherArtists, setOtherArtists] = useState([]);
+  const fetchSimilarArtists = async (id: string) => {
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/artist/${id}/similar`,
+      );
+      setSimilarArtists(response.data.data);
+    } catch (error) {
+      console.error("Error fetching similar artists:", error);
+    }
+  };
+  const fetchOtherArtists = async () => {
+    try {
+      const exclude = [
+        artistId,
+        ...similarArtists.map((artist) => artist._id),
+      ].join(",");
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/artists/random?exclude=${exclude}`,
+      );
+      setOtherArtists(response.data.data);
+    } catch (error) {
+      console.error("Error fetching other artists:", error);
+    }
+  };
   useEffect(() => {
     const fetchArtistData = async () => {
       try {
@@ -24,6 +49,8 @@ export default function ArtistPage({
     };
 
     fetchArtistData();
+    fetchSimilarArtists(artistId);
+    fetchOtherArtists();
   }, [artistId]);
 
   if (!artistData) {
@@ -57,19 +84,35 @@ export default function ArtistPage({
           </a>
         </div>
       </div>
-      <div id="suggestions">
-        <h2 className="text-xl font-semibold mt-4">You might also like:</h2>
-        <ul className="list-disc list-inside">
-          <li>
-            <a href="#">Suggested Artist 1</a>
-          </li>
-          <li>
-            <a href="#">Suggested Artist 2</a>
-          </li>
-          <li>
-            <a href="#">Suggested Artist 3</a>
-          </li>
-        </ul>
+      <div>
+        <div id="suggestions">
+          <h2 className="text-xl font-semibold mt-4">You might also like:</h2>
+          {similarArtists.length > 0 ? (
+            <ul className="list-disc list-inside">
+              {similarArtists.map((artist: any) => (
+                <li key={artist._id}>
+                  <Link href={`/artists/${artist._id}`}>{artist.name}</Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>Loading suggestions...</p>
+          )}
+        </div>
+        <div id="other-suggestions">
+          <h2 className="text-xl font-semibold mt-4">Other artists:</h2>
+          {otherArtists.length > 0 ? (
+            <ul className="list-disc list-inside">
+              {otherArtists.map((artist: any) => (
+                <li key={artist._id}>
+                  <Link href={`/artists/${artist._id}`}>{artist.name}</Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>Loading suggestions...</p>
+          )}
+        </div>
       </div>
     </div>
   );
