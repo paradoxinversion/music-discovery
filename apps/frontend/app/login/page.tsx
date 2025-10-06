@@ -1,16 +1,62 @@
 "use client";
+import axios from "axios";
+import joi from "joi";
+import { useState } from "react";
+
+const loginSchema = joi.object({
+  username: joi.string().min(3).max(30).required(),
+  password: joi.string().min(6).required(),
+});
 
 export default function Page() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const onChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "username") setUsername(value);
+    else if (name === "password") setPassword(value);
+  };
+  const handleSubmit = async (e) => {
+    const { error, value } = loginSchema.validate({
+      username,
+      password,
+    });
+    if (error) {
+      console.error("Validation error:", error.message);
+      return;
+    }
+    // Proceed with login
+    console.log("Validated data:", value);
+    try {
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/log-in`,
+        value,
+        {
+          withCredentials: true,
+        },
+      );
+      console.log("Login successful:", res.data);
+    } catch (error) {
+      console.error("Login error:", error.response.data);
+    }
+  };
   return (
     <div className="flex flex-col items-center min-h-screen justify-center py-2">
       <h1 className="text-3xl font-bold mb-4">Login</h1>
-      <form className="flex flex-col space-y-4 w-80">
+      <form
+        action={handleSubmit}
+        onChange={onChange}
+        className="flex flex-col space-y-4 w-80"
+      >
         <input
+          name="username"
           type="text"
           placeholder="Username"
           className="border border-gray-300 rounded px-3 py-2"
         />
         <input
+          name="password"
           type="password"
           placeholder="Password"
           className="border border-gray-300 rounded px-3 py-2"
@@ -18,7 +64,6 @@ export default function Page() {
         <button
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
-          onClick={() => console.log("Login Clicked")}
         >
           Login
         </button>
