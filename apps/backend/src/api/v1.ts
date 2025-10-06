@@ -9,6 +9,7 @@ import {
   getArtists,
   getById,
   getRandom,
+  getSimilarArtists,
   updateArtist,
 } from "../controllers/artist";
 import {
@@ -48,6 +49,8 @@ router
   .get(getById)
   .put(ensureLoggedIn(), updateArtist)
   .delete(ensureLoggedIn(), deleteArtist);
+
+router.route("/artist/:id/similar").get(getSimilarArtists);
 
 router
   .route("/albums/:id")
