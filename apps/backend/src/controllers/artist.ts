@@ -6,6 +6,7 @@ import {
   deleteArtist as deleteArtistAction,
   updateArtist as updateArtistAction,
   getRandomArtists,
+  getSimilarArtists as getSimilarArtistsAction,
 } from "../db/actions/Artist";
 import { IArtist } from "@common/types/src/types";
 export const createNewArtist = async (req: Request, res: Response) => {
@@ -46,9 +47,31 @@ export const getById = async (req: Request, res: Response) => {
 };
 
 export const getRandom = async (req: Request, res: Response) => {
+  const excludeArtists: string[] = req.query.exclude
+    ? ((Array.isArray(req.query.exclude)
+        ? req.query.exclude
+        : [req.query.exclude]) as string[])
+    : [];
   const count = 5;
-  const artists = await getRandomArtists(count);
+  const artists = await getRandomArtists(count, excludeArtists);
   res.status(200).json({ status: "OK", data: artists });
+};
+
+export const getSimilarArtists = async (req: Request, res: Response) => {
+  const artistId = req.params.id;
+  if (!artistId) {
+    res.status(400).json({ status: "ERROR", message: "Artist ID is required" });
+    return;
+  }
+  const count = 5;
+  try {
+    const similarArtists = await getSimilarArtistsAction(artistId, count);
+    res.status(200).json({ status: "OK", data: similarArtists });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({ status: "ERROR", message: error.message });
+    }
+  }
 };
 
 export const updateArtist = async (req: Request, res: Response) => {
