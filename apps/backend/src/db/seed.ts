@@ -40,7 +40,7 @@ export const seedDatabase = async () => {
   for (const user of users) {
     const artist = new Artist({
       name: chance.name(),
-      genre: chance.word(),
+      genre: pickRandomGenre()?.toLowerCase(),
       managingUserId: user._id,
       biography: chance.paragraph(),
       links: {
@@ -60,7 +60,7 @@ export const seedDatabase = async () => {
       duration: chance.integer({ min: 60, max: 300 }),
       artistId: artist._id,
       managingUserId: artist.managingUserId,
-      genre: pickRandomGenre()?.toLowerCase(),
+      genre: artist.genre,
       links: {
         spotify:
           "https://open.spotify.com/track/" + chance.string({ length: 10 }),

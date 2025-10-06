@@ -56,12 +56,41 @@ export const getArtistById = async (artistId: string) => {
   }
 };
 
-export const getRandomArtists = async (count: number) => {
+export const getRandomArtists = async (
+  count: number,
+  excludeArtists: string[],
+) => {
   try {
-    const artists = await Artist.aggregate([{ $sample: { size: count } }]);
+    const artists = await Artist.aggregate([
+      { $match: { _id: { $nin: excludeArtists } } },
+      { $sample: { size: count } },
+    ]);
     return artists;
   } catch (error) {
     throw new Error(`Error retrieving random artists: ${error}`);
+  }
+};
+
+export const getSimilarArtists = async (artistId: string, count: number) => {
+  try {
+    const artist = await Artist.findById(artistId);
+    if (!artist) {
+      throw new Error(`Artist with ID ${artistId} not found`);
+    }
+    const genre = artist.genre;
+
+    const similarArtists = await Artist.aggregate([
+      { $match: { _id: { $ne: artist._id }, genre: genre } },
+      { $sample: { size: count } },
+      {
+        $project: {
+          name: 1,
+        },
+      },
+    ]);
+    return similarArtists;
+  } catch (error) {
+    throw new Error(`Error retrieving similar artists: ${error}`);
   }
 };
 

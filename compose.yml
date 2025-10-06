@@ -5,6 +5,7 @@ services:
       dockerfile: ./Dockerfile.base
 
   mongo:
+    attach: false
     image: mongo:latest
     ports:
       - 27017:27017
