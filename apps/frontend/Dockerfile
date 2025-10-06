@@ -12,6 +12,9 @@ COPY --from=base /app/.yarn/ ./.yarn/
 # Copy component artifacts (& package.json for dependency resolution)
 COPY --from=base /app/components/package.json ./components/
 COPY --from=base /app/components/dist/ ./components/dist/
+
+COPY --from=base /app/common/types/package.json ./common/types/
+COPY --from=base /app/common/types/dist/ ./common/types/dist/
 # Copy full frontend dir for development
 COPY --from=base /app/apps/frontend/ ./apps/frontend/
 
