@@ -12,7 +12,13 @@ import api from "./api/v1";
 const appName = "Music Discovery App";
 console.log(`Starting ${appName}...`);
 const app = express();
-app.use(cors());
+
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  }),
+);
 
 app.use(morgan("dev"));
 app.use(express.json());
