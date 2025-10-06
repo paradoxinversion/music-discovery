@@ -34,12 +34,16 @@ export const signUp = async (
 };
 
 export const login = (req: Request, res: Response) => {
-  return res.status(200).json({ message: "Login successful" });
+  const { password, __v, ...returnUser } = req.user.toObject();
+  return res
+    .status(200)
+    .json({ message: "Login successful", user: returnUser });
 };
 
 export const checkAuth = (req: Request, res: Response) => {
   if (req.isAuthenticated()) {
-    return res.status(200).json({ authenticated: true, user: req.user });
+    const { password, __v, ...returnUser } = req.user.toObject();
+    return res.status(200).json({ authenticated: true, user: returnUser });
   } else {
     return res.status(200).json({ authenticated: false });
   }
