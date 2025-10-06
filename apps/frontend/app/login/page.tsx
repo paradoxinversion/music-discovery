@@ -1,7 +1,11 @@
 "use client";
 import axios from "axios";
 import joi from "joi";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import checkAuthentication from "../../actions/checkAuthentication";
+import { useRouter } from "next/navigation";
+import { useAppDispatch } from "../../lib/hooks";
+import { setUser } from "../../lib/features/users/userSlice";
 
 const loginSchema = joi.object({
   username: joi.string().min(3).max(30).required(),
@@ -9,6 +13,8 @@ const loginSchema = joi.object({
 });
 
 export default function Page() {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
@@ -23,11 +29,8 @@ export default function Page() {
       password,
     });
     if (error) {
-      console.error("Validation error:", error.message);
-      return;
+      throw new Error(error.message);
     }
-    // Proceed with login
-    console.log("Validated data:", value);
     try {
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/log-in`,
@@ -36,11 +39,21 @@ export default function Page() {
           withCredentials: true,
         },
       );
-      console.log("Login successful:", res.data);
+      dispatch(setUser(res.data.user));
+      router.push("/discover");
     } catch (error) {
       console.error("Login error:", error.response.data);
     }
   };
+
+  useEffect(() => {
+    checkAuthentication().then((user) => {
+      if (user) {
+        dispatch(setUser(user));
+        router.push("/discover");
+      }
+    });
+  }, []);
   return (
     <div className="flex flex-col items-center min-h-screen justify-center py-2">
       <h1 className="text-3xl font-bold mb-4">Login</h1>
