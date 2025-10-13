@@ -16,28 +16,24 @@ export default function UserVitalSettings() {
         <form className="flex flex-col space-y-4 w-64 mt-4">
           <label>Username</label>
           <input
-            className="border border-gray-300 rounded px-3 py-2"
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
           <label>Email</label>
           <input
-            className="border border-gray-300 rounded px-3 py-2"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <label>Password</label>
           <input
-            className="border border-gray-300 rounded px-3 py-2"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
           <label>Confirm Password</label>
           <input
-            className="border border-gray-300 rounded px-3 py-2"
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}

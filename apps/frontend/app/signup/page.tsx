@@ -49,26 +49,9 @@ export default function Page() {
         onChange={onChange}
         className="flex flex-col space-y-4 w-80"
       >
-        <input
-          name="email"
-          type="email"
-          placeholder="Email"
-          className="border border-gray-300 rounded px-3 py-2"
-        />
-        <input
-          name="username"
-          type="text"
-          placeholder="Username"
-          className="border border-gray-300 rounded px-3 py-2"
-          //   value={username}
-        />
-        <input
-          name="password"
-          type="password"
-          placeholder="Password"
-          className="border border-gray-300 rounded px-3 py-2"
-          //   value={password}
-        />
+        <input name="email" type="email" placeholder="Email" />
+        <input name="username" type="text" placeholder="Username" />
+        <input name="password" type="password" placeholder="Password" />
         <button
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"

@@ -54,7 +54,7 @@ export default function Page() {
       )}
       {managedArtists.length > 0 && (
         <div>
-          <h2 className="text-xl font-bold mt-4">Your Managed Artists</h2>
+          <h2 className="text-xl font-bold mt-4 mb-4">Your Managed Artists</h2>
           {managedArtists.map((artist) => (
             <Button
               key={artist._id}

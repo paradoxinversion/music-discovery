@@ -45,7 +45,6 @@ export default function ArtistSignup() {
         <input
           type="text"
           id="artistName"
-          className="border border-gray-300 rounded px-3 py-2"
           required
           value={artistName}
           onChange={handleInputChange}
@@ -54,7 +53,6 @@ export default function ArtistSignup() {
         <input
           type="text"
           id="genre"
-          className="border border-gray-300 rounded px-3 py-2"
           required
           value={genre}
           onChange={handleInputChange}
@@ -62,7 +60,6 @@ export default function ArtistSignup() {
         <label htmlFor="biography">Biography*</label>
         <textarea
           id="biography"
-          className="border border-gray-300 rounded px-3 py-2"
           required
           value={biography}
           onChange={handleInputChange}

@@ -59,18 +59,8 @@ export default function Page() {
     <div className="flex flex-col items-center min-h-screen justify-center py-2 w-full">
       <h1 className="text-3xl font-bold mb-4">Login</h1>
       <form onChange={onChange} className="flex flex-col space-y-4 w-80">
-        <input
-          name="username"
-          type="text"
-          placeholder="Username"
-          className="border border-gray-300 rounded px-3 py-2"
-        />
-        <input
-          name="password"
-          type="password"
-          placeholder="Password"
-          className="border border-gray-300 rounded px-3 py-2"
-        />
+        <input name="username" type="text" placeholder="Username" />
+        <input name="password" type="password" placeholder="Password" />
         <button
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
