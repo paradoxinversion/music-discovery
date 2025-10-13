@@ -23,7 +23,7 @@ export const usersSignupData: IUserSignup[] = [
 export const usersDocumentData: IUser[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(
   (value) => ({
     username: `testuser${value}`,
-    email: `testuse${value}r@example.com`,
+    email: `testuser${value}@example.com`,
     password: "password123", // eslint-disable-line sonarjs/no-hardcoded-passwords
     favoriteArtists: [],
     favoriteAlbums: [],
