@@ -16,12 +16,14 @@ export default function EditArtistForm({
   artistData,
   artistId,
   setArtistDataAction,
+  setEditArtistDataAction,
 }: {
   artistData?: EditableArtist;
   artistId: string;
   setArtistDataAction: React.Dispatch<
     React.SetStateAction<EditableArtist | undefined>
   >;
+  setEditArtistDataAction: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [name, setName] = useState(artistData?.name || "");
   const [genre, setGenre] = useState(artistData?.genre || "");
@@ -93,6 +95,7 @@ export default function EditArtistForm({
         </div>
       ))}
       <Button label="Save Changes" type="submit" onClick={handleSubmit} />
+      <Button label="Cancel" onClick={() => setEditArtistDataAction?.(false)} />
     </form>
   );
 }

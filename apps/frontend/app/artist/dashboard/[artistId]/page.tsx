@@ -7,6 +7,7 @@ import checkAuthentication from "../../../../actions/checkAuthentication";
 import getTracksByArtist from "../../../../actions/getTracksByArtist";
 import { Button } from "@mda/components";
 import EditArtistForm from "./EditArtistForm";
+import deleteTrack from "../../../../actions/deleteTrack";
 
 export default function Page({
   params,
@@ -17,6 +18,7 @@ export default function Page({
   const artistId = use(params).artistId;
   const [artistData, setArtistData] = useState(null);
   const [artistTracks, setArtistTracks] = useState([]);
+  const [editArtistData, setEditArtistData] = useState(false);
   useEffect(() => {
     checkAuthentication().then((user) => {
       if (!user) {
@@ -28,6 +30,15 @@ export default function Page({
     getArtistById(artistId).then((data) => setArtistData(data));
     getTracksByArtist(artistId).then((data) => setArtistTracks(data.data));
   }, []);
+  const handleDeleteTrack = async (trackId: string) => {
+    const response = await deleteTrack(trackId);
+    if (response.status === 200) {
+      setArtistTracks((prevTracks) =>
+        prevTracks.filter((track) => track._id !== trackId),
+      );
+    }
+  };
+
   return (
     <div className="w-full p-4">
       <h1 className="text-2xl font-bold mb-4">Artist Dashboard</h1>
@@ -36,11 +47,20 @@ export default function Page({
           <div id="artist-details">
             <h2 className="text-xl font-semibold">{artistData.name}</h2>
           </div>
-          <EditArtistForm
-            artistId={artistId}
-            artistData={artistData}
-            setArtistDataAction={setArtistData}
-          />
+          {!editArtistData && (
+            <Button
+              label="Edit Artist Details"
+              onClick={() => setEditArtistData(true)}
+            />
+          )}
+          {editArtistData && (
+            <EditArtistForm
+              artistId={artistId}
+              artistData={artistData}
+              setArtistDataAction={setArtistData}
+              setEditArtistDataAction={setEditArtistData}
+            />
+          )}
           <div id="artist-tracks" className="mt-4">
             <p>Artist Tracks</p>
             <Button
@@ -67,7 +87,10 @@ export default function Page({
                           )
                         }
                       />
-                      <Button label="Delete" onClick={() => {}} />
+                      <Button
+                        label="Delete"
+                        onClick={() => handleDeleteTrack(track._id)}
+                      />
                     </div>
                   </div>
                 ))}
