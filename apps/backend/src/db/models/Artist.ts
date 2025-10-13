@@ -25,6 +25,16 @@ const ArtistSchema: Schema<IArtist> = new Schema({
     required: true,
     ref: "User",
   },
+  albums: {
+    type: [String],
+    ref: "Album",
+    default: [],
+  },
+  tracks: {
+    type: [String],
+    ref: "Track",
+    default: [],
+  },
 });
 
 const Artist = model<IArtist>("Artist", ArtistSchema);

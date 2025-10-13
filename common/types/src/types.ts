@@ -74,6 +74,8 @@ interface IArtist {
   links?: {
     [key in CommonLinkKeySocial]?: string;
   };
+  albums?: string[];
+  tracks?: string[];
 }
 
 type EditableArtist = Partial<Omit<IArtist, "managingUserId">>;
