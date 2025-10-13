@@ -4,6 +4,7 @@ import submitTrack from "../../../../../actions/submitTrack";
 import Joi from "joi";
 import checkAuthentication from "../../../../../actions/checkAuthentication";
 import { useRouter } from "next/navigation";
+import { Button } from "@mda/components";
 
 export default function Page({
   params,
@@ -59,18 +60,21 @@ export default function Page({
   };
 
   return (
-    <div>
-      <form className="flex flex-col ">
+    <div className="w-full p-4">
+      <form className="flex flex-col">
         <h1>Add New Track</h1>
         <label>Track Title:</label>
         <input type="text" name="title" onChange={handleInputChange} required />
         <label>Genre:</label>
         <input type="text" name="genre" onChange={handleInputChange} required />
         <label>ISRC:</label>
-        <input type="text" name="isrc" onChange={handleInputChange} />
-        <button type="submit" onClick={handleSubmit}>
-          Add Track
-        </button>
+        <input
+          className="mb-4"
+          type="text"
+          name="isrc"
+          onChange={handleInputChange}
+        />
+        <Button label="Add Track" onClick={handleSubmit} />
       </form>
     </div>
   );
