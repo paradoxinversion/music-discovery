@@ -26,7 +26,7 @@ interface ITrack {
   title: string;
   artistId: string;
   albumId: string;
-  duration: number;
+  duration?: number;
   isrc?: string;
   genre: string;
   managingUserId: string;
@@ -34,6 +34,15 @@ interface ITrack {
     [key in CommonLinkKeyMusic]?: string;
   };
 }
+
+type TrackSubmissionData = Pick<
+  ITrack,
+  "title" | "genre" | "artistId" | "isrc"
+>;
+
+type EditableTrack = Partial<
+  Pick<ITrack, "title" | "genre" | "isrc" | "links">
+>;
 
 /**
  * A music album.
@@ -100,4 +109,6 @@ export type {
   CommonLinkKeySocial,
   EditableArtist,
   EditableAlbum,
+  TrackSubmissionData,
+  EditableTrack,
 };
