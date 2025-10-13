@@ -6,6 +6,7 @@ import {
   getTracksByArtistId as getTracksByArtistIdAction,
   createTrack,
   updateTrack as updateTrackAction,
+  deleteTrack as deleteTrackAction,
 } from "../db/actions/Track";
 import Joi from "joi";
 import { addFavoriteTrack, removeFavoriteTrack } from "../db/actions/User";
@@ -116,8 +117,14 @@ const getRandom = async (req: Request, res: Response) => {
   res.status(200).json({ status: "OK", data: tracks });
 };
 
-const deleteTrack = (req: Request, res: Response) => {
-  res.status(200).json({ status: "NOT IMPLEMENTED" });
+const deleteTrack = async (req: Request, res: Response) => {
+  if (!req.params.trackId) {
+    return res
+      .status(400)
+      .json({ status: "ERROR", message: "trackId is required" });
+  }
+  const result = await deleteTrackAction(req.user._id, req.params.trackId);
+  res.status(200).json({ status: "OK", data: result });
 };
 
 const updateTrack = async (req: Request, res: Response) => {
