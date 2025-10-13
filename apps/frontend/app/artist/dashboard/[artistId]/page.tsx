@@ -36,7 +36,11 @@ export default function Page({
           <div id="artist-details">
             <h2 className="text-xl font-semibold">{artistData.name}</h2>
           </div>
-          <EditArtistForm artistData={artistData} />
+          <EditArtistForm
+            artistId={artistId}
+            artistData={artistData}
+            setArtistDataAction={setArtistData}
+          />
           <div id="artist-tracks" className="mt-4">
             <p>Artist Tracks</p>
             <Button
