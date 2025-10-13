@@ -18,7 +18,6 @@ const TrackSchema: Schema<ITrack> = new Schema({
   },
   duration: {
     type: Number,
-    required: true,
   },
   isrc: {
     type: String,
