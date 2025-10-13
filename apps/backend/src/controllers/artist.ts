@@ -7,9 +7,28 @@ import {
   updateArtist as updateArtistAction,
   getRandomArtists,
   getSimilarArtists as getSimilarArtistsAction,
+  getArtistsByIds,
 } from "../db/actions/Artist";
 import { IArtist } from "@common/types/src/types";
+import Joi from "joi";
+import { addFavoriteArtist, removeFavoriteArtist } from "../db/actions/User";
 export const createNewArtist = async (req: Request, res: Response) => {
+  const artistSchema = Joi.object({
+    name: Joi.string().min(2).max(100).required(),
+    genre: Joi.string().min(2).max(100).required(),
+    biography: Joi.string().min(10).max(1000).required(),
+    links: Joi.object({
+      website: Joi.string().uri().optional(),
+      facebook: Joi.string().uri().optional(),
+      twitter: Joi.string().uri().optional(),
+      instagram: Joi.string().uri().optional(),
+    }).optional(),
+  });
+  const { error } = artistSchema.validate(req.body);
+  if (error) {
+    res.status(400).json({ status: "ERROR", message: error.message });
+    return;
+  }
   try {
     const user = req.user;
     const artistData: Omit<IArtist, "managingUserId"> = {
@@ -46,6 +65,26 @@ export const getById = async (req: Request, res: Response) => {
   }
 };
 
+export const getByIds = async (req: Request, res: Response) => {
+  const requestSchema = Joi.object({
+    artistIds: Joi.array().items(Joi.string().required()).required(),
+  });
+  const { error } = requestSchema.validate(req.body);
+  if (error) {
+    res.status(400).json({ status: "ERROR", message: error.message });
+    return;
+  }
+  const artistIds: string[] = req.body.artistIds;
+  if (!artistIds || !Array.isArray(artistIds) || artistIds.length === 0) {
+    res
+      .status(400)
+      .json({ status: "ERROR", message: "Artist IDs are required" });
+    return;
+  }
+  const artists = await getArtistsByIds(artistIds);
+  res.status(200).json({ status: "OK", data: artists });
+};
+
 export const getRandom = async (req: Request, res: Response) => {
   const excludeArtists: string[] = req.query.exclude
     ? ((Array.isArray(req.query.exclude)
@@ -67,6 +106,45 @@ export const getSimilarArtists = async (req: Request, res: Response) => {
   try {
     const similarArtists = await getSimilarArtistsAction(artistId, count);
     res.status(200).json({ status: "OK", data: similarArtists });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({ status: "ERROR", message: error.message });
+    }
+  }
+};
+
+export const setFavorite = async (req: Request, res: Response) => {
+  if (!req.user) {
+    res
+      .status(401)
+      .json({ status: "ERROR", message: "User not authenticated" });
+    return;
+  }
+  const artistId = req.params.id;
+  if (!artistId) {
+    res.status(400).json({ status: "ERROR", message: "Artist ID is required" });
+    return;
+  }
+  const requestSchema = Joi.object({
+    remove: Joi.boolean().required(),
+  });
+  const { error } = requestSchema.validate(req.body);
+  if (error) {
+    res.status(400).json({ status: "ERROR", message: error.message });
+    return;
+  }
+
+  const { remove } = req.body;
+  try {
+    let data;
+    if (remove) {
+      data = await removeFavoriteArtist(req.user._id, artistId);
+    } else {
+      data = await addFavoriteArtist(req.user._id, artistId);
+    }
+    res
+      .status(200)
+      .json({ status: "OK", message: "Favorite updated successfully", data });
   } catch (error) {
     if (error instanceof Error) {
       res.status(500).json({ status: "ERROR", message: error.message });

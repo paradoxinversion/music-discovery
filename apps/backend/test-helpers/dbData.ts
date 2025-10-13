@@ -9,13 +9,32 @@ import {
 export const DEFAULT_TEST_USER_SIGNUP: IUserSignup = {
   username: "testuser",
   email: "testuser@example.com",
-  password: "password123",
+  password: "password123", // eslint-disable-line sonarjs/no-hardcoded-passwords
 };
+
+export const usersSignupData: IUserSignup[] = [
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+].map((value) => ({
+  username: `testUser${value}`,
+  email: `testuser${value}@example.com`,
+  password: "password1234", // eslint-disable-line sonarjs/no-hardcoded-passwords
+}));
+
+export const usersDocumentData: IUser[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(
+  (value) => ({
+    username: `testuser${value}`,
+    email: `testuser${value}@example.com`,
+    password: "password123", // eslint-disable-line sonarjs/no-hardcoded-passwords
+    favoriteArtists: [],
+    favoriteAlbums: [],
+    favoriteTracks: [],
+  }),
+);
 
 export const DEFAULT_TEST_USER_DATA: IUser = {
   username: "testuser",
   email: "testuser@example.com",
-  password: "password123",
+  password: "password123", // eslint-disable-line sonarjs/no-hardcoded-passwords
   favoriteArtists: [],
   favoriteAlbums: [],
   favoriteTracks: [],

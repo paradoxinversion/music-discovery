@@ -2,6 +2,20 @@
 # check=error=true;experimental=CopyIgnoredFile
 
 ARG NODE_VERSION=22.16.0
+
+FROM node:${NODE_VERSION}-alpine AS backend-test
+WORKDIR /app
+
+# Copy base dependencies
+COPY package.json yarn.lock tsconfig.json ./
+COPY apps/backend ./apps/backend
+COPY common/types ./common/types
+
+# Install dependencies
+RUN corepack enable && yarn install
+
+CMD ["yarn", "workspace", "backend", "test"]
+
 FROM node:${NODE_VERSION}-alpine AS backend-dev
 
 WORKDIR /app

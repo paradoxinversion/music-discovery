@@ -56,13 +56,24 @@ export const getArtistById = async (artistId: string) => {
   }
 };
 
+export const getArtistsByIds = async (artistIds: string[]) => {
+  try {
+    const artists = await Artist.find({ _id: { $in: artistIds } });
+    return artists.map((artist) =>
+      artist.toJSON({ flattenMaps: true }),
+    ) as IArtist[];
+  } catch (error) {
+    throw new Error(`Error retrieving artists: ${error}`);
+  }
+};
+
 export const getRandomArtists = async (
   count: number,
-  excludeArtists: string[],
+  excludeArtists?: string[],
 ) => {
   try {
     const artists = await Artist.aggregate([
-      { $match: { _id: { $nin: excludeArtists } } },
+      { $match: { _id: { $nin: excludeArtists || [] } } },
       { $sample: { size: count } },
     ]);
     return artists;
@@ -112,17 +123,15 @@ export const updateArtist = async (
     if (!user) {
       throw new Error(`User with ID ${userId} not found`);
     }
-    if (artist?.managingUserId !== userId) {
+    if (artist?.managingUserId.toString() !== userId.toString()) {
       throw new Error(
-        `User with ID ${userId} is not authorized to update this artist`,
+        `User with ID ${userId} is not authorized to update this artist (${artist?.managingUserId})`,
       );
     }
     const updatedArtist = await Artist.findByIdAndUpdate(artistId, updateData, {
       new: true,
     });
-    if (!updatedArtist) {
-      throw new Error(`Artist with ID ${artistId} not found`);
-    }
+
     return updatedArtist?.toJSON({ flattenMaps: true });
   } catch (error) {
     throw new Error(`Error updating artist: ${error}`);

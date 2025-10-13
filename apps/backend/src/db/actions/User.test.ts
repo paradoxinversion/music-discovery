@@ -11,6 +11,8 @@ import {
   removeFavoriteAlbum,
   addFavoriteTrack,
   removeFavoriteTrack,
+  getManagedArtists,
+  updateUser,
 } from "./User";
 import Artist from "../models/Artist";
 import {
@@ -71,7 +73,39 @@ describe("Get User By ID", () => {
     expect(fetchedUser).toBeNull();
   });
 });
+describe("Get Managed Artists", () => {
+  it("Retrieves managed artists for a user", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    await user.save();
+    const artist1 = new Artist({
+      name: "The Crescendolls",
+      genre: "Electronic",
+      biography: "An extraterrestrial band known for their catchy tunes.",
+      managingUserId: user.id.toString(),
+    });
+    const artist2 = new Artist({
+      name: "The Electros",
+      genre: "Rock",
+      biography: "A rock band with an electrifying stage presence.",
+      managingUserId: user.id.toString(),
+    });
+    await artist1.save();
+    await artist2.save();
 
+    const artists = await getManagedArtists(user.id.toString());
+    expect(artists.length).toBe(2);
+    const artistNames = artists.map((a) => a.name);
+    expect(artistNames).toContain("The Crescendolls");
+    expect(artistNames).toContain("The Electros");
+  });
+
+  it("Returns empty array if user manages no artists", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    await user.save();
+    const artists = await getManagedArtists(user.id.toString());
+    expect(artists.length).toBe(0);
+  });
+});
 describe("Add favorite artist", () => {
   it("Adds a favorite artist to user", async () => {
     const user = new User(DEFAULT_TEST_USER_DATA);
@@ -394,10 +428,16 @@ describe("Add favorite Track", () => {
     await artist.save();
     await album.save();
     await track.save();
-    await addFavoriteTrack(user.id.toString(), track.id.toString());
-    await expect(
-      addFavoriteTrack(user.id.toString(), track.id.toString()),
-    ).rejects.toThrow();
+    const first = await addFavoriteTrack(
+      user.id.toString(),
+      track.id.toString(),
+    );
+    expect(first).toHaveLength(1);
+    const updated = await addFavoriteTrack(
+      user.id.toString(),
+      track.id.toString(),
+    );
+    expect(updated).toHaveLength(1);
   });
 
   it("Throws an error if the user does not exist", async () => {
@@ -486,9 +526,11 @@ describe("Remove favorite Track", () => {
     await artist.save();
     await album.save();
     await track.save();
-    await expect(
-      removeFavoriteTrack(user.id.toString(), track.id.toString()),
-    ).rejects.toThrow();
+    const updated = await removeFavoriteTrack(
+      user.id.toString(),
+      track.id.toString(),
+    );
+    await expect(updated).toHaveLength(0);
   });
 
   it("Throws an error if the user does not exist", async () => {
@@ -520,9 +562,28 @@ describe("Remove favorite Track", () => {
     const user = new User(DEFAULT_TEST_USER_DATA);
     await user.save();
     const fakeTrackId = new mongoose.Types.ObjectId().toString();
-    await expect(
-      removeFavoriteTrack(user.id.toString(), fakeTrackId),
-    ).rejects.toThrow();
+    const update = await removeFavoriteTrack(user.id.toString(), fakeTrackId);
+    expect(update).toHaveLength(0);
+  });
+});
+
+describe("Update User", () => {
+  it("Updates user information", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    await user.save();
+    const updatedData = { username: "newusername" };
+    const update = await updateUser(user.id.toString(), updatedData);
+    expect(update).toBeDefined();
+    expect(update.username).toBe(updatedData.username);
+    expect(update.email).toBe(DEFAULT_TEST_USER_DATA.email); // unchanged
+  });
+
+  it("Throws an error if the user does not exist", async () => {
+    const fakeUserId = new mongoose.Types.ObjectId().toString();
+    const updatedData = { username: "newusername" };
+    await expect(updateUser(fakeUserId, updatedData)).rejects.toThrow(
+      `User with ID ${fakeUserId} not found`,
+    );
   });
 });
 
@@ -558,6 +619,26 @@ describe("Delete User", () => {
       managingUserId: user.id.toString(),
     });
     await track.save();
+
+    await Artist.updateOne(
+      { _id: artist.id },
+      { $push: { tracks: track.id.toString(), albums: album.id.toString() } },
+    );
+
+    const user2 = new User({
+      ...DEFAULT_TEST_USER_DATA,
+      username: "seconduser",
+      email: "seconduser@example.com",
+    });
+
+    user2.favoriteArtists.push(artist._id.toString());
+    user2.favoriteAlbums.push(album._id.toString());
+    user2.favoriteTracks.push(track._id.toString());
+    await user2.save();
+    expect(user2.favoriteArtists).toHaveLength(1);
+    expect(user2.favoriteAlbums).toHaveLength(1);
+    expect(user2.favoriteTracks).toHaveLength(1);
+
     const deletionResult = await deleteUser(user.id.toString());
     expect(deletionResult).toBe(true);
     const fetchedUser = await User.findById(user.id.toString());
@@ -571,6 +652,10 @@ describe("Delete User", () => {
 
     const fetchedTrack = await Track.findById(track.id.toString());
     expect(fetchedTrack).toBeNull();
+    const user2After = await User.findById(user2.id.toString());
+    expect(user2After.favoriteArtists).toHaveLength(0);
+    expect(user2After.favoriteAlbums).toHaveLength(0);
+    expect(user2After.favoriteTracks).toHaveLength(0);
   });
 
   it("Throws an error when trying to delete a non-existent user", async () => {

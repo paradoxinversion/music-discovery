@@ -3,10 +3,40 @@ import {
   getRandomTracks,
   getTrackById,
   getTracksByGenre,
+  getTracksByArtistId as getTracksByArtistIdAction,
+  createTrack,
+  updateTrack as updateTrackAction,
+  deleteTrack as deleteTrackAction,
 } from "../db/actions/Track";
+import Joi from "joi";
+import { addFavoriteTrack, removeFavoriteTrack } from "../db/actions/User";
+import { TrackSubmissionData } from "@common/types/src/types";
 
-const submitTrack = (req: Request, res: Response) => {
-  res.status(200).json({ status: "NOT IMPLEMENTED" });
+const submitTrack = async (req: Request, res: Response) => {
+  const trackSchema = Joi.object<TrackSubmissionData>({
+    title: Joi.string().required(),
+    artistId: Joi.string().required(),
+    genre: Joi.string().required(),
+    isrc: Joi.string().optional(),
+  });
+  const managingUserId = req.user._id;
+  try {
+    const { error, value } = trackSchema.validate(req.body);
+    if (error) {
+      throw new Error(error.message);
+    }
+    const trackData: TrackSubmissionData & { managingUserId: string } = {
+      ...value,
+      managingUserId,
+    };
+    // Save the track to the database
+    const track = await createTrack(trackData);
+    return res.status(201).json({ status: "OK", data: track });
+  } catch (error) {
+    if (error instanceof Error) {
+      return res.status(400).json({ status: "ERROR", message: error.message });
+    }
+  }
 };
 
 const getTrack = async (req: Request, res: Response) => {
@@ -64,6 +94,22 @@ const getSimilarTracks = async (req: Request, res: Response) => {
   return res.status(200).json({ status: "OK", data: similarTracks });
 };
 
+const getTracksByArtistId = async (req: Request, res: Response) => {
+  const { artistId } = req.params;
+  if (!artistId) {
+    return res
+      .status(400)
+      .json({ status: "ERROR", message: "artistId is required" });
+  }
+  const tracks = await getTracksByArtistIdAction(artistId);
+  if (!tracks || tracks.length === 0) {
+    return res
+      .status(404)
+      .json({ status: "ERROR", message: "No tracks found for this artist" });
+  }
+  return res.status(200).json({ status: "OK", data: tracks });
+};
+
 const getRandom = async (req: Request, res: Response) => {
   const count = 8;
 
@@ -71,12 +117,70 @@ const getRandom = async (req: Request, res: Response) => {
   res.status(200).json({ status: "OK", data: tracks });
 };
 
-const deleteTrack = (req: Request, res: Response) => {
-  res.status(200).json({ status: "NOT IMPLEMENTED" });
+const deleteTrack = async (req: Request, res: Response) => {
+  if (!req.params.trackId) {
+    return res
+      .status(400)
+      .json({ status: "ERROR", message: "trackId is required" });
+  }
+  const result = await deleteTrackAction(req.user._id, req.params.trackId);
+  res.status(200).json({ status: "OK", data: result });
 };
 
-const updateTrack = (req: Request, res: Response) => {
-  res.status(200).json({ status: "NOT IMPLEMENTED" });
+const updateTrack = async (req: Request, res: Response) => {
+  const updateSchema = Joi.object({
+    title: Joi.string().optional(),
+    genre: Joi.string().optional(),
+    links: Joi.object()
+      .pattern(
+        Joi.string().valid("spotify", "appleMusic", "youtube", "soundcloud"),
+        Joi.string().uri(),
+      )
+      .optional(),
+  });
+  try {
+    const { trackId } = req.params;
+    const userId = req.user._id;
+    if (!trackId) {
+      return res
+        .status(400)
+        .json({ status: "ERROR", message: "trackId is required" });
+    }
+    const { error, value } = updateSchema.validate(req.body);
+    if (error) {
+      throw new Error(error.message);
+    }
+    const updatedTrack = await updateTrackAction(userId, trackId, value);
+    return res.status(200).json({ status: "OK", data: updatedTrack });
+  } catch (error) {
+    if (error instanceof Error) {
+      return res.status(400).json({ status: "ERROR", message: error.message });
+    }
+  }
+};
+const setFavorite = async (req: Request, res: Response) => {
+  const favoriteSchema = Joi.object({
+    trackId: Joi.string().required(),
+    remove: Joi.boolean().default(false),
+  });
+  const userId = req.user._id;
+  try {
+    const { trackId, remove } = req.body;
+    const { error } = favoriteSchema.validate({ trackId, remove });
+    if (error) {
+      throw new Error(error.message);
+    }
+    if (remove) {
+      const favoriteTracks = await removeFavoriteTrack(userId, trackId);
+      return res.status(200).json({ status: "OK", data: favoriteTracks });
+    }
+    const favoriteTracks = await addFavoriteTrack(userId, trackId);
+    return res.status(200).json({ status: "OK", data: favoriteTracks });
+  } catch (error) {
+    if (error instanceof Error) {
+      return res.status(400).json({ status: "ERROR", message: error.message });
+    }
+  }
 };
 
 export {
@@ -87,4 +191,6 @@ export {
   getRandom,
   getTracks,
   getSimilarTracks,
+  setFavorite,
+  getTracksByArtistId,
 };

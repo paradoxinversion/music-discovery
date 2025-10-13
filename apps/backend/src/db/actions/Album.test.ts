@@ -129,6 +129,37 @@ describe("Update Album", () => {
       updateAlbum(user.id.toString(), fakeAlbumId, updateData),
     ).rejects.toThrow(`Album with ID ${fakeAlbumId} not found`);
   });
+
+  it("Throws error if user is not authorized to update album", async () => {
+    const user1 = new User(DEFAULT_TEST_USER_DATA);
+    await user1.save();
+    const user2 = new User({
+      username: "anotheruser",
+      email: "differentuser@example.com",
+    });
+    await user2.save();
+
+    const artist = new Artist({
+      ...DEFAULT_TEST_ARTIST_DATA,
+      managingUserId: user1.id.toString(),
+    });
+    await artist.save();
+
+    const album = new Album({
+      ...DEFAULT_TEST_ALBUM_DATA,
+      artistId: artist.id.toString(),
+      managingUserId: user1.id.toString(),
+    });
+    await album.save();
+
+    await expect(
+      updateAlbum(user2.id.toString(), album.id.toString(), {
+        title: "Unauthorized Update",
+      }),
+    ).rejects.toThrow(
+      `User with ID ${user2.id} is not authorized to update this album`,
+    );
+  });
 });
 
 describe("Delete Album", () => {
@@ -216,5 +247,31 @@ describe("Delete Album", () => {
     await expect(
       deleteAlbum(user.id.toString(), fakeAlbumId),
     ).rejects.toThrow();
+  });
+
+  it("Throws error if user is not authorized to delete album", async () => {
+    const user1 = new User(DEFAULT_TEST_USER_DATA);
+    await user1.save();
+    const user2 = new User({
+      username: "anotheruser",
+      email: "differentuser@example.com",
+    });
+    await user2.save();
+    const artist = new Artist({
+      ...DEFAULT_TEST_ARTIST_DATA,
+      managingUserId: user1.id.toString(),
+    });
+    await artist.save();
+    const album = new Album({
+      ...DEFAULT_TEST_ALBUM_DATA,
+      artistId: artist.id.toString(),
+      managingUserId: user1.id.toString(),
+    });
+    await album.save();
+    await expect(
+      deleteAlbum(user2.id.toString(), album.id.toString()),
+    ).rejects.toThrow(
+      `User with ID ${user2.id} is not authorized to delete this album`,
+    );
   });
 });
