@@ -24,6 +24,7 @@ export default function Page() {
     else if (name === "password") setPassword(value);
   };
   const handleSubmit = async (e) => {
+    e.preventDefault();
     const { error, value } = loginSchema.validate({
       username,
       password,
@@ -55,13 +56,9 @@ export default function Page() {
     });
   }, []);
   return (
-    <div className="flex flex-col items-center min-h-screen justify-center py-2">
+    <div className="flex flex-col items-center min-h-screen justify-center py-2 w-full">
       <h1 className="text-3xl font-bold mb-4">Login</h1>
-      <form
-        action={handleSubmit}
-        onChange={onChange}
-        className="flex flex-col space-y-4 w-80"
-      >
+      <form onChange={onChange} className="flex flex-col space-y-4 w-80">
         <input
           name="username"
           type="text"
@@ -77,6 +74,7 @@ export default function Page() {
         <button
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
+          onClick={handleSubmit}
         >
           Login
         </button>
