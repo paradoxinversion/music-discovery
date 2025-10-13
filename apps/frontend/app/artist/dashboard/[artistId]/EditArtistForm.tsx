@@ -1,6 +1,9 @@
 "use client";
 import { EditableArtist } from "@common/types/src/types";
 import { useState } from "react";
+import editArtistData from "../../../../actions/editArtistData";
+import { Button } from "@mda/components";
+import Joi from "joi";
 
 const socialPlatforms = [
   "facebook",
@@ -11,8 +14,14 @@ const socialPlatforms = [
 ];
 export default function EditArtistForm({
   artistData,
+  artistId,
+  setArtistDataAction,
 }: {
   artistData?: EditableArtist;
+  artistId: string;
+  setArtistDataAction: React.Dispatch<
+    React.SetStateAction<EditableArtist | undefined>
+  >;
 }) {
   const [name, setName] = useState(artistData?.name || "");
   const [genre, setGenre] = useState(artistData?.genre || "");
@@ -40,6 +49,17 @@ export default function EditArtistForm({
           break;
       }
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const updateData = await editArtistData(artistId, {
+      name,
+      genre,
+      biography: bio,
+      links,
+    });
+    setArtistDataAction(updateData);
   };
 
   return (
@@ -72,7 +92,7 @@ export default function EditArtistForm({
           />
         </div>
       ))}
-      <button type="submit">Save Changes</button>
+      <Button label="Save Changes" type="submit" onClick={handleSubmit} />
     </form>
   );
 }
