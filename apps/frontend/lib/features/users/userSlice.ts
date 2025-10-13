@@ -44,6 +44,12 @@ const usersSlice = createSlice({
   },
 });
 
-export const { setUser, unsetUser, setFavoriteTracks } = usersSlice.actions;
+export const {
+  setUser,
+  unsetUser,
+  setFavoriteTracks,
+  setFavoriteArtists,
+  setFavoriteAlbums,
+} = usersSlice.actions;
 
 export default usersSlice.reducer;
