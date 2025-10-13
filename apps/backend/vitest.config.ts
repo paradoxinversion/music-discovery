@@ -6,7 +6,9 @@ export default defineConfig({
     fileParallelism: false,
     coverage: {
       provider: "istanbul",
-      reporter: ["text", "json", "html"],
+      reporter: ["text", ["lcov", { projectRoot: "./src" }]],
+      reportsDirectory: "./coverage",
+      reportOnFailure: true,
     },
   },
 });
