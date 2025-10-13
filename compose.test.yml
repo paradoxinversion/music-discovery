@@ -1,33 +1,82 @@
 services:
+  base:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.base
+
   mongo:
-    attach: false
     image: mongo:latest
     ports:
       - 27017:27017
     networks:
       - discovery-network
     volumes:
-      - mongo-data:/data/db
+      - mongo-test:/data/db
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "echo",
+          '''db.runCommand("ping").ok'' | mongosh localhost:27017/music-discovery-app-test --quiet',
+        ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
   backend:
     build:
       context: .
-      dockerfile: ./apps/backend/Dockerfile.test
-    develop:
-      watch:
-        - action: sync
-          path: ./apps/backend
-          target: /app/apps/backend
+      dockerfile: ./apps/backend/Dockerfile
+      additional_contexts:
+        base: service:base
+      target: backend-test
+    links:
+      - mongo
+    volumes:
+      - type: bind
+        source: ./apps/backend
+        target: /app/apps/backend
     environment:
-      NODE_ENV: development
+      NODE_ENV: test
     ports:
       - 3001:3001
     networks:
       - discovery-network
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
+        restart: true
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:3001/api/v1/health"]
+    #   interval: 10s
+    #   timeout: 30s
+    #   retries: 5
+    #   start_period: 30s
+
+  # frontend:
+  #   build:
+  #     context: .
+  #     dockerfile: ./apps/frontend/Dockerfile
+  #     additional_contexts:
+  #       base: service:base
+  #   volumes:
+  #     - type: bind
+  #       source: ./apps/frontend
+  #       target: /app/apps/frontend
+  #   environment:
+  #     NODE_ENV: development
+  #   ports:
+  #     - 3000:3000
+  #   networks:
+  #     - discovery-network
+  #   depends_on:
+  #     - backend
+
 networks: # allow services to talk to each other while providing isolation from other docker container, running on the same host
   discovery-network:
     driver: bridge
+
 volumes: # enable persistence of database data across container restart
-  mongo-data:
+  mongo-test:
     driver: local
