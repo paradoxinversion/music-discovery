@@ -123,9 +123,9 @@ export const updateArtist = async (
     if (!user) {
       throw new Error(`User with ID ${userId} not found`);
     }
-    if (artist?.managingUserId !== userId) {
+    if (artist?.managingUserId.toString() !== userId.toString()) {
       throw new Error(
-        `User with ID ${userId} is not authorized to update this artist`,
+        `User with ID ${userId} is not authorized to update this artist (${artist?.managingUserId})`,
       );
     }
     const updatedArtist = await Artist.findByIdAndUpdate(artistId, updateData, {
