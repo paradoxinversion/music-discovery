@@ -21,3 +21,5 @@ node_modules
 *storybook.log
 storybook-static
 .DS_Store
+coverage
+docs
