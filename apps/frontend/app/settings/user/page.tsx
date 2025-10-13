@@ -8,7 +8,7 @@ export default function Page() {
   const [currentPage, setCurrentPage] = useState("favorites");
   return (
     <div className="p-4">
-      <div className="flex">
+      <div className="flex space-x-4 mb-4">
         <Button
           label="Artist Settings"
           onClick={() => router.push("/artist/dashboard")}
