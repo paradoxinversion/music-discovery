@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 export default function Page() {
   const router = useRouter();
   return (
-    // <div className="flex flex-col items-center min-h-screen py-2">
-    <div className="flex flex-col items-center py-2">
+    <div className="flex flex-col flex-grow items-center py-2">
       <p className="mt-4">Discover new music tailored to your taste.</p>
       <div className="mt-4 space-x-2">
         <img
