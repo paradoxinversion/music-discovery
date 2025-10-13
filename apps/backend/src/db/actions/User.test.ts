@@ -619,6 +619,26 @@ describe("Delete User", () => {
       managingUserId: user.id.toString(),
     });
     await track.save();
+
+    await Artist.updateOne(
+      { _id: artist.id },
+      { $push: { tracks: track.id.toString(), albums: album.id.toString() } },
+    );
+
+    const user2 = new User({
+      ...DEFAULT_TEST_USER_DATA,
+      username: "seconduser",
+      email: "seconduser@example.com",
+    });
+
+    user2.favoriteArtists.push(artist._id.toString());
+    user2.favoriteAlbums.push(album._id.toString());
+    user2.favoriteTracks.push(track._id.toString());
+    await user2.save();
+    expect(user2.favoriteArtists).toHaveLength(1);
+    expect(user2.favoriteAlbums).toHaveLength(1);
+    expect(user2.favoriteTracks).toHaveLength(1);
+
     const deletionResult = await deleteUser(user.id.toString());
     expect(deletionResult).toBe(true);
     const fetchedUser = await User.findById(user.id.toString());
@@ -632,6 +652,10 @@ describe("Delete User", () => {
 
     const fetchedTrack = await Track.findById(track.id.toString());
     expect(fetchedTrack).toBeNull();
+    const user2After = await User.findById(user2.id.toString());
+    expect(user2After.favoriteArtists).toHaveLength(0);
+    expect(user2After.favoriteAlbums).toHaveLength(0);
+    expect(user2After.favoriteTracks).toHaveLength(0);
   });
 
   it("Throws an error when trying to delete a non-existent user", async () => {

@@ -305,6 +305,18 @@ export const deleteUser = async (userId: string) => {
       await Track.deleteMany({ artistId });
       await Album.deleteMany({ artistId });
       await artist.deleteOne();
+      await User.updateMany(
+        { favoriteArtists: artistId },
+        { $pull: { favoriteArtists: artistId } },
+      );
+      await User.updateMany(
+        { favoriteAlbums: { $in: artist.albums } },
+        { $pull: { favoriteAlbums: { $in: artist.albums } } },
+      );
+      await User.updateMany(
+        { favoriteTracks: { $in: artist.tracks } },
+        { $pull: { favoriteTracks: { $in: artist.tracks } } },
+      );
     }
   }
   return true;
