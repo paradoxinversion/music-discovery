@@ -36,9 +36,6 @@ export default function Page({
           <div id="artist-details">
             <h2 className="text-xl font-semibold">{artistData.name}</h2>
           </div>
-          <div id="social-links" className="mt-4">
-            <h3 className="text-lg font-semibold">Social Links</h3>
-          </div>
           <EditArtistForm artistData={artistData} />
           <div id="artist-tracks" className="mt-4">
             <p>Artist Tracks</p>
@@ -57,15 +54,17 @@ export default function Page({
                   >
                     {track.title}
                     <div className="flex-grow" />
-                    <Button
-                      label="Edit"
-                      onClick={() =>
-                        router.push(
-                          `/artist/dashboard/${artistId}/edit-track/${track._id}`,
-                        )
-                      }
-                    />
-                    <Button label="Delete" onClick={() => {}} />
+                    <div className="space-x-4">
+                      <Button
+                        label="Edit"
+                        onClick={() =>
+                          router.push(
+                            `/artist/dashboard/${artistId}/edit-track/${track._id}`,
+                          )
+                        }
+                      />
+                      <Button label="Delete" onClick={() => {}} />
+                    </div>
                   </div>
                 ))}
               </div>
