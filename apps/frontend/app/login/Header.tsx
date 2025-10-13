@@ -56,7 +56,7 @@ const Header = () => {
           <Button label="Logout" onClick={handleLogout} />
         </div>
       ) : (
-        <div>
+        <div className="flex items-center space-x-4">
           <Link href="/login">
             <Button label="Login" />
           </Link>
