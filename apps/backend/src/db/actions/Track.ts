@@ -162,7 +162,7 @@ export const deleteTrack = async (userId: string, trackId: string) => {
   if (!user) {
     throw new Error(`User with ID ${userId} not found`);
   }
-  if (track?.managingUserId !== userId) {
+  if (track?.managingUserId.toString() !== userId.toString()) {
     throw new Error(
       `User with ID ${userId} is not authorized to delete this track`,
     );
