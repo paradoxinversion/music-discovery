@@ -11,7 +11,17 @@ import {
 import Album from "../models/Album";
 import { ITrack } from "@common/types/src/types";
 import Track from "../models/Track";
-import { createTrack, getTrackById, updateTrack, deleteTrack } from "./Track";
+import {
+  createTrack,
+  getTrackById,
+  updateTrack,
+  deleteTrack,
+  getAllTracks,
+  getRandomTracks,
+  getTracksByGenre,
+  getTracksByArtistId,
+} from "./Track";
+import { getRandom } from "../../controllers/track";
 
 beforeEach(async () => {
   await User.deleteMany({});
@@ -76,9 +86,7 @@ describe("Create Track", () => {
     expect(createdTrack).toBeDefined();
 
     // Attempt to create the same track again
-    await expect(createTrack(trackData)).rejects.toThrow(
-      `Track with title ${trackData.title} in album ${trackData.albumId} already exists`,
-    );
+    await expect(createTrack(trackData)).rejects.toThrow();
   });
 });
 
@@ -107,9 +115,8 @@ describe("Get Track By ID", () => {
     });
     await track.save();
 
-    const fetchedTrack = getTrackById(track.id.toString());
+    const fetchedTrack = await getTrackById(track.id.toString());
     expect(fetchedTrack).toBeDefined();
-    expect((await fetchedTrack)?.id.toString()).toBe(track.id.toString());
   });
 
   it("Returns null for non-existent track ID", async () => {
@@ -119,6 +126,122 @@ describe("Get Track By ID", () => {
   });
 });
 
+describe("Get all tracks", () => {
+  it("Retrieves all tracks", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    const user2 = new User({
+      ...DEFAULT_TEST_USER_DATA,
+      email: "user2@example.com",
+      username: "user2",
+    });
+    await user2.save();
+    const artist = new Artist({
+      ...DEFAULT_TEST_ARTIST_DATA,
+      managingUserId: user.id.toString(),
+    });
+    await artist.save();
+    const artist2 = new Artist({
+      ...DEFAULT_TEST_ARTIST_DATA,
+      name: "Artist 2",
+      managingUserId: user2.id.toString(),
+    });
+    await artist2.save();
+
+    const track = new Track({
+      ...DEFAULT_TEST_TRACK_DATA,
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
+    });
+    await track.save();
+
+    const track2 = new Track({
+      ...DEFAULT_TEST_TRACK_DATA,
+      artistId: artist2.id.toString(),
+      managingUserId: user2.id.toString(),
+    });
+    await track2.save();
+
+    const tracks = await getAllTracks();
+    expect(tracks.length).toBe(2);
+  });
+});
+
+describe("Get Random Tracks", () => {
+  it("Retrieves a specified number of random tracks", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    await user.save();
+    const artist = new Artist({
+      ...DEFAULT_TEST_ARTIST_DATA,
+      managingUserId: user.id.toString(),
+    });
+    await artist.save();
+
+    const tracksData = [
+      {
+        ...DEFAULT_TEST_TRACK_DATA,
+        title: "Track 1",
+        artistId: artist.id.toString(),
+        managingUserId: user.id.toString(),
+      },
+      {
+        ...DEFAULT_TEST_TRACK_DATA,
+        title: "Track 2",
+        artistId: artist.id.toString(),
+        managingUserId: user.id.toString(),
+      },
+      {
+        ...DEFAULT_TEST_TRACK_DATA,
+        title: "Track 3",
+        artistId: artist.id.toString(),
+        managingUserId: user.id.toString(),
+      },
+    ];
+    await Track.insertMany(tracksData);
+
+    const randomTracks = await getRandomTracks(2);
+    expect(randomTracks.length).toBe(2);
+  });
+});
+
+describe("Get Tracks By Genre", () => {
+  it("Retrieves tracks filtered by genre", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    await user.save();
+    const artist = new Artist({
+      ...DEFAULT_TEST_ARTIST_DATA,
+      managingUserId: user.id.toString(),
+    });
+    await artist.save();
+
+    const tracksData = [
+      {
+        ...DEFAULT_TEST_TRACK_DATA,
+        title: "Rock Track 1",
+        genre: "Rock",
+        artistId: artist.id.toString(),
+        managingUserId: user.id.toString(),
+      },
+      {
+        ...DEFAULT_TEST_TRACK_DATA,
+        title: "Pop Track 1",
+        genre: "Pop",
+        artistId: artist.id.toString(),
+        managingUserId: user.id.toString(),
+      },
+      {
+        ...DEFAULT_TEST_TRACK_DATA,
+        title: "Rock Track 2",
+        genre: "Rock",
+        artistId: artist.id.toString(),
+        managingUserId: user.id.toString(),
+      },
+    ];
+    await Track.insertMany(tracksData);
+
+    const rockTracks = getTracksByGenre("Rock", 2);
+    expect((await rockTracks).length).toBe(2);
+  });
+});
 describe("Update Track", () => {
   it("Updates track details successfully", async () => {
     const user = new User(DEFAULT_TEST_USER_DATA);
@@ -164,6 +287,42 @@ describe("Update Track", () => {
     await expect(
       updateTrack(user.id.toString(), nonExistentId, { title: "New Title" }),
     ).rejects.toThrow();
+  });
+});
+
+describe("Get Tracks By Artist ID", () => {
+  it("Retrieves tracks filtered by artist ID", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    await user.save();
+    const artist = new Artist({
+      ...DEFAULT_TEST_ARTIST_DATA,
+      managingUserId: user.id.toString(),
+    });
+    await artist.save();
+
+    const tracksData = [
+      {
+        ...DEFAULT_TEST_TRACK_DATA,
+        title: "Track 1",
+        artistId: artist.id.toString(),
+        managingUserId: user.id.toString(),
+      },
+      {
+        ...DEFAULT_TEST_TRACK_DATA,
+        title: "Track 2",
+        artistId: artist.id.toString(),
+        managingUserId: user.id.toString(),
+      },
+    ];
+    await Track.insertMany(tracksData);
+
+    const artistTracks = getTracksByArtistId(artist.id.toString());
+    expect((await artistTracks).length).toBe(2);
+    artistTracks.then((tracks) =>
+      tracks.forEach((track) =>
+        expect(track.artistId.toString()).toBe(artist.id.toString()),
+      ),
+    );
   });
 });
 

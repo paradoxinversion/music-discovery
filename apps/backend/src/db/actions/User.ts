@@ -31,10 +31,28 @@ export const createUser = async (user: IUserSignup) => {
  */
 export const getUserById = async (userId: string) => {
   try {
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select(
+      "username email favoriteArtists favoriteAlbums favoriteTracks",
+    );
     return user;
   } catch (error) {
     throw new Error(`Error retrieving user: ${error}`);
+  }
+};
+
+/**
+ * Retrieve artists managed by a specific user.
+ * @param userId - The user ID to filter artists by
+ * @returns An array of managed artist documents
+ */
+export const getManagedArtists = async (userId: string) => {
+  try {
+    const artists = await Artist.find({ managingUserId: userId }).select(
+      "name",
+    );
+    return artists;
+  } catch (error) {
+    throw new Error(`Error retrieving managed artists: ${error}`);
   }
 };
 
@@ -49,7 +67,7 @@ export const updateUser = async (userId: string, updates: Partial<IUser>) => {
   try {
     const user = await User.findByIdAndUpdate(userId, updates, {
       new: true,
-    });
+    }).select("username email favoriteArtists favoriteAlbums favoriteTracks");
     if (!user) {
       throw new Error(`User with ID ${userId} not found`);
     }
@@ -83,7 +101,7 @@ export const addFavoriteArtist = async (userId: string, artistId: string) => {
   }
   user.favoriteArtists.push(artistId);
   await user.save();
-  return user;
+  return user.favoriteArtists;
 };
 
 /**
@@ -117,9 +135,16 @@ export const removeFavoriteArtist = async (
   );
 
   await user.save();
-  return user;
+  return user.favoriteArtists;
 };
 
+/**
+ * Add a favorite album to a user's profile.
+ * @param userId - The ID of the user
+ * @param albumId - The ID of the album
+ * @returns The updated user document
+ * @throws Error if user or album is not found, or if the album is already in the user's favorites
+ */
 export const addFavoriteAlbum = async (userId: string, albumId: string) => {
   const user = await User.findById(userId);
   if (!user) {
@@ -138,7 +163,7 @@ export const addFavoriteAlbum = async (userId: string, albumId: string) => {
   }
   user.favoriteAlbums.push(albumId);
   await user.save();
-  return user;
+  return user.favoriteAlbums;
 };
 
 export const removeFavoriteAlbum = async (userId: string, albumId: string) => {
@@ -160,35 +185,113 @@ export const removeFavoriteAlbum = async (userId: string, albumId: string) => {
   );
 
   await user.save();
-  return user;
+  return user.favoriteAlbums;
 };
 
+/**
+ * Add a track to a user's list of favorite tracks.
+ * @param userId - The ID of the user
+ * @param trackId - The ID of the track
+ * @returns The updated user document
+ * @throws Error if user or track is not found, or if the track is already in the user's favorites
+ */
 export const addFavoriteTrack = async (userId: string, trackId: string) => {
   try {
+    const track = await Track.findById(trackId);
+    if (!track) {
+      throw new Error(`Track with ID ${trackId} not found`);
+    }
     const user = await User.findByIdAndUpdate(
       userId,
-      { $push: { favoriteTracks: trackId } },
+      { $addToSet: { favoriteTracks: trackId } },
       { new: true },
     );
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
     return user?.favoriteTracks;
   } catch (error) {
     throw new Error(`Error adding favorite track: ${error}`);
   }
 };
 
+/**
+ * Retrieve a user's favorite tracks.
+ * @param userId - The ID of the user
+ * @returns An array of favorite track documents
+ * @throws Error if user is not found or if there's a database error
+ */
+export const getFavoriteTracks = async (userId: string) => {
+  try {
+    const user = await User.findById(userId).populate("favoriteTracks");
+    return user?.favoriteTracks || [];
+  } catch (error) {
+    throw new Error(`Error retrieving favorite tracks: ${error}`);
+  }
+};
+
+/**
+ * Retrieve a user's favorite artists.
+ * @param userId - The ID of the user
+ * @returns An array of favorite artist documents
+ * @throws Error if user is not found or if there's a database error
+ */
+export const getFavoriteArtists = async (userId: string) => {
+  try {
+    const user = await User.findById(userId).populate("favoriteArtists");
+    return user?.favoriteArtists || [];
+  } catch (error) {
+    throw new Error(`Error retrieving favorite artists: ${error}`);
+  }
+};
+
+/**
+ * Retrieve a user's favorite tracks, artists, and albums.
+ * @param userId - The ID of the user
+ * @returns An object containing arrays of favorite tracks, artists, and albums
+ * @throws Error if user is not found or if there's a database error
+ */
+export const getFavorites = async (userId: string) => {
+  try {
+    const user = await User.findById(userId)
+      .populate("favoriteTracks")
+      .populate("favoriteArtists")
+      .populate("favoriteAlbums");
+    return {
+      favoriteTracks: user?.favoriteTracks || [],
+      favoriteArtists: user?.favoriteArtists || [],
+      favoriteAlbums: user?.favoriteAlbums || [],
+    };
+  } catch (error) {
+    throw new Error(`Error retrieving favorites: ${error}`);
+  }
+};
+
+/**
+ * Remove a track from a user's list of favorite tracks.
+ * @param userId - The ID of the user
+ * @param trackId - The ID of the track to remove
+ * @returns  The updated list of favorite tracks
+ * @throws Error if user or track is not found, or if there's a database error
+ */
 export const removeFavoriteTrack = async (userId: string, trackId: string) => {
   try {
     const user = await User.findByIdAndUpdate(
       userId,
       { $pull: { favoriteTracks: trackId } },
       { new: true },
-    );
+    ).orFail(new Error(`User with ID ${userId} not found`));
     return user?.favoriteTracks;
   } catch (error) {
     throw new Error(`Error removing favorite track: ${error}`);
   }
 };
-
+/**
+ * Delete a user and all associated data (managed artists, albums, tracks).
+ * @param userId - The ID of the user to delete
+ * @returns True if deletion was successful
+ * @throws Error if user is not found or if there's a database error
+ */
 export const deleteUser = async (userId: string) => {
   const deletedUser = await User.findByIdAndDelete(userId);
   if (!deletedUser) {

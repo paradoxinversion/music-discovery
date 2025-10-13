@@ -9,10 +9,7 @@ const signUpSchema = joi.object<IUserSignup>({
   password: joi.string().min(6).required(),
 });
 
-export const signUp = async (
-  req: Request<{ body: IUserSignup }>,
-  res: Response,
-) => {
+export const signUp = async (req: Request, res: Response) => {
   try {
     const { error, value } = signUpSchema.validate(req.body);
     if (error) {
@@ -47,4 +44,21 @@ export const checkAuth = (req: Request, res: Response) => {
   } else {
     return res.status(200).json({ authenticated: false });
   }
+};
+
+export const logout = (req: Request, res: Response) => {
+  req.logout((err) => {
+    if (err) {
+      console.error("Error during logout:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Error destroying session during logout:", err);
+        return res.status(500).json({ message: "Internal server error" });
+      }
+      res.clearCookie("connect.sid");
+      return res.status(200).json({ message: "Logout successful" });
+    });
+  });
 };
