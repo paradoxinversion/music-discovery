@@ -22,6 +22,7 @@ import {
 } from "../controllers/album";
 
 import {
+  deleteTrack,
   getRandom as getRandomTracks,
   getSimilarTracks,
   getTrack,
@@ -33,7 +34,7 @@ import {
 } from "../controllers/track";
 import { getFavorites, getManagedArtists } from "../controllers/user";
 import isLoggedIn from "../middleware/isLoggedIn";
-import { createTrack } from "../db/actions/Track";
+
 const router = express.Router();
 
 router.route("/health").get(healthCheck);
@@ -72,7 +73,11 @@ router.route("/albums").get(getAlbums).post(isLoggedIn, createAlbum);
 
 router.route("/tracks").post(isLoggedIn, submitTrack);
 router.route("/tracks/random").get(getRandomTracks);
-router.route("/tracks/:trackId").get(getTrack).put(isLoggedIn, updateTrack);
+router
+  .route("/tracks/:trackId")
+  .get(getTrack)
+  .put(isLoggedIn, updateTrack)
+  .delete(isLoggedIn, deleteTrack);
 router.route("/tracks/:trackId/favorite").post(isLoggedIn, setFavorite);
 router.route("/tracks/:trackId/similar").get(getSimilarTracks);
 router.route("/tracks/genre/:genre").get(getTracks);
