@@ -13,6 +13,18 @@
       text-decoration: none;
     }
   }
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  textarea {
+    background-color: #1a1a1a;
+    color: white;
+    border: 1px solid #333;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
 }
 
 .marquee-container {
