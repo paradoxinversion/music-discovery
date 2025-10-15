@@ -12,7 +12,7 @@ pipeline {
                 echo 'Building the project...'
                 script {
                     // Example: Build a Docker image
-                    dockerImage = docker.build("paradox-inversion/mda:${env.BUILD_NUMBER}")
+                    docker compose build -f docker-compose.prod.yml
                 }
             }
         }
