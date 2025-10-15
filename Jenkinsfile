@@ -10,7 +10,10 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building the project...'
-                dockerImage = docker.build("paradox-inversion/mda:${env.BUILD_NUMBER}")
+                script {
+                    // Example: Build a Docker image
+                    dockerImage = docker.build("paradox-inversion/mda:${env.BUILD_NUMBER}")
+                }
             }
         }
         stage('Test') {
