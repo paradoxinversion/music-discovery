@@ -1,0 +1,37 @@
+# syntax=docker/dockerfile:1
+# check=error=true;experimental=CopyIgnoredFile
+
+ARG NODE_VERSION=22.16.0
+
+FROM node:${NODE_VERSION}-alpine AS frontend-base
+WORKDIR /app
+
+COPY package.json yarn.lock tsconfig.json ./
+COPY apps/frontend/package.json apps/frontend/tsconfig.json apps/frontend/.env apps/frontend/next.config.ts apps/frontend/next-env.d.ts ./apps/frontend/
+COPY apps/frontend/actions/ ./apps/frontend/actions/
+COPY apps/frontend/app/ ./apps/frontend/app/
+COPY apps/frontend/lib/ ./apps/frontend/lib/
+
+COPY common/types/package.json common/types/tsconfig.json ./common/types/
+COPY common/types/src/ ./common/types/src/
+
+COPY components/package.json components/tsconfig.json components/postcss.config.mjs ./components/
+COPY components/src/ ./components/src/
+
+
+RUN corepack enable && yarn install
+
+FROM frontend-base AS frontend-build
+WORKDIR /app
+
+RUN yarn workspace @common/types build
+RUN yarn workspace @mda/components build
+
+FROM node:${NODE_VERSION}-alpine AS frontend-test
+WORKDIR /app
+COPY --from=frontend-build /app ./
+RUN corepack enable && yarn install
+
+EXPOSE 3001
+
+CMD [ "yarn", "workspace", "frontend", "dev" ]

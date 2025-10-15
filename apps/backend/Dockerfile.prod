@@ -1,0 +1,39 @@
+ARG NODE_VERSION=22.16.0
+FROM node:${NODE_VERSION}-alpine AS backend-build
+
+WORKDIR /app
+
+# Copy base dependencies
+COPY package.json yarn.lock tsconfig.json ./
+COPY apps/backend/package.json ./apps/backend/
+COPY apps/backend/src/ ./apps/backend/src/
+COPY apps/backend/tsconfig.json ./apps/backend/tsconfig.json
+
+COPY common/types/package.json ./common/types/
+COPY common/types/src/ ./common/types/src/
+COPY common/types/tsconfig.json ./common/types/tsconfig.json
+
+# Install dependencies
+RUN corepack enable && yarn install
+
+RUN yarn workspace @common/types build
+RUN yarn workspace backend build
+
+FROM node:${NODE_VERSION}-alpine AS backend-production
+WORKDIR /app
+COPY --from=backend-build /app/package.json /app/tsconfig.json /app/yarn.lock /app/.pnp.cjs \
+/app/.pnp.loader.mjs ./
+
+COPY --from=backend-build /app/common/types/package.json ./common/types/
+COPY --from=backend-build /app/common/types/dist/ ./common/types/dist/
+
+COPY --from=backend-build /app/apps/backend/package.json /app/apps/backend/tsconfig.json \
+./apps/backend/
+COPY apps/backend/.env.production ./apps/backend/.env
+COPY --from=backend-build /app/apps/backend/dist/ ./apps/backend/dist/
+
+RUN corepack enable && yarn install
+
+EXPOSE 3001
+
+CMD [ "yarn", "workspace", "backend", "start" ]
