@@ -1,13 +1,26 @@
 import mongoose from "mongoose";
 import { seedDatabase } from "./seed";
 import User from "./models/User";
+import { readFileSync } from "fs";
 
 export const connectToDatabase = async () => {
-  console.log("Connecting to database:", process.env.DB_URI);
-  if (!process.env.DB_URI) {
-    throw new Error("DB_URI is not defined in environment variables");
+  if (process.env.NODE_ENV === "development" && process.env.DB_URI) {
+    await mongoose.connect(
+      `mongodb://${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
+    );
   }
-  await mongoose.connect(process.env.DB_URI || "");
+
+  if (process.env.NODE_ENV === "production") {
+    const dbUser = readFileSync("/run/secrets/db_user", "utf-8").trim();
+    const dbpassword = readFileSync("/run/secrets/db_password", "utf-8").trim();
+    console.log(
+      `mongodb://${dbUser}:${dbpassword}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
+    );
+    await mongoose.connect(
+      `mongodb://${dbUser}:${dbpassword}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
+      { authSource: "admin" },
+    );
+  }
 
   if (process.env.NODE_ENV === "development" && mongoose.connection.db) {
     if ((await User.countDocuments({})) > 0) {
@@ -18,6 +31,4 @@ export const connectToDatabase = async () => {
     console.log("Dropped existing database for development environment");
     await seedDatabase();
   }
-
-  // use `await mongoose.connect('mongodb://user:password@127.0.0.1:27017/test');` if your database has auth enabled
 };
