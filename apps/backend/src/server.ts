@@ -1,18 +1,38 @@
+import "dotenv/config";
 import cors from "cors";
 import express from "express";
 import passport from "passport";
 import morgan from "morgan";
-import coookieParser from "cookie-parser";
+import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import expressSession from "express-session";
 import { connectToDatabase } from "./db";
 import { Strategy as LocalStrategy } from "passport-local";
 import User, { IUserDoc } from "./db/models/User";
 import api from "./api/v1";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
+import { RedisStore } from "connect-redis";
+import { createClient } from "redis";
+const redisClient = createClient({
+  url: "redis://redis:6379",
+});
+redisClient.connect().catch(console.error);
+
+const redisStore = new RedisStore({
+  client: redisClient,
+  prefix: "mda:",
+});
 const appName = "Music Discovery App";
-console.log(`Starting ${appName}...`);
+const limiter = rateLimit({
+  windowMs: 10000, // 10 seconds
+  limit: 30, // each IP can make up to 30 requests per `windowsMs` (10 seconds)
+  standardHeaders: true, // add the `RateLimit-*` headers to the response
+  legacyHeaders: false, // remove the `X-RateLimit-*` headers from the response
+});
 const app = express();
 
+app.use(helmet());
 app.use(
   cors({
     origin: "http://localhost:3000",
@@ -21,15 +41,17 @@ app.use(
 );
 
 app.use(morgan("dev"));
+app.use(limiter);
 app.use(express.json());
-app.use(coookieParser());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(
   expressSession({
+    store: redisStore,
     secret: process.env.SESSION_SECRET || "default_secret",
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
     cookie: { secure: false },
   }),
 );
