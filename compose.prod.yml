@@ -24,9 +24,9 @@ services:
       - mongo-data-prod:/data/db
     command: mongod --auth # Enable authentication
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
-      MONGO_INITDB_DATABASE: ${DB_NAME}
+      MONGO_INITDB_ROOT_USERNAME: run/secrets/db_user
+      MONGO_INITDB_ROOT_PASSWORD: run/secrets/db_password
+      MONGO_INITDB_DATABASE: music-discovery-app-prod
 
   backend:
     build:
@@ -34,6 +34,10 @@ services:
       dockerfile: ./apps/backend/Dockerfile.prod
     environment:
       NODE_ENV: production
+      DB_HOST: mongo
+      DB_PORT: 27017
+      DB_NAME: music-discovery-app-prod
+      PORT: 3001
     ports:
       - 3001:3001
     networks:
@@ -48,7 +52,6 @@ services:
       retries: 5
       start_period: 30s
     secrets:
-      - foo
       - db_user
       - db_password
 
@@ -66,8 +69,6 @@ services:
       - backend
 
 secrets:
-  foo:
-    file: ./apps/backend/secrets/foo.txt
   db_user:
     file: ./apps/backend/secrets/DB_USER.txt
   db_password:
