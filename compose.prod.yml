@@ -1,0 +1,86 @@
+name: music-discovery-app-prod
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - 6379:6379
+    networks:
+      - discovery-network-prod
+    volumes:
+      - redis-data-prod:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+  mongo:
+    attach: false
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    networks:
+      - discovery-network-prod
+    volumes:
+      - mongo-data-prod:/data/db
+    command: mongod --auth # Enable authentication
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DB_NAME}
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./apps/backend/Dockerfile.prod
+    environment:
+      NODE_ENV: production
+    ports:
+      - 3001:3001
+    networks:
+      - discovery-network-prod
+    depends_on:
+      - mongo
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/v1/health"]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    secrets:
+      - foo
+      - db_user
+      - db_password
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./apps/frontend/Dockerfile.prod
+    environment:
+      NODE_ENV: production
+    ports:
+      - 3000:3000
+    networks:
+      - discovery-network-prod
+    depends_on:
+      - backend
+
+secrets:
+  foo:
+    file: ./apps/backend/secrets/foo.txt
+  db_user:
+    file: ./apps/backend/secrets/DB_USER.txt
+  db_password:
+    file: ./apps/backend/secrets/DB_PASSWORD.txt
+
+networks: # allow services to talk to each other while providing isolation from other docker container, running on the same host
+  discovery-network-prod:
+    driver: bridge
+  jenkins:
+    driver: bridge
+
+volumes: # enable persistence of database data across container restart
+  mongo-data-prod:
+    driver: local
+  redis-data-prod:
+    driver: local

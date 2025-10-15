@@ -1,9 +1,4 @@
 services:
-  base:
-    build:
-      context: .
-      dockerfile: ./Dockerfile.base
-
   mongo:
     attach: false
     image: mongo:latest
@@ -17,18 +12,13 @@ services:
   backend:
     build:
       context: .
-      dockerfile: ./apps/backend/Dockerfile
-      additional_contexts:
-        base: service:base
+      dockerfile: ./apps/backend/Dockerfile.dev
     volumes:
       - type: bind
         source: ./apps/backend
         target: /app/apps/backend
     environment:
       NODE_ENV: development
-      DB_URI: mongodb://mongo:27017/music-discovery-app-dev
-      PORT: 3001
-      SESSION_SECRET: keyboardcat
     ports:
       - 3001:3001
     networks:
@@ -45,9 +35,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: ./apps/frontend/Dockerfile
-      additional_contexts:
-        base: service:base
+      dockerfile: ./apps/frontend/Dockerfile.dev
     volumes:
       - type: bind
         source: ./apps/frontend
