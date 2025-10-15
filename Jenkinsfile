@@ -8,8 +8,9 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
-                sh 'echo ${DB_USERNAME} >> apps/backend/secrets/DB_USERNAME.txt'
-                sh 'echo ${DB_PASSWORD} >> apps/backend/secrets/DB_PASSWORD.txt'
+                sh 'mkdir -p apps/backend/secrets'
+                sh 'echo ${DB_USERNAME} > apps/backend/secrets/DB_USERNAME.txt'
+                sh 'echo ${DB_PASSWORD} > apps/backend/secrets/DB_PASSWORD.txt'
             }
         }
         stage('Build') {
