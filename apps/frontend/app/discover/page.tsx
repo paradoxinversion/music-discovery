@@ -47,7 +47,12 @@ export default function Page() {
             ))}
           </div>
           <div className="flex mt-4 justify-center">
-            <Button label="Refresh" onClick={() => fetchRandomTracks()} />
+            <Button
+              label="Refresh"
+              onClick={() => {
+                fetchRandomTracks();
+              }}
+            />
           </div>
         </div>
       </div>

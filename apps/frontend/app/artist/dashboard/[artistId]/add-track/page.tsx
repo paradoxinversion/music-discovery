@@ -61,7 +61,7 @@ export default function Page({
 
   return (
     <div className="w-full p-4">
-      <form className="flex flex-col">
+      <form className="flex flex-col" onSubmit={handleSubmit}>
         <h1>Add New Track</h1>
         <label>Track Title:</label>
         <input type="text" name="title" onChange={handleInputChange} required />
@@ -74,7 +74,7 @@ export default function Page({
           name="isrc"
           onChange={handleInputChange}
         />
-        <Button label="Add Track" onClick={handleSubmit} />
+        <Button label="Add Track" type="submit" />
       </form>
     </div>
   );

@@ -53,7 +53,12 @@ const Header = () => {
           <Link href="/settings/user">
             <Button label="Settings" />
           </Link>
-          <Button label="Logout" onClick={handleLogout} />
+          <Button
+            label="Logout"
+            onClick={() => {
+              handleLogout();
+            }}
+          />
         </div>
       ) : (
         <div className="flex items-center space-x-4">
