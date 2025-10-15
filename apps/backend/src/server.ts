@@ -1,14 +1,10 @@
-import dotenv from "dotenv";
-if (process.env.NODE_ENV !== "production") {
-  dotenv.config();
-}
 import cors from "cors";
 import express from "express";
 import passport from "passport";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
-import expressSession from "express-session";
+import expressSession, { MemoryStore } from "express-session";
 import { connectToDatabase } from "./db";
 import { Strategy as LocalStrategy } from "passport-local";
 import User, { IUserDoc } from "./db/models/User";
@@ -17,15 +13,21 @@ import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import { RedisStore } from "connect-redis";
 import { createClient } from "redis";
-const redisClient = createClient({
-  url: "redis://redis:6379",
-});
-redisClient.connect().catch(console.error);
+import { readFileSync } from "fs";
+let redisClient;
+let redisStore;
 
-const redisStore = new RedisStore({
-  client: redisClient,
-  prefix: "mda:",
-});
+if (process.env.NODE_ENV === "production") {
+  redisClient = createClient({
+    url: "redis://redis:6379",
+  });
+  redisClient.connect().catch(console.error);
+  redisStore = new RedisStore({
+    client: redisClient,
+    prefix: "mda:",
+  });
+}
+
 const appName = "Music Discovery App";
 const limiter = rateLimit({
   windowMs: 10000, // 10 seconds
@@ -51,8 +53,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(
   expressSession({
-    store: redisStore,
-    secret: process.env.SESSION_SECRET || "default_secret",
+    store:
+      process.env.NODE_ENV === "production" ? redisStore : new MemoryStore({}),
+    secret: readFileSync("/run/secrets/SESSION_SECRET"),
     resave: false,
     saveUninitialized: false,
     cookie: { secure: false },
