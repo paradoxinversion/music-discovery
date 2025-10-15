@@ -5,7 +5,8 @@
 !.yarn/sdks
 !.yarn/versions
 .next
-**/*.env
+.env
+**/*.env.*
 
 # Whether you use PnP or not, the node_modules folder is often used to store
 # build artifacts that should be gitignored
@@ -23,3 +24,4 @@ storybook-static
 .DS_Store
 coverage
 docs
+secrets
