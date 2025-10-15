@@ -5,23 +5,29 @@
     "dev": "NODE_ENV=development nodemon ./src/server.ts",
     "test": "NODE_ENV=test vitest run",
     "coverage": "NODE_ENV=test vitest run --coverage --watch",
-    "docs": "typedoc --entryPointStrategy Expand src"
+    "docs": "typedoc --entryPointStrategy Expand src",
+    "build": "tsc -b",
+    "start": "NODE_ENV=production node ./dist/server.js"
   },
   "dependencies": {
     "@types/body-parser": "^1.19.6",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "connect-ensure-login": "^0.1.1",
+    "connect-redis": "^9.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
     "express-session": "^1.18.2",
+    "helmet": "^8.1.0",
     "joi": "^18.0.1",
     "mongoose": "^8.18.0",
     "morgan": "^1.10.1",
     "passport": "^0.7.0",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "redis": "^5.8.3"
   },
   "devDependencies": {
     "@common/types": "workspace:^",
