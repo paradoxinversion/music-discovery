@@ -10,10 +10,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building the project...'
-                script {
-                    // Example: Build a Docker image
-                    docker compose build -f docker-compose.prod.yml
-                }
+                sh 'docker compose build -f docker-compose.prod.yml'
             }
         }
         stage('Test') {
