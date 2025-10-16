@@ -13,11 +13,13 @@
     "module": "nodenext",
     "target": "esnext",
     "lib": ["esnext"],
-    "types": ["node"]
+    "types": ["node"],
+    "rootDir": "./src"
   },
   "references": [
     {
       "path": "../../common/types"
     }
-  ]
+  ],
+  "exclude": ["src/test-helpers", "dist", "test", "**/*test.ts"]
 }

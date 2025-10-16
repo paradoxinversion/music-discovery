@@ -1,0 +1,90 @@
+name: music-discovery-app-prod
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - 6379:6379
+    networks:
+      - discovery-network-prod
+    volumes:
+      - redis-data-prod:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+  mongo:
+    attach: false
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    networks:
+      - discovery-network-prod
+    volumes:
+      - mongo-data-prod:/data/db
+    command: mongod --auth # Enable authentication
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: run/secrets/DB_USER
+      MONGO_INITDB_ROOT_PASSWORD: run/secrets/DB_PASSWORD
+      MONGO_INITDB_DATABASE: music-discovery-app-prod
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./apps/backend/Dockerfile.prod
+    environment:
+      NODE_ENV: production
+      DB_HOST: mongo
+      DB_PORT: 27017
+      DB_NAME: music-discovery-app-prod
+      PORT: 3001
+    ports:
+      - 3001:3001
+    networks:
+      - discovery-network-prod
+    depends_on:
+      - mongo
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/v1/health"]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    secrets:
+      - DB_USER
+      - DB_PASSWORD
+      - SESSION_SECRET
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./apps/frontend/Dockerfile.prod
+    environment:
+      NODE_ENV: production
+    ports:
+      - 3000:3000
+    networks:
+      - discovery-network-prod
+    depends_on:
+      - backend
+
+secrets:
+  DB_USER:
+    file: ./secrets/DB_USER.txt
+  DB_PASSWORD:
+    file: ./secrets/DB_PASSWORD.txt
+  SESSION_SECRET:
+    file: ./secrets/SESSION_SECRET.txt
+
+networks: # allow services to talk to each other while providing isolation from other docker container, running on the same host
+  discovery-network-prod:
+    driver: bridge
+  jenkins:
+    driver: bridge
+
+volumes: # enable persistence of database data across container restart
+  mongo-data-prod:
+    driver: local
+  redis-data-prod:
+    driver: local

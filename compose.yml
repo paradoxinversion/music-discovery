@@ -1,9 +1,4 @@
 services:
-  base:
-    build:
-      context: .
-      dockerfile: ./Dockerfile.base
-
   mongo:
     attach: false
     image: mongo:latest
@@ -17,18 +12,17 @@ services:
   backend:
     build:
       context: .
-      dockerfile: ./apps/backend/Dockerfile
-      additional_contexts:
-        base: service:base
+      dockerfile: ./apps/backend/Dockerfile.dev
     volumes:
       - type: bind
         source: ./apps/backend
         target: /app/apps/backend
     environment:
       NODE_ENV: development
-      DB_URI: mongodb://mongo:27017/music-discovery-app-dev
+      DB_HOST: mongo
+      DB_PORT: 27017
+      DB_NAME: music-discovery-app-dev
       PORT: 3001
-      SESSION_SECRET: keyboardcat
     ports:
       - 3001:3001
     networks:
@@ -41,13 +35,13 @@ services:
       timeout: 30s
       retries: 5
       start_period: 30s
+    secrets:
+      - SESSION_SECRET
 
   frontend:
     build:
       context: .
-      dockerfile: ./apps/frontend/Dockerfile
-      additional_contexts:
-        base: service:base
+      dockerfile: ./apps/frontend/Dockerfile.dev
     volumes:
       - type: bind
         source: ./apps/frontend
@@ -60,6 +54,9 @@ services:
       - discovery-network
     depends_on:
       - backend
+secrets:
+  SESSION_SECRET:
+    file: ./secrets/SESSION_SECRET.txt
 
 networks: # allow services to talk to each other while providing isolation from other docker container, running on the same host
   discovery-network:

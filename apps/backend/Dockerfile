@@ -27,7 +27,7 @@ COPY --from=base /app/common/types/dist/ ./common/types/dist/
 
 COPY --from=base /app/apps/backend/package.json /app/apps/backend/tsconfig.json  \
 /app/apps/backend/nodemon.json /app/apps/backend/vitest-setup.ts /app/apps/backend/vitest.config.ts \
-/app/apps/backend/.env ./apps/backend/
+./apps/backend/
 COPY --from=base /app/apps/backend/src/ ./apps/backend/src/
 COPY --from=base /app/apps/backend/test-helpers/ ./apps/backend/test-helpers/
 
