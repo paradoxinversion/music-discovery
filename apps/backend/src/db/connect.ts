@@ -21,15 +21,31 @@ export const connectToDatabase = async () => {
     } catch (error) {
       console.error("Error connecting to the database:", error);
       throw error; // Re-throw the error after logging it
+    } finally {
+      await mongoose.disconnect();
     }
   }
 
   if (process.env.NODE_ENV === "production") {
-    const dbUser = readFileSync("/run/secrets/DB_USER", "utf-8").trim();
-    const dbpassword = readFileSync("/run/secrets/DB_PASSWORD", "utf-8").trim();
-    await mongoose.connect(
-      `mongodb://${dbUser}:${dbpassword}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
-      { authSource: "admin" },
-    );
+    try {
+      const dbUser = readFileSync("/run/secrets/DB_USER", "utf-8").trim();
+      const dbpassword = readFileSync(
+        "/run/secrets/DB_PASSWORD",
+        "utf-8",
+      ).trim();
+      await mongoose.connect(
+        `mongodb://${dbUser}:${dbpassword}@${process.env.DB_HOST}/?retryWrites=true&w=majority&appName=mda-alpha`,
+        {
+          serverApi: {
+            version: "1",
+            strict: true,
+            deprecationErrors: true,
+          },
+        },
+      );
+      await mongoose.connection.db?.admin().command({ ping: 1 });
+    } finally {
+      await mongoose.disconnect();
+    }
   }
 };

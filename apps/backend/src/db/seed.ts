@@ -1,10 +1,8 @@
 // This file is responsible for creating initial seed data in the database for the purpose of development.
 // It should not be used in production environments.
-import Chance from "chance";
 import User from "./models/User";
 import Artist from "./models/Artist";
 import Track from "./models/Track";
-const chance = new Chance();
 const userCount = 50;
 
 const genres = [
@@ -25,6 +23,9 @@ const pickRandomGenre = () => {
 };
 
 export const seedDatabase = async () => {
+  const Chance = await import("chance").then((mod) => mod.Chance);
+  const chance = new Chance();
+
   const usersData = [];
   for (let i = 0; i < userCount; i++) {
     const user = new User({

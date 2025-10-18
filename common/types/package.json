@@ -5,9 +5,6 @@
   "main": "./dist/types/index.js",
   "types": "./dist/types/index.d.ts",
   "scripts": {
-    "build": "tsc --build"
-  },
-  "devDependencies": {
-    "typescript": "^5.9.2"
+    "build": "yarn g:tsc"
   }
 }

@@ -6,7 +6,7 @@
     "test": "NODE_ENV=test vitest run",
     "coverage": "NODE_ENV=test vitest run --coverage --watch",
     "docs": "typedoc --entryPointStrategy Expand src",
-    "build": "tsc -b",
+    "build": "yarn g:tsc",
     "start": "node ./dist/server.js"
   },
   "dependencies": {
@@ -48,7 +48,6 @@
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
     "typedoc": "^0.28.13",
-    "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   }
 }
