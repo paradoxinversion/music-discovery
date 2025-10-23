@@ -4,6 +4,7 @@ import { useEffect, useState, use } from "react";
 import { useAppSelector } from "../../../lib/hooks";
 import { useDispatch } from "react-redux";
 import { setFavoriteTracks } from "../../../lib/features/users/userSlice";
+import { ImgContainer } from "@mda/components";
 
 export default function TrackPage({
   params,
@@ -80,10 +81,9 @@ export default function TrackPage({
     <div className="flex flex-grow h-full">
       <div className="flex flex-grow p-4">
         <div id="track-details" className="mr-8 w-1/3">
-          <img
+          <ImgContainer
             src="https://picsum.photos/512/512?random=1"
             alt="Album Art"
-            className="my-4 h-64 object-cover rounded-lg"
           />
           {user.loggedIn ? (
             <div onClick={likeTrack} className="cursor-pointer">
