@@ -1,4 +1,4 @@
-// import "./globals.css";
 import { Button } from "./Button";
 import { Scrobbler } from "./Scrobbler";
-export { Button, Scrobbler };
+import ImgContainer from "./ImgContainer/ImgContainer";
+export { Button, Scrobbler, ImgContainer };
