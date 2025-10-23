@@ -8,7 +8,12 @@ export default async function editArtistData(
   const response = await axios.put(
     `${process.env.NEXT_PUBLIC_API_URL}/artists/${artistId}`,
     artistData,
-    { withCredentials: true },
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
   );
   return response.data;
 }
