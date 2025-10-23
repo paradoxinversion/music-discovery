@@ -34,6 +34,14 @@ import {
 } from "../controllers/track";
 import { getFavorites, getManagedArtists } from "../controllers/user";
 import isLoggedIn from "../middleware/isLoggedIn";
+import Multer from "multer";
+
+const upload = Multer({
+  storage: Multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // no larger than 5mb, you can change as needed.
+  },
+});
 
 const router = express.Router();
 
@@ -49,14 +57,17 @@ router.route("/auth/check-auth").get(isLoggedIn, checkAuth);
 
 router.route("/auth/log-out").get(ensureLoggedIn(), logout);
 
-router.route("/artists").get(getArtists).post(isLoggedIn, createNewArtist);
+router
+  .route("/artists")
+  .get(getArtists)
+  .post(isLoggedIn, upload.single("photo"), createNewArtist);
 
 router.route("/artists/random").get(getRandom);
 
 router
   .route("/artists/:id")
   .get(getById)
-  .put(isLoggedIn, updateArtist)
+  .put(isLoggedIn, upload.single("photo"), updateArtist)
   .delete(isLoggedIn, deleteArtist);
 
 router.route("/artist/:id/favorite").post(isLoggedIn, setFavoriteArtist);
@@ -66,12 +77,12 @@ router.route("/artist/:id/similar").get(getSimilarArtists);
 router
   .route("/albums/:id")
   .get(getAlbumById)
-  .put(ensureLoggedIn(), updateAlbum)
+  .put(ensureLoggedIn(), upload.single("photo"), updateAlbum)
   .delete(ensureLoggedIn(), deleteAlbum);
 
 router.route("/albums").get(getAlbums).post(isLoggedIn, createAlbum);
 
-router.route("/tracks").post(isLoggedIn, submitTrack);
+router.route("/tracks").post(isLoggedIn, upload.single("photo"), submitTrack);
 router.route("/tracks/random").get(getRandomTracks);
 router
   .route("/tracks/:trackId")
