@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
-
 const nextConfig: NextConfig = {
+  output: "standalone",
   typescript: {
     // !! WARN !!
     // Dangerously allow production builds to successfully complete even if
