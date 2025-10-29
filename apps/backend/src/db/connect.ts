@@ -26,11 +26,12 @@ export const connectToDatabase = async () => {
 
   if (process.env.NODE_ENV === "production") {
     try {
-      const dbUser = readFileSync("/run/secrets/DB_USER", "utf-8").trim();
-      const dbpassword = readFileSync(
-        "/run/secrets/DB_PASSWORD",
-        "utf-8",
-      ).trim();
+      const dbUser =
+        process.env.DB_USER ||
+        readFileSync("/run/secrets/DB_USER", "utf-8").trim();
+      const dbpassword =
+        process.env.DB_PASSWORD ||
+        readFileSync("/run/secrets/DB_PASSWORD", "utf-8").trim();
       await mongoose.connect(
         `mongodb://${dbUser}:${dbpassword}@${process.env.DB_HOST}/?retryWrites=true&w=majority&appName=mda-alpha`,
         {
