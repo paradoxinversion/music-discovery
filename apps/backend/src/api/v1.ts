@@ -45,57 +45,61 @@ const upload = Multer({
 
 const router = express.Router();
 
+// Health Check Endpoint
 router.route("/health").get(healthCheck);
 
+// Authentication Endpoints
+router.route("/auth/check-auth").get(isLoggedIn, checkAuth);
 router.route("/auth/sign-up").post(signUp);
-
 router
   .route("/auth/log-in")
   .post(passport.authenticate("local", { session: true }), login);
-
-router.route("/auth/check-auth").get(isLoggedIn, checkAuth);
-
 router.route("/auth/log-out").get(ensureLoggedIn(), logout);
 
+// Artist Endpoints
 router
   .route("/artists")
   .get(getArtists)
-  .post(isLoggedIn, upload.single("photo"), createNewArtist);
-
+  .post(isLoggedIn, upload.single("artistArt"), createNewArtist);
 router.route("/artists/random").get(getRandom);
-
 router
   .route("/artists/:id")
   .get(getById)
-  .put(isLoggedIn, upload.single("photo"), updateArtist)
+  .put(isLoggedIn, upload.single("artistArt"), updateArtist)
   .delete(isLoggedIn, deleteArtist);
-
 router.route("/artist/:id/favorite").post(isLoggedIn, setFavoriteArtist);
-
 router.route("/artist/:id/similar").get(getSimilarArtists);
 
+// Album Endpoints
+router
+  .route("/albums")
+  .get(getAlbums)
+  .post(isLoggedIn, upload.single("albumArt"), createAlbum);
 router
   .route("/albums/:id")
   .get(getAlbumById)
-  .put(ensureLoggedIn(), upload.single("photo"), updateAlbum)
+  .put(ensureLoggedIn(), upload.single("albumArt"), updateAlbum)
   .delete(ensureLoggedIn(), deleteAlbum);
 
-router.route("/albums").get(getAlbums).post(isLoggedIn, createAlbum);
-
-router.route("/tracks").post(isLoggedIn, upload.single("photo"), submitTrack);
+// Track Endpoints
+router
+  .route("/tracks")
+  .post(isLoggedIn, upload.single("trackArt"), submitTrack);
 router.route("/tracks/random").get(getRandomTracks);
 router
   .route("/tracks/:trackId")
   .get(getTrack)
-  .put(isLoggedIn, updateTrack)
+  .put(isLoggedIn, upload.single("trackArt"), updateTrack)
   .delete(isLoggedIn, deleteTrack);
 router.route("/tracks/:trackId/favorite").post(isLoggedIn, setFavorite);
 router.route("/tracks/:trackId/similar").get(getSimilarTracks);
 router.route("/tracks/genre/:genre").get(getTracks);
-router.route("/tracks/artist/:artistId").get(getTracksByArtistId); // Added route to get tracks by artistId
+router.route("/tracks/artist/:artistId").get(getTracksByArtistId);
 
+// User Endpoints
 router.route("/user/favorites").get(isLoggedIn, getFavorites);
 router
   .route("/users/:userId/managed-artists")
   .get(isLoggedIn, getManagedArtists);
+
 export default router;
