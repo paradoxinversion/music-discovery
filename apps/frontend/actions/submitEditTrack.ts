@@ -9,7 +9,7 @@ import axios from "axios";
  */
 export default async function submitEditTrack(
   trackId: string,
-  data: EditableTrack,
+  data: Omit<EditableTrack, "trackArt"> & { trackArt?: File },
 ) {
   try {
     const response = await axios.put(
