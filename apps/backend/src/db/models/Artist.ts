@@ -35,6 +35,10 @@ const ArtistSchema: Schema<IArtist> = new Schema({
     ref: "Track",
     default: [],
   },
+  artistArt: {
+    type: String,
+    required: false,
+  },
 });
 
 const Artist = model<IArtist>("Artist", ArtistSchema);

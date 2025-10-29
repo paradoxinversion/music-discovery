@@ -3,6 +3,8 @@ import Artist from "../models/Artist";
 import User from "../models/User";
 import Album from "../models/Album";
 import Track from "../models/Track";
+import { upload } from "../../cloud/storage";
+import { createImagePath } from "../../utils/imageUtilities";
 
 // NOTE: Return values from mongoose documents with Map fields need to be converted to JSON with
 // flattenMaps:true option to avoid issues in tests and serialization
@@ -115,7 +117,9 @@ export const getSimilarArtists = async (artistId: string, count: number) => {
 export const updateArtist = async (
   userId: string,
   artistId: string,
-  updateData: Partial<Omit<IArtist, "managingUserId">>,
+  updateData: Partial<Omit<IArtist, "managingUserId">> & {
+    artistArt?: Express.Multer.File;
+  },
 ) => {
   try {
     const user = await User.findById(userId);
@@ -131,6 +135,13 @@ export const updateArtist = async (
     const updatedArtist = await Artist.findByIdAndUpdate(artistId, updateData, {
       new: true,
     });
+
+    if (process.env.NODE_ENV === "production" && updateData.artistArt) {
+      await upload(
+        createImagePath(user, updateData.artistArt, artist.name),
+        updateData.artistArt,
+      );
+    }
 
     return updatedArtist?.toJSON({ flattenMaps: true });
   } catch (error) {

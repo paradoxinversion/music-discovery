@@ -38,6 +38,10 @@ const TrackSchema: Schema<ITrack> = new Schema({
     required: true,
     ref: "User",
   },
+  trackArt: {
+    type: String,
+    required: false,
+  },
 });
 
 const Track = model<ITrack>("Track", TrackSchema);
