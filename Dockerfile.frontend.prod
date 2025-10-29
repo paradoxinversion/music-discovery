@@ -1,0 +1,99 @@
+# syntax=docker/dockerfile:1
+# check=error=true;experimental=CopyIgnoredFile
+
+ARG NODE_VERSION=22.16.0
+FROM node:${NODE_VERSION}-alpine AS base
+
+FROM base AS frontend-dependencies
+
+WORKDIR /app
+
+# Copy Dependencies and config
+COPY package.json yarn.lock tsconfig.json ./
+
+# yarnrc.prod is a production-specific yarn config file
+# it disables the global cache and uses the node-modules linker
+COPY yarnrc.prod ./.yarnrc.yml
+COPY \
+components/package.json \
+components/tsconfig.json \
+components/postcss.config.mjs \
+./components/
+COPY \
+common/types/package.json \
+common/types/tsconfig.json \
+./common/types/
+COPY \
+apps/frontend/package.json \
+apps/frontend/tsconfig.json \
+apps/frontend/postcss.config.mjs \
+apps/frontend/next.config.ts \
+./apps/frontend/
+
+
+# Install frontend deps (including workspace packages)
+RUN corepack enable && yarn install --inline-builds
+CMD ["tail", "-f", "/dev/null"]
+FROM base AS frontend-build
+
+WORKDIR /app
+ENV NODE_OPTIONS=--max_old_space_size=2048
+COPY --from=frontend-dependencies /app/.yarn ./.yarn
+COPY --from=frontend-dependencies /app/.yarnrc.yml ./.yarnrc.yml
+COPY --from=frontend-dependencies /app/node_modules ./node_modules
+
+COPY --from=frontend-dependencies \
+/app/package.json \
+/app/yarn.lock \
+/app/tsconfig.json \
+./
+
+# Copy frontend source files
+COPY --from=frontend-dependencies \
+/app/apps/frontend/ \
+/app/apps/frontend/
+
+COPY apps/frontend/ \
+/app/apps/frontend/
+
+# Copy component source files
+COPY --from=frontend-dependencies \
+/app/components \
+./components
+
+COPY \
+components/ \
+/app/components/
+
+COPY --from=frontend-dependencies \
+/app/common/types \
+./common/types
+
+COPY \
+common/types/ \
+./common/types/
+RUN corepack enable
+
+RUN yarn workspace @common/types build
+RUN yarn workspace @mda/components build
+RUN yarn workspace frontend build
+CMD ["tail", "-f", "/dev/null"]
+
+
+FROM base AS frontend-production
+
+WORKDIR /app
+# COPY --from=frontend-build /app/apps/frontend/.next ./apps/frontend/
+# COPY --from=frontend-build /app/apps/frontend/.next/static ./apps/frontend/standalone/apps/frontend/.next/static
+
+
+COPY --from=frontend-build /app/apps/frontend/.next/standalone/apps/frontend/ ./apps/frontend/
+COPY --from=frontend-build /app/apps/frontend/.next/standalone/node_modules ./apps/frontend/node_modules
+COPY --from=frontend-build /app/apps/frontend/.next/static ./apps/frontend/.next/static
+
+ENV NODE_ENV=production
+EXPOSE 3000
+# CMD ["node", "./apps/frontend/standalone/apps/frontend/server.js"]
+CMD ["node", "./apps/frontend/server.js"]
+
+# CMD ["tail", "-f", "/dev/null"]

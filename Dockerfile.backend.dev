@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1
+# check=error=true;experimental=CopyIgnoredFile
+
+ARG NODE_VERSION=22.16.0
+FROM node:${NODE_VERSION}-alpine AS backend-base
+
+WORKDIR /app
+
+COPY package.json yarn.lock tsconfig.json ./
+COPY apps/backend/package.json apps/backend/tsconfig.json ./apps/backend/
+COPY apps/backend/src/ ./apps/backend/src/
+COPY apps/backend/test-helpers/ ./apps/backend/test-helpers/
+COPY common/types/package.json common/types/tsconfig.json ./common/types/
+COPY common/types/src/ ./common/types/src/
+
+RUN corepack enable && yarn install
+
+FROM backend-base AS backend-build
+WORKDIR /app
+
+RUN yarn workspace @common/types build
+
+FROM node:${NODE_VERSION}-alpine AS backend-test
+WORKDIR /app
+COPY --from=backend-base /app ./
+RUN corepack enable && yarn install
+ENV CLIENT_URL=http://localhost:3000
+EXPOSE 3001
+
+CMD [ "yarn", "workspace", "backend", "dev" ]
