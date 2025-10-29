@@ -19,7 +19,16 @@ let redisStore;
 
 if (process.env.NODE_ENV === "production") {
   redisClient = createClient({
-    url: "redis://redis:6379",
+    username:
+      process.env.REDIS_USERNAME ||
+      readFileSync("/run/secrets/REDIS_USERNAME", "utf-8").trim(),
+    password:
+      process.env.REDIS_PASSWORD ||
+      readFileSync("/run/secrets/REDIS_PASSWORD", "utf-8").trim(),
+    socket: {
+      host: process.env.REDIS_HOST,
+      port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
+    },
   });
   redisClient.connect().catch(console.error);
   redisStore = new RedisStore({
@@ -40,7 +49,7 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: process.env.CLIENT_URL || "http://localhost:3000",
     credentials: true,
   }),
 );
@@ -50,17 +59,19 @@ app.use(limiter);
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
 app.use(
   expressSession({
     store:
       process.env.NODE_ENV === "production" ? redisStore : new MemoryStore({}),
-    secret: readFileSync("/run/secrets/SESSION_SECRET"),
+    secret:
+      process.env.SESSION_SECRET || readFileSync("/run/secrets/SESSION_SECRET"),
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false },
+    cookie: { secure: process.env.NODE_ENV === "production" },
   }),
 );
+
 connectToDatabase();
 passport.use(
   new LocalStrategy(async function (username, password, done) {
