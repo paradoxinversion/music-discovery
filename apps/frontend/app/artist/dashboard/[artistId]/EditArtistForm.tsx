@@ -63,7 +63,6 @@ export default function EditArtistForm({
       initialValues={initialValues}
       validationSchema={editArtistSchema}
       onSubmit={async (values) => {
-        console.log("Submitting values:", values);
         const updateData = await editArtistData(artistId, {
           name: values.artistName,
           genre: values.genre,

@@ -1,23 +1,41 @@
 "use client";
 import { useRouter } from "next/navigation";
-
 import { use, useEffect, useState } from "react";
 import checkAuthentication from "../../../../../../actions/checkAuthentication";
-import Joi from "joi";
 import submitEditTrack from "../../../../../../actions/submitEditTrack";
 import getTrackById from "../../../../../../actions/getTrackById";
+import { Formik, Field } from "formik";
+import { ErrorText } from "@mda/components";
+
+interface TrackFormValues {
+  title: string;
+  genre: string;
+  isrc?: string;
+  trackArt?: File | string;
+}
+
 const linkTypes = ["spotify", "appleMusic", "youtube", "soundcloud"];
-export default function Page({
+
+export default function EditTrackPage({
   params,
 }: {
   params: Promise<{ artistId: string; trackId: string }>;
 }) {
   const trackId = use(params).trackId;
   const artistId = use(params).artistId;
+  // TODO: Populate initial form values with existing track data without useState
   const [title, setTitle] = useState("");
   const [genre, setGenre] = useState("");
   const [links, setLinks] = useState<{ [key: string]: string }>({});
   const router = useRouter();
+
+  const initialValues: TrackFormValues = {
+    title: "",
+    genre: "",
+    isrc: "",
+    trackArt: undefined,
+  };
+
   useEffect(() => {
     checkAuthentication().then((user) => {
       if (!user) {
@@ -30,67 +48,68 @@ export default function Page({
       setLinks(data.links || {});
     });
   }, []);
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    if (name === "title") {
-      setTitle(value);
-    } else if (name === "genre") {
-      setGenre(value);
-    } else if (name.startsWith("links.")) {
-      const linkKey = name.split(".")[1];
-      setLinks((prev) => ({ ...prev, [linkKey]: value }));
-    }
-  };
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const submitSchema = Joi.object({
-      title: Joi.string().required(),
-      genre: Joi.string().required(),
-      links: Joi.object()
-        .pattern(Joi.string().valid(...linkTypes), Joi.string().uri())
-        .optional(),
-    });
-    const { error, value } = submitSchema.validate({ title, genre, links });
-    if (error) {
-      console.log(error.message);
-      return;
-    }
-    console.log(value);
-    const response = await submitEditTrack(trackId, value);
-    if (response.status === 200) {
-      console.log("Track edited successfully");
-      router.push(`/artist/dashboard/${artistId}`);
-    } else {
-      console.log("Error editing track");
-    }
-  };
+
   return (
     <div>
-      <form className="flex flex-col p-4">
-        <label>Title</label>
-        <input type="text" name="title" value={title} onChange={handleChange} />
-        <label>Genre</label>
-        <input type="text" name="genre" value={genre} onChange={handleChange} />
-        <p>Links</p>
-        {linkTypes.map((link) => (
-          <div key={link} className="flex flex-col">
-            <label>{link}</label>
+      <Formik
+        initialValues={initialValues}
+        onSubmit={async (values) => {
+          const editData = {
+            title: values.title,
+            genre: values.genre,
+            isrc: values.isrc,
+            artistId: artistId,
+            trackArt:
+              values.trackArt instanceof File ? values.trackArt : undefined,
+          };
+          const response = await submitEditTrack(trackId, editData);
+          if (response.status === 200) {
+            console.log("Track edited successfully");
+            router.push(`/artist/dashboard/${artistId}`);
+          } else {
+            console.log("Error editing track");
+          }
+        }}
+      >
+        {({ handleSubmit, setFieldValue, errors, touched }) => (
+          <form className="flex flex-col p-4" onSubmit={handleSubmit}>
+            <label htmlFor="title">Title</label>
+            <Field id="title" type="text" name="title" />
+            {errors.title && touched.title ? (
+              <ErrorText message={errors.title} />
+            ) : null}
+            <label>Genre</label>
+            <Field id="genre" type="text" name="genre" />
+            {errors.genre && touched.genre ? (
+              <ErrorText message={errors.genre} />
+            ) : null}
+            <label>ISRC</label>
+            <Field id="isrc" type="text" name="isrc" />
+            <p>Links</p>
+            {linkTypes.map((link) => (
+              <div key={link} className="flex flex-col">
+                <label htmlFor={link}>{link}</label>
+                <Field id={link} type="text" name={`links.${link}`} />
+              </div>
+            ))}
+            <label htmlFor="trackArt">Track Art</label>
             <input
-              type="text"
-              name={`links.${link}`}
-              value={links[link] || ""}
-              onChange={handleChange}
+              id="trackArt"
+              type="file"
+              name="trackArt"
+              onChange={(event) =>
+                setFieldValue("trackArt", event.currentTarget.files[0])
+              }
             />
-          </div>
-        ))}
-        <button
-          type="submit"
-          className="bg-blue-500 text-white p-2 mt-4 rounded"
-          onClick={handleSubmit}
-        >
-          Submit
-        </button>
-      </form>
+            <button
+              type="submit"
+              className="bg-blue-500 text-white p-2 mt-4 rounded"
+            >
+              Submit
+            </button>
+          </form>
+        )}
+      </Formik>
     </div>
   );
 }
