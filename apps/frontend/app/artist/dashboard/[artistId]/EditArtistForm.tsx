@@ -7,7 +7,7 @@ import { Formik, Field } from "formik";
 import * as Yup from "yup";
 
 interface EditArtistFormValues {
-  photo: File | string;
+  artistArt: File | string;
   artistName: string;
   genre: string;
   bio: string;
@@ -52,7 +52,7 @@ export default function EditArtistForm({
   setEditArtistDataAction: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const initialValues: EditArtistFormValues = {
-    photo: "",
+    artistArt: "",
     artistName: artistData?.name || "",
     genre: artistData?.genre || "",
     bio: artistData?.biography || "",
@@ -63,11 +63,13 @@ export default function EditArtistForm({
       initialValues={initialValues}
       validationSchema={editArtistSchema}
       onSubmit={async (values) => {
+        console.log("Submitting values:", values);
         const updateData = await editArtistData(artistId, {
           name: values.artistName,
           genre: values.genre,
           biography: values.bio,
-          photo: values.photo,
+          artistArt:
+            values.artistArt instanceof File ? values.artistArt : undefined,
           links: socialPlatforms.reduce(
             (acc, platform) => {
               if (values[platform]) {
@@ -101,7 +103,7 @@ export default function EditArtistForm({
             type="file"
             name="photo"
             onChange={(event) =>
-              setFieldValue("photo", event.currentTarget.files[0])
+              setFieldValue("artistArt", event.currentTarget.files[0])
             }
           />
 
