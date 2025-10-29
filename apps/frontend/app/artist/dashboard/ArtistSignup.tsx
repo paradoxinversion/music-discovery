@@ -1,77 +1,107 @@
 "use client";
-import axios from "axios";
-import { useState } from "react";
+import { Formik, Field } from "formik";
+import * as Yup from "yup";
+import { ErrorText } from "@mda/components";
+import axiosInstance from "../../../util/axiosInstance";
+
+interface ArtistSignupFormValues {
+  artistName: string;
+  genre: string;
+  biography: string;
+  artistArt?: File | string;
+}
+
+const artistSignupSchema = Yup.object().shape({
+  artistName: Yup.string()
+    .min(2, "Artist name must be at least 2 characters")
+    .max(100, "Artist name must be at most 100 characters")
+    .required("Artist name is required"),
+  genre: Yup.string()
+    .max(50, "Genre must be at most 50 characters")
+    .required("Genre is required"),
+  biography: Yup.string().max(
+    1500,
+    "Biography must be at most 1500 characters",
+  ),
+});
 
 export default function ArtistSignup() {
-  const [artistName, setArtistName] = useState("");
-  const [genre, setGenre] = useState("");
-  const [biography, setBiography] = useState("");
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { id, value } = e.target;
-    if (id === "artistName") {
-      setArtistName(value);
-    } else if (id === "genre") {
-      setGenre(value);
-    } else if (id === "biography") {
-      setBiography(value);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/artists`,
-        {
-          name: artistName,
-          genre,
-          biography,
-        },
-        { withCredentials: true },
-      );
-    } catch (error) {
-      console.error("Error saving artist profile:", error);
-    }
+  const initialValues: ArtistSignupFormValues = {
+    artistName: "",
+    genre: "",
+    biography: "",
+    artistArt: "",
   };
 
   return (
     <div className="mt-4">
       <h1 className="text-2xl font-bold">Artist Setup</h1>
-      <form className="flex flex-col space-y-4 w-md mt-4">
-        <label htmlFor="artistName">Artist Name*</label>
-        <input
-          type="text"
-          id="artistName"
-          required
-          value={artistName}
-          onChange={handleInputChange}
-        />
-        <label htmlFor="genre">Genre*</label>
-        <input
-          type="text"
-          id="genre"
-          required
-          value={genre}
-          onChange={handleInputChange}
-        />
-        <label htmlFor="biography">Biography*</label>
-        <textarea
-          id="biography"
-          required
-          value={biography}
-          onChange={handleInputChange}
-        />
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-          onClick={handleSubmit}
-        >
-          Save Artist Profile
-        </button>
-      </form>
+      <Formik
+        initialValues={initialValues}
+        validationSchema={artistSignupSchema}
+        onSubmit={async (values) => {
+          try {
+            const artistSubmissionData = {
+              name: values.artistName,
+              genre: values.genre,
+              biography: values.biography,
+              artistArt:
+                values.artistArt instanceof File ? values.artistArt : undefined,
+            };
+
+            await axiosInstance.post(`/artists`, artistSubmissionData, {
+              withCredentials: true,
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            });
+          } catch (error) {
+            console.error("Error saving artist profile:", error);
+          }
+        }}
+      >
+        {({ handleSubmit, setFieldValue, errors, touched }) => (
+          <form
+            className="flex flex-col space-y-4 w-md mt-4"
+            onSubmit={handleSubmit}
+          >
+            <label htmlFor="artistName">Artist Name*</label>
+            <Field id="artistName" type="text" name="artistName" />
+            {errors.artistName && touched.artistName ? (
+              <ErrorText message={errors.artistName} />
+            ) : null}
+
+            <label htmlFor="genre">Genre*</label>
+            <Field id="genre" type="text" name="genre" />
+            {errors.genre && touched.genre ? (
+              <ErrorText message={errors.genre} />
+            ) : null}
+
+            <label htmlFor="biography">Biography*</label>
+            <Field as="textarea" name="biography" />
+            {errors.biography && touched.biography ? (
+              <ErrorText message={errors.biography} />
+            ) : null}
+
+            <label htmlFor="artistArt">Track Art</label>
+            <input
+              id="artistArt"
+              type="file"
+              name="artistArt"
+              onChange={(event) =>
+                setFieldValue("artistArt", event.currentTarget.files[0])
+              }
+            />
+
+            <button
+              type="submit"
+              className="bg-blue-500 text-white px-4 py-2 rounded"
+            >
+              Save Artist Profile
+            </button>
+          </form>
+        )}
+      </Formik>
     </div>
   );
 }
