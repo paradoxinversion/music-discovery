@@ -12,6 +12,8 @@ import {
 import { IArtist } from "@common/types/src/types";
 import Joi from "joi";
 import { addFavoriteArtist, removeFavoriteArtist } from "../db/actions/User";
+import { createImagePath } from "../utils/imageUtilities";
+
 export const createNewArtist = async (req: Request, res: Response) => {
   const artistSchema = Joi.object({
     name: Joi.string().min(2).max(100).required(),
@@ -38,6 +40,11 @@ export const createNewArtist = async (req: Request, res: Response) => {
       links: req.body.links,
     };
     const artist = await createArtist(user._id, artistData);
+    if (req.file) {
+      console.info(
+        `createNewArtist created image path: ${createImagePath(req.user, req.file, req.file?.fieldname)}`,
+      );
+    }
     res.status(200).json({ status: "OK", data: artist });
   } catch (error) {
     if (error instanceof Error) {
@@ -157,12 +164,18 @@ export const updateArtist = async (req: Request, res: Response) => {
     res.status(400).json({ status: "ERROR", message: "Artist ID is required" });
     return;
   }
+  if (req.file) {
+    console.info(
+      `updateArtist created image path: ${createImagePath(req.user, req.file, req.body.name)}`,
+    );
+  }
   if (!req.body || Object.keys(req.body).length === 0) {
     res
       .status(400)
       .json({ status: "ERROR", message: "Update data is required" });
     return;
   }
+
   await updateArtistAction(req.user._id, req.params.id, req.body);
   res
     .status(200)

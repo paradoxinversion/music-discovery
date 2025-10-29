@@ -11,6 +11,7 @@ import {
 import Joi from "joi";
 import { addFavoriteTrack, removeFavoriteTrack } from "../db/actions/User";
 import { TrackSubmissionData } from "@common/types/src/types";
+import { createImagePath } from "../utils/imageUtilities";
 
 const submitTrack = async (req: Request, res: Response) => {
   const trackSchema = Joi.object<TrackSubmissionData>({
@@ -18,6 +19,7 @@ const submitTrack = async (req: Request, res: Response) => {
     artistId: Joi.string().required(),
     genre: Joi.string().required(),
     isrc: Joi.string().optional(),
+    trackArt: Joi.object().optional(),
   });
   const managingUserId = req.user._id;
   try {
@@ -29,6 +31,11 @@ const submitTrack = async (req: Request, res: Response) => {
       ...value,
       managingUserId,
     };
+    if (req.file) {
+      console.info(
+        `createNewTrack created image path: ${createImagePath(req.user, req.file, req.file?.fieldname)}`,
+      );
+    }
     // Save the track to the database
     const track = await createTrack(trackData);
     return res.status(201).json({ status: "OK", data: track });
@@ -131,6 +138,8 @@ const updateTrack = async (req: Request, res: Response) => {
   const updateSchema = Joi.object({
     title: Joi.string().optional(),
     genre: Joi.string().optional(),
+    trackArt: Joi.object().optional(),
+    isrc: Joi.string().optional(),
     links: Joi.object()
       .pattern(
         Joi.string().valid("spotify", "appleMusic", "youtube", "soundcloud"),
@@ -149,6 +158,11 @@ const updateTrack = async (req: Request, res: Response) => {
     const { error, value } = updateSchema.validate(req.body);
     if (error) {
       throw new Error(error.message);
+    }
+    if (req.file) {
+      console.info(
+        `updateTrack created image path: ${createImagePath(req.user, req.file, req.file?.fieldname)}`,
+      );
     }
     const updatedTrack = await updateTrackAction(userId, trackId, value);
     return res.status(200).json({ status: "OK", data: updatedTrack });
