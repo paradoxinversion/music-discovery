@@ -30,6 +30,7 @@ interface ITrack {
   isrc?: string;
   genre: string;
   managingUserId: string;
+  trackArt?: string;
   links?: {
     [key in CommonLinkKeyMusic]?: string;
   };
@@ -37,11 +38,11 @@ interface ITrack {
 
 type TrackSubmissionData = Pick<
   ITrack,
-  "title" | "genre" | "artistId" | "isrc"
+  "title" | "genre" | "artistId" | "isrc" | "trackArt"
 >;
 
 type EditableTrack = Partial<
-  Pick<ITrack, "title" | "genre" | "isrc" | "links">
+  Pick<ITrack, "title" | "genre" | "isrc" | "links" | "trackArt">
 >;
 
 /**
@@ -76,6 +77,7 @@ interface IArtist {
   };
   albums?: string[];
   tracks?: string[];
+  artistArt?: string | null;
 }
 
 type EditableArtist = Partial<Omit<IArtist, "managingUserId">>;
