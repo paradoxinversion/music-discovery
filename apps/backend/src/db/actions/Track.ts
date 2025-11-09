@@ -1,13 +1,19 @@
-import { ITrack, TrackSubmissionData } from "@common/types/src/types";
+import { ITrack, IUser, TrackSubmissionData } from "@common/types/src/types";
 import Track from "../models/Track";
 import User from "../models/User";
+import { createImagePath } from "../../utils/imageUtilities";
+import { upload } from "../../cloud/storage";
 
 /**
  * Creates a new track in the database.
  * @param trackData Data for the track to create
  * @returns The created track
  */
-export const createTrack = async (trackData: TrackSubmissionData) => {
+export const createTrack = async (
+  managingUser: IUser,
+  trackData: TrackSubmissionData,
+  trackArt?: Express.Multer.File,
+) => {
   if (
     await Track.findOne({
       title: trackData.title,
@@ -17,6 +23,14 @@ export const createTrack = async (trackData: TrackSubmissionData) => {
     throw new Error(
       `Track with title ${trackData.title} by artist ${trackData.artistId} already exists`,
     );
+  }
+  let trackArtDestination = null;
+  if (process.env.NODE_ENV === "production" && trackArt) {
+    trackArtDestination = await upload(
+      createImagePath(managingUser, trackArt, trackData.title),
+      trackArt,
+    );
+    trackData.trackArt = trackArtDestination;
   }
   const track = new Track(trackData);
   await track.save();
@@ -128,6 +142,7 @@ export const updateTrack = async (
   userId: string,
   trackId: string,
   updateData: Partial<ITrack>,
+  trackArt?: Express.Multer.File,
 ) => {
   const user = await User.findById(userId);
   const track = await Track.findById(trackId);
@@ -139,6 +154,15 @@ export const updateTrack = async (
     throw new Error(
       `User with ID ${userId} is not authorized to update this track`,
     );
+  }
+  let trackArtDestination = null;
+
+  if (process.env.NODE_ENV === "production" && trackArt) {
+    trackArtDestination = await upload(
+      createImagePath(user, trackArt, track.title),
+      trackArt,
+    );
+    updateData.trackArt = trackArtDestination;
   }
   const updatedTrack = await Track.findByIdAndUpdate(trackId, updateData, {
     new: true,

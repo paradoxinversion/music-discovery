@@ -31,13 +31,8 @@ const submitTrack = async (req: Request, res: Response) => {
       ...value,
       managingUserId,
     };
-    if (req.file) {
-      console.info(
-        `createNewTrack created image path: ${createImagePath(req.user, req.file, req.file?.fieldname)}`,
-      );
-    }
     // Save the track to the database
-    const track = await createTrack(trackData);
+    const track = await createTrack(req.user, trackData, req.file);
     return res.status(201).json({ status: "OK", data: track });
   } catch (error) {
     if (error instanceof Error) {
