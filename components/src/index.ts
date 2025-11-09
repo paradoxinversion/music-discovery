@@ -2,4 +2,16 @@ import { Button } from "./Button";
 import { Scrobbler } from "./Scrobbler";
 import ImgContainer from "./ImgContainer/ImgContainer";
 import ErrorText from "./ErrorText/ErrorText";
-export { Button, Scrobbler, ImgContainer, ErrorText };
+import ResourceTile from "./ResourceTile/ResourceTile";
+import ResourceTileList from "./ResourceTileList/ResourceTileList";
+import useWindowDimensions from "./hooks/useWindowDimensions";
+
+export {
+  Button,
+  Scrobbler,
+  ImgContainer,
+  ErrorText,
+  ResourceTile,
+  ResourceTileList,
+  useWindowDimensions,
+};
