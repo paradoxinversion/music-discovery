@@ -3,7 +3,6 @@ import express from "express";
 import passport from "passport";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
-import bodyParser from "body-parser";
 import expressSession, { MemoryStore } from "express-session";
 import { connectToDatabase } from "./db";
 import { Strategy as LocalStrategy } from "passport-local";
@@ -31,13 +30,19 @@ if (process.env.NODE_ENV === "production") {
     },
   });
   redisClient.connect().catch(console.error);
+  redisClient.on("connect", () => {
+    console.log("Connected to redis");
+  });
+  redisClient.on("ready", () => {
+    console.log("Redis connection is ready");
+  });
   redisStore = new RedisStore({
     client: redisClient,
     prefix: "mda:",
   });
 }
 
-const appName = "Music Discovery App";
+const appName = "OffBeat";
 const limiter = rateLimit({
   windowMs: 10000, // 10 seconds
   limit: 30, // each IP can make up to 30 requests per `windowsMs` (10 seconds)
@@ -57,9 +62,11 @@ app.use(
 app.use(morgan("dev"));
 app.use(limiter);
 app.use(express.json());
-app.use(cookieParser());
+app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(express.urlencoded({ extended: true }));
-// app.use(bodyParser.json());
+if (app.get("env") === "production") {
+  app.set("trust proxy", 1); // trust first proxy
+}
 app.use(
   expressSession({
     store:
@@ -68,7 +75,10 @@ app.use(
       process.env.SESSION_SECRET || readFileSync("/run/secrets/SESSION_SECRET"),
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV === "production" },
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    },
   }),
 );
 
