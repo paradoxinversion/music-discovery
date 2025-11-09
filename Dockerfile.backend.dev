@@ -25,6 +25,7 @@ WORKDIR /app
 COPY --from=backend-base /app ./
 RUN corepack enable && yarn install
 ENV CLIENT_URL=http://localhost:3000
+ENV SESSION_SECRET=testing_secret
 EXPOSE 3001
 
 CMD [ "yarn", "workspace", "backend", "dev" ]

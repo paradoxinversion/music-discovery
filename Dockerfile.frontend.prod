@@ -7,6 +7,7 @@ FROM node:${NODE_VERSION}-alpine AS base
 FROM base AS frontend-dependencies
 
 WORKDIR /app
+ENV NODE_ENV=production
 
 # Copy Dependencies and config
 COPY package.json yarn.lock tsconfig.json ./
@@ -83,17 +84,11 @@ CMD ["tail", "-f", "/dev/null"]
 FROM base AS frontend-production
 
 WORKDIR /app
-# COPY --from=frontend-build /app/apps/frontend/.next ./apps/frontend/
-# COPY --from=frontend-build /app/apps/frontend/.next/static ./apps/frontend/standalone/apps/frontend/.next/static
-
 
 COPY --from=frontend-build /app/apps/frontend/.next/standalone/apps/frontend/ ./apps/frontend/
+COPY --from=frontend-build /app/apps/frontend/public ./apps/frontend/public
 COPY --from=frontend-build /app/apps/frontend/.next/standalone/node_modules ./apps/frontend/node_modules
 COPY --from=frontend-build /app/apps/frontend/.next/static ./apps/frontend/.next/static
 
-ENV NODE_ENV=production
 EXPOSE 3000
-# CMD ["node", "./apps/frontend/standalone/apps/frontend/server.js"]
 CMD ["node", "./apps/frontend/server.js"]
-
-# CMD ["tail", "-f", "/dev/null"]

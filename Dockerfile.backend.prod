@@ -31,12 +31,6 @@ COPY --from=backend-build /app/apps/backend/package.json /app/apps/backend/tscon
 ./apps/backend/
 COPY --from=backend-build /app/apps/backend/dist/ ./apps/backend/dist/
 
-RUN --mount=type=secret,id=DB_USER
-RUN --mount=type=secret,id=DB_PASSWORD
-RUN --mount=type=secret,id=SESSION_SECRET
-RUN --mount=type=secret,id=REDIS_USERNAME
-RUN --mount=type=secret,id=REDIS_PASSWORD
-
 RUN corepack enable && yarn workspaces focus -A --production
 
 EXPOSE 3001
