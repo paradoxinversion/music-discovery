@@ -7,6 +7,7 @@ import axios from "axios";
 import { useEffect } from "react";
 import { setUser, unsetUser } from "../../lib/features/users/userSlice";
 import logOut from "../../actions/logout";
+import { boldonse } from "@/fonts";
 
 const Header = () => {
   const name = useAppSelector((state) => state.user.username);
@@ -43,13 +44,17 @@ const Header = () => {
 
   return (
     <header className="flex items-center justify-between p-4 border-b border-gray-300">
-      <span className="text-lg font-semibold">Music Discovery App</span>
-      <Link href="/discover">
-        <Button label="Discover" />
-      </Link>
+      <span
+        className={`text-2xl cursor-pointer hover:text-rose-500 ${boldonse.className}`}
+        onClick={() => {
+          router.push("/");
+        }}
+      >
+        OffBeat
+      </span>
       {name ? (
         <div className="flex items-center space-x-4">
-          <span className="text-sm">Hello, {name}!</span>
+          {/* <span className="text-sm">Hello, {name}!</span> */}
           <Link href="/settings/user">
             <Button label="Settings" />
           </Link>
