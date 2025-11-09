@@ -33,7 +33,7 @@ export const connectToDatabase = async () => {
         process.env.DB_PASSWORD ||
         readFileSync("/run/secrets/DB_PASSWORD", "utf-8").trim();
       await mongoose.connect(
-        `mongodb://${dbUser}:${dbpassword}@${process.env.DB_HOST}/?retryWrites=true&w=majority&appName=mda-alpha`,
+        `mongodb+srv://${dbUser}:${dbpassword}@${process.env.DB_HOST}/?retryWrites=true&w=majority&appName=mda-alpha`,
         {
           serverApi: {
             version: "1",
@@ -43,8 +43,9 @@ export const connectToDatabase = async () => {
         },
       );
       await mongoose.connection.db?.admin().command({ ping: 1 });
-    } finally {
-      await mongoose.disconnect();
+    } catch (error) {
+      console.error("Error connecting to the database:", error);
+      throw error; // Re-throw the error after logging it
     }
   }
 };
