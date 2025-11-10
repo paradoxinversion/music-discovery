@@ -78,13 +78,10 @@ export default function TrackPage({
   }
 
   return (
-    <div className="flex flex-grow h-full">
-      <div className="flex flex-grow p-4">
-        <div id="track-details" className="mr-8 w-1/3">
-          <ImgContainer
-            src="https://picsum.photos/512/512?random=1"
-            alt="Album Art"
-          />
+    <div className="flex flex-col md:flex-row flex-grow h-full">
+      <div className="flex flex-col md:flex-row flex-grow p-4">
+        <div id="track-details" className="mr-8 md:w-1/3">
+          <ImgContainer src={trackData.trackArt} alt="Album Art" />
           {user.loggedIn ? (
             <div onClick={likeTrack} className="cursor-pointer">
               <svg

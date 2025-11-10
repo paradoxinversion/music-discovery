@@ -77,8 +77,8 @@ export default function ArtistPage({
   }
 
   return (
-    <div className="flex flex-grow py-2 px-4">
-      <div id="artist-details" className="mr-8 w-1/2">
+    <div className="flex flex-col md:flex-row flex-grow py-2 px-4">
+      <div id="artist-details" className="mr-8 md:w-1/2">
         <h1 className="text-2xl font-bold">{artistData.name}</h1>
         <ImgContainer
           src={`data:image/jpeg;base64,${artistData.artistArt}`}
@@ -113,7 +113,7 @@ export default function ArtistPage({
           </a>
         </div>
       </div>
-      <div className="w-1/3">
+      <div className="md:w-1/3">
         <div id="suggestions">
           <h2 className="text-xl font-semibold mt-4">You might also like:</h2>
           {similarArtists.length > 0 ? (
