@@ -10,11 +10,11 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # Copy Dependencies and config
-COPY package.json yarn.lock tsconfig.json ./
+COPY package.json yarn.lock tsconfig.json .yarnrc.yml ./
 
 # yarnrc.prod is a production-specific yarn config file
 # it disables the global cache and uses the node-modules linker
-COPY yarnrc.prod ./.yarnrc.yml
+# COPY yarnrc.prod ./.yarnrc.yml
 COPY \
 components/package.json \
 components/tsconfig.json \

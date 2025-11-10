@@ -1,3 +1,0 @@
-# This yarnrc file is for production environment settings
-enableGlobalCache: false
-nodeLinker: node-modules
