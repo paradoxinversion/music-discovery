@@ -1,9 +1,4 @@
 services:
-  base:
-    build:
-      context: .
-      dockerfile: ./Dockerfile.base
-
   mongo:
     image: mongo:latest
     ports:
@@ -28,8 +23,6 @@ services:
     build:
       context: .
       dockerfile: ./apps/backend/Dockerfile
-      additional_contexts:
-        base: service:base
       target: backend-test
     links:
       - mongo
@@ -58,8 +51,6 @@ services:
   #   build:
   #     context: .
   #     dockerfile: ./apps/frontend/Dockerfile
-  #     additional_contexts:
-  #       base: service:base
   #   volumes:
   #     - type: bind
   #       source: ./apps/frontend
