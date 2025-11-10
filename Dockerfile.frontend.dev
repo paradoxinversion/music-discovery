@@ -1,0 +1,91 @@
+# syntax=docker/dockerfile:1
+# check=error=true;experimental=CopyIgnoredFile
+
+ARG NODE_VERSION=22.16.0
+FROM node:${NODE_VERSION}-alpine AS base
+
+FROM base AS frontend-dependencies
+WORKDIR /app
+
+COPY package.json yarn.lock tsconfig.json .yarnrc.yml ./
+
+COPY components/package.json \
+components/tsconfig.json \
+components/postcss.config.mjs \
+./components/
+
+COPY common/types/package.json \
+common/types/tsconfig.json \
+./common/types/
+
+COPY apps/frontend/package.json \
+apps/frontend/tsconfig.json \
+apps/frontend/postcss.config.mjs \
+apps/frontend/next.config.ts \
+apps/frontend/next.config.ts \
+apps/frontend/next-env.d.ts \
+./apps/frontend/
+
+RUN corepack enable && yarn install
+CMD ["tail", "-f", "/dev/null"]
+
+
+# COPY apps/frontend/actions/ ./apps/frontend/actions/
+# COPY apps/frontend/app/ ./apps/frontend/app/
+# COPY apps/frontend/lib/ ./apps/frontend/lib/
+
+# COPY common/types/src/ ./common/types/src/
+
+# COPY components/src/ ./components/src/
+
+FROM base AS frontend-build
+WORKDIR /app
+
+COPY --from=frontend-dependencies /app/.yarn ./.yarn
+COPY --from=frontend-dependencies /app/.yarnrc.yml ./.yarnrc.yml
+COPY --from=frontend-dependencies /app/node_modules ./node_modules
+
+COPY --from=frontend-dependencies \
+/app/package.json \
+/app/yarn.lock \
+/app/tsconfig.json \
+./
+
+# Copy frontend source files
+COPY --from=frontend-dependencies \
+/app/apps/frontend/ \
+/app/apps/frontend/
+
+COPY apps/frontend/ \
+/app/apps/frontend/
+
+# Copy component source files
+COPY --from=frontend-dependencies \
+/app/components \
+./components
+
+COPY \
+components/ \
+/app/components/
+
+COPY --from=frontend-dependencies \
+/app/common/types \
+./common/types
+
+COPY \
+common/types/ \
+./common/types/
+RUN corepack enable
+
+RUN yarn workspace @common/types build
+RUN yarn workspace @mda/components build
+CMD ["tail", "-f", "/dev/null"]
+
+FROM base AS frontend-dev
+WORKDIR /app
+COPY --from=frontend-build /app ./
+RUN corepack enable
+
+EXPOSE 3000
+
+CMD [ "yarn", "workspace", "frontend", "dev" ]

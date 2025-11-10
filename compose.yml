@@ -49,7 +49,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: ./apps/frontend/Dockerfile.dev
+      dockerfile: Dockerfile.frontend.dev
     volumes:
       - type: bind
         source: ./apps/frontend
