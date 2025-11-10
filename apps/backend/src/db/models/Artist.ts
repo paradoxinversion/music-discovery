@@ -38,6 +38,7 @@ const ArtistSchema: Schema<IArtist> = new Schema({
   artistArt: {
     type: String,
     required: false,
+    default: null,
   },
 });
 
