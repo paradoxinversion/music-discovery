@@ -19,11 +19,20 @@ import { createImagePath } from "../../utils/imageUtilities";
 export const createArtist = async (
   userId: string,
   artistData: Omit<IArtist, "managingUserId">,
+  artistArt?: Express.Multer.File,
 ): Promise<IArtist> => {
   try {
     const managingUser = await User.findById(userId);
     if (!managingUser) {
       throw new Error(`User with ID ${userId} not found`);
+    }
+    let artistArtDestination = null;
+    if (process.env.NODE_ENV === "production" && artistArt) {
+      artistArtDestination = await upload(
+        createImagePath(managingUser, artistArt, artistData.name),
+        artistArt,
+      );
+      artistData.artistArt = artistArtDestination;
     }
     const newArtist = new Artist({ ...artistData, managingUserId: userId });
     await newArtist.save();
@@ -117,9 +126,8 @@ export const getSimilarArtists = async (artistId: string, count: number) => {
 export const updateArtist = async (
   userId: string,
   artistId: string,
-  updateData: Partial<Omit<IArtist, "managingUserId">> & {
-    artistArt?: Express.Multer.File;
-  },
+  updateData: Partial<Omit<IArtist, "managingUserId">>,
+  artistArt?: Express.Multer.File,
 ) => {
   try {
     const user = await User.findById(userId);
@@ -132,16 +140,17 @@ export const updateArtist = async (
         `User with ID ${userId} is not authorized to update this artist (${artist?.managingUserId})`,
       );
     }
+    let artistArtDestination = null;
+    if (process.env.NODE_ENV === "production" && artistArt) {
+      artistArtDestination = await upload(
+        createImagePath(user, artistArt, artist.name),
+        artistArt,
+      );
+      updateData.artistArt = artistArtDestination;
+    }
     const updatedArtist = await Artist.findByIdAndUpdate(artistId, updateData, {
       new: true,
     });
-
-    if (process.env.NODE_ENV === "production" && updateData.artistArt) {
-      await upload(
-        createImagePath(user, updateData.artistArt, artist.name),
-        updateData.artistArt,
-      );
-    }
 
     return updatedArtist?.toJSON({ flattenMaps: true });
   } catch (error) {

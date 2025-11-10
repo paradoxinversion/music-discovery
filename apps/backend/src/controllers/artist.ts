@@ -13,6 +13,7 @@ import { IArtist } from "@common/types/src/types";
 import Joi from "joi";
 import { addFavoriteArtist, removeFavoriteArtist } from "../db/actions/User";
 import { createImagePath } from "../utils/imageUtilities";
+import { getImageAtPath } from "../db/actions/Storage";
 
 export const createNewArtist = async (req: Request, res: Response) => {
   const artistSchema = Joi.object({
@@ -65,8 +66,15 @@ export const getById = async (req: Request, res: Response) => {
     return;
   }
   const artist = await getArtistById(artistId);
+  let artistArt = null;
+  if (artist && artist.artistArt) {
+    const art = await getImageAtPath(artist?.artistArt);
+    if (art) {
+      artistArt = Buffer.from(art).toString("base64");
+    }
+  }
   if (artist) {
-    res.status(200).json({ status: "OK", data: artist });
+    res.status(200).json({ status: "OK", data: { ...artist, artistArt } });
   } else {
     res.status(404).json({ status: "ERROR", message: "Artist not found" });
   }
@@ -164,11 +172,6 @@ export const updateArtist = async (req: Request, res: Response) => {
     res.status(400).json({ status: "ERROR", message: "Artist ID is required" });
     return;
   }
-  if (req.file) {
-    console.info(
-      `updateArtist created image path: ${createImagePath(req.user, req.file, req.body.name)}`,
-    );
-  }
   if (!req.body || Object.keys(req.body).length === 0) {
     res
       .status(400)
@@ -176,7 +179,7 @@ export const updateArtist = async (req: Request, res: Response) => {
     return;
   }
 
-  await updateArtistAction(req.user._id, req.params.id, req.body);
+  await updateArtistAction(req.user._id, req.params.id, req.body, req.file);
   res
     .status(200)
     .json({ status: "OK", message: "Artist updated successfully" });
