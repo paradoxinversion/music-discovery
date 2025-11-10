@@ -14,10 +14,9 @@ const ResourceTile = ({
   onClick,
 }: ResourceTileProps) => {
   const { width } = useWindowDimensions();
-  console.log("Window width:", width);
   return (
     <div
-      className="border-b md:border md:border-gray-300 md:rounded cursor-pointer w-full md:w-48 md:hover:scale-105 md:transition-transform md:duration-200 md:p-4 flex md:flex-col md:items-center"
+      className="border-b cursor-pointer w-full flex md:hover:bg-gray-900 md:border-0 md:border-gray-300 md:rounded md:w-44 md:hover:scale-105 md:transition-transform md:duration-200 md:p-4 md:flex-col md:items-center"
       onClick={onClick}
     >
       <div className="hidden bg-gray-700 w-16 h-16 md:h-32 md:w-32 md:mb-4 md:flex md:items-center md:justify-center">

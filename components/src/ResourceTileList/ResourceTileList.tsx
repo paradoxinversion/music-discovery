@@ -6,7 +6,7 @@ export type ResourceTileProps = {
 
 const ResourceTileList = ({ resourceTiles }: ResourceTileProps) => {
   return (
-    <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div className="flex flex-col md:flex-row md:flex-wrap md:gap-4 md:justify-center md:content-start">
       {resourceTiles.map((tile, index) => (
         <div key={index}>{tile}</div>
       ))}

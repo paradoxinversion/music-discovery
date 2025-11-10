@@ -37,6 +37,31 @@ export const Primary: Story = {
         subText="Sub Text that's longer but smaller than the main text"
         onClick={() => {}}
       />,
+      <ResourceTile
+        mainText="Main Text"
+        subText="Sub Text"
+        onClick={() => {}}
+      />,
+      <ResourceTile
+        mainText="Main Text"
+        subText="Sub Text"
+        onClick={() => {}}
+      />,
+      <ResourceTile
+        mainText="Main Text"
+        subText="Sub Text"
+        onClick={() => {}}
+      />,
+      <ResourceTile
+        mainText="Main Text"
+        subText="Sub Text"
+        onClick={() => {}}
+      />,
+      <ResourceTile
+        mainText="Main Text"
+        subText="Sub Text"
+        onClick={() => {}}
+      />,
     ],
   },
 };
