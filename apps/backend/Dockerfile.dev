@@ -24,7 +24,7 @@ FROM node:${NODE_VERSION}-alpine AS backend-test
 WORKDIR /app
 COPY --from=backend-base /app ./
 RUN corepack enable && yarn install
-
+ENV CLIENT_URL=http://localhost:3000
 EXPOSE 3001
 
 CMD [ "yarn", "workspace", "backend", "dev" ]

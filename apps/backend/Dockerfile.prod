@@ -21,8 +21,7 @@ RUN yarn workspace backend build
 
 FROM node:${NODE_VERSION}-alpine AS backend-production
 WORKDIR /app
-# COPY --from=backend-build /app/package.json /app/tsconfig.json /app/yarn.lock /app/.pnp.cjs \
-# /app/.pnp.loader.mjs ./
+
 COPY --from=backend-build /app/package.json /app/tsconfig.json /app/yarn.lock ./
 
 COPY --from=backend-build /app/common/types/package.json ./common/types/
@@ -32,12 +31,16 @@ COPY --from=backend-build /app/apps/backend/package.json /app/apps/backend/tscon
 ./apps/backend/
 COPY --from=backend-build /app/apps/backend/dist/ ./apps/backend/dist/
 
-# RUN corepack enable && yarn install
+RUN --mount=type=secret,id=DB_USER
+RUN --mount=type=secret,id=DB_PASSWORD
+RUN --mount=type=secret,id=SESSION_SECRET
+RUN --mount=type=secret,id=REDIS_USERNAME
+RUN --mount=type=secret,id=REDIS_PASSWORD
+ENV REDIS_HOST=redis-13270.c82.us-east-1-2.ec2.redns.redis-cloud.com
+ENV REDIS_PORT=13270
 
 RUN corepack enable && yarn workspaces focus -A --production
-
 
 EXPOSE 3001
 
 CMD [ "yarn", "workspace", "backend", "start" ]
-# CMD ["tail", "-f", "/dev/null"]
