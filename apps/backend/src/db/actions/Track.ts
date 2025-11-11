@@ -157,7 +157,7 @@ export const updateTrack = async (
   }
   let trackArtDestination = null;
 
-  if (process.env.NODE_ENV === "production" && trackArt) {
+  if (trackArt) {
     trackArtDestination = await upload(
       createImagePath(user, trackArt, track.title),
       trackArt,

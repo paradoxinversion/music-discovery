@@ -11,7 +11,7 @@ import {
 import Joi from "joi";
 import { addFavoriteTrack, removeFavoriteTrack } from "../db/actions/User";
 import { TrackSubmissionData } from "@common/types/src/types";
-import { createImagePath } from "../utils/imageUtilities";
+import { getImageAtPath } from "../db/actions/Storage";
 
 const submitTrack = async (req: Request, res: Response) => {
   const trackSchema = Joi.object<TrackSubmissionData>({
@@ -48,13 +48,21 @@ const getTrack = async (req: Request, res: Response) => {
       .status(400)
       .json({ status: "ERROR", message: "trackId is required" });
   }
+
   const track = await getTrackById(trackId);
   if (!track) {
     return res
       .status(404)
       .json({ status: "ERROR", message: "Track not found" });
   }
-  return res.status(200).json({ status: "OK", data: track });
+  let trackArt = null;
+  if (track && track.trackArt) {
+    const art = await getImageAtPath(track?.trackArt);
+    if (art) {
+      trackArt = Buffer.from(art).toString("base64");
+    }
+  }
+  return res.status(200).json({ status: "OK", data: { ...track, trackArt } });
 };
 
 const getTracks = async (req: Request, res: Response) => {
@@ -131,9 +139,10 @@ const deleteTrack = async (req: Request, res: Response) => {
 
 const updateTrack = async (req: Request, res: Response) => {
   const updateSchema = Joi.object({
+    artistId: Joi.string().optional(),
     title: Joi.string().optional(),
     genre: Joi.string().optional(),
-    trackArt: Joi.object().optional(),
+    // trackArt: Joi.any().optional(),
     isrc: Joi.string().optional(),
     links: Joi.object()
       .pattern(
@@ -154,12 +163,13 @@ const updateTrack = async (req: Request, res: Response) => {
     if (error) {
       throw new Error(error.message);
     }
-    if (req.file) {
-      console.info(
-        `updateTrack created image path: ${createImagePath(req.user, req.file, req.file?.fieldname)}`,
-      );
-    }
-    const updatedTrack = await updateTrackAction(userId, trackId, value);
+
+    const updatedTrack = await updateTrackAction(
+      userId,
+      trackId,
+      value,
+      req.file,
+    );
     return res.status(200).json({ status: "OK", data: updatedTrack });
   } catch (error) {
     if (error instanceof Error) {
