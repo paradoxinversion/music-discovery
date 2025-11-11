@@ -141,7 +141,7 @@ export const updateArtist = async (
       );
     }
     let artistArtDestination = null;
-    if (process.env.NODE_ENV === "production" && artistArt) {
+    if (artistArt) {
       artistArtDestination = await upload(
         createImagePath(user, artistArt, artist.name),
         artistArt,
