@@ -1,13 +1,25 @@
 import { Storage } from "@google-cloud/storage";
 let storage: Storage;
-
+const imgBucketName = "mda-img-store";
 if (process.env.NODE_ENV === "production") {
   storage = new Storage();
 } else {
-  storage = new Storage({ apiEndpoint: "https://0.0.0.0:4443" });
+  storage = new Storage({
+    apiEndpoint: "http://fake-gcs-server:8080",
+    projectId: "offbeat-test",
+  });
+  storage.getBuckets().then((buckets) => {
+    if (!buckets[0].find((bucket) => bucket.name === imgBucketName)) {
+      storage.createBucket(imgBucketName).catch((err) => {
+        console.error("Error creating bucket in local storage emulator:", err);
+      });
+    } else {
+      console.log(
+        `Bucket ${imgBucketName} already exists in local storage emulator.`,
+      );
+    }
+  });
 }
-
-const imgBucketName = "mda-img-store";
 
 async function getImageContents(filePath: string) {
   try {
@@ -23,6 +35,7 @@ async function getImageContents(filePath: string) {
 async function upload(destFileName: string, contents: Express.Multer.File) {
   try {
     const { buffer, mimetype } = contents;
+    console.log("Storage url", storage.baseUrl);
     await storage
       .bucket(imgBucketName)
       .file(destFileName)

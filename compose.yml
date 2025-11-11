@@ -2,10 +2,24 @@ services:
   fake-gcs-server:
     image: fsouza/fake-gcs-server:latest
     ports:
-      - 4443:4443
+      - 8080:8080
     networks:
       - discovery-network
-    # command: ["-scheme", "http", "-port", "4443", "-public-host", "fake-gcs-server"]
+    volumes:
+      - ../data:/data
+    command:
+      [
+        "-scheme",
+        "http",
+        "-port",
+        "8080",
+        "-external-url",
+        "http://fake-gcs-server:8080",
+        "-public-host",
+        "fake-gcs-server",
+        "-backend",
+        "memory",
+      ]
   mongo:
     attach: false
     image: mongo:latest
