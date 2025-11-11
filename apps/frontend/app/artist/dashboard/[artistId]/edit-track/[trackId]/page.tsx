@@ -1,11 +1,11 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useState } from "react";
-import checkAuthentication from "../../../../../../actions/checkAuthentication";
+import { use } from "react";
 import submitEditTrack from "../../../../../../actions/submitEditTrack";
-import getTrackById from "../../../../../../actions/getTrackById";
 import { Formik, Field } from "formik";
 import { ErrorText } from "@mda/components";
+import axiosInstance from "../../../../../../util/axiosInstance";
+import useSWR from "swr";
 
 interface TrackFormValues {
   title: string;
@@ -15,7 +15,8 @@ interface TrackFormValues {
 }
 
 const linkTypes = ["spotify", "appleMusic", "youtube", "soundcloud"];
-
+const fetcher = (url: string) =>
+  axiosInstance.get(url, { withCredentials: true }).then((res) => res.data);
 export default function EditTrackPage({
   params,
 }: {
@@ -23,26 +24,25 @@ export default function EditTrackPage({
 }) {
   const trackId = use(params).trackId;
   const artistId = use(params).artistId;
-  // TODO: Populate initial form values with existing track data without useState
-  const [title, setTitle] = useState("");
-  const [genre, setGenre] = useState("");
-  const [links, setLinks] = useState<{ [key: string]: string }>({});
+  const { data, error, isLoading } = useSWR(
+    `tracks/${trackId}?withLinks=true`,
+    fetcher,
+  );
   const router = useRouter();
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error loading track data.</div>;
+  }
 
   const initialValues: TrackFormValues = {
-    title: "",
-    genre: "",
-    isrc: "",
-    trackArt: undefined,
+    title: data.data.title,
+    genre: data.data.genre,
+    isrc: data.data.isrc || undefined,
+    trackArt: data.data.trackArt,
   };
-
-  useEffect(() => {
-    getTrackById(trackId).then((data) => {
-      setTitle(data.title);
-      setGenre(data.genre);
-      setLinks(data.links || {});
-    });
-  }, []);
 
   return (
     <div>
