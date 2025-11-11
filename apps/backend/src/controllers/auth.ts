@@ -38,11 +38,15 @@ export const login = (req: Request, res: Response) => {
 };
 
 export const checkAuth = (req: Request, res: Response) => {
+  res.set("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
   if (req.isAuthenticated()) {
     const { password, __v, ...returnUser } = req.user.toObject();
+
     return res.status(200).json({ authenticated: true, user: returnUser });
   } else {
-    return res.status(200).json({ authenticated: false });
+    return res.status(401).json({ authenticated: false });
   }
 };
 

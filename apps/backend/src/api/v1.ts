@@ -49,7 +49,7 @@ const router = express.Router();
 router.route("/health").get(healthCheck);
 
 // Authentication Endpoints
-router.route("/auth/check-auth").get(isLoggedIn, checkAuth);
+router.route("/auth/check-auth").get(checkAuth);
 router.route("/auth/sign-up").post(signUp);
 router
   .route("/auth/log-in")

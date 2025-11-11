@@ -1,8 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 
-const isLoggedIn = (req: Request, res: Response, next: NextFunction) => {
+const checkAuthentication = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   if (req.isAuthenticated()) {
-    return next();
+    return res.status(200).json({ user: req.user });
   }
   res.status(401).json({
     result: 0,
@@ -10,4 +14,4 @@ const isLoggedIn = (req: Request, res: Response, next: NextFunction) => {
   });
 };
 
-export default isLoggedIn;
+export default checkAuthentication;
