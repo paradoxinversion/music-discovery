@@ -17,6 +17,9 @@ export default async function submitEditTrack(
       data,
       {
         withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       },
     );
     return response;
