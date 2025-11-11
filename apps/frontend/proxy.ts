@@ -27,5 +27,5 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: "/discover",
+  matcher: ["/artist/:path*", "/settings/:path*"],
 };

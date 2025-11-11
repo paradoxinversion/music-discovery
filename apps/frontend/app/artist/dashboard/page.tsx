@@ -12,13 +12,6 @@ export default function Page() {
   const [managedArtists, setManagedArtists] = useState([]);
   const router = useRouter();
   const user = useAppSelector((state) => state.user);
-  useEffect(() => {
-    checkAuthentication().then((user) => {
-      if (!user) {
-        router.push("/login");
-      }
-    });
-  }, []);
 
   useEffect(() => {
     if (user.userId) {

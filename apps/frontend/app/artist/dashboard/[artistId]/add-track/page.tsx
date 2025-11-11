@@ -35,14 +35,6 @@ export default function AddTrackPage({
     trackArt: undefined,
   };
 
-  useEffect(() => {
-    checkAuthentication().then((user) => {
-      if (!user) {
-        router.push("/login");
-      }
-    });
-  }, []);
-
   return (
     <div className="w-full p-4">
       <Formik

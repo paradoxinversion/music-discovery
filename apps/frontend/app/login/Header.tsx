@@ -54,7 +54,6 @@ const Header = () => {
       </span>
       {name ? (
         <div className="flex items-center space-x-4">
-          {/* <span className="text-sm">Hello, {name}!</span> */}
           <Link href="/settings/user">
             <Button label="Settings" />
           </Link>

@@ -20,13 +20,6 @@ export default function Page({
   const [artistTracks, setArtistTracks] = useState([]);
   const [editArtistData, setEditArtistData] = useState(false);
   useEffect(() => {
-    checkAuthentication().then((user) => {
-      if (!user) {
-        router.push("/login");
-      }
-    });
-  }, []);
-  useEffect(() => {
     getArtistById(artistId).then((data) => setArtistData(data));
     getTracksByArtist(artistId).then((data) => setArtistTracks(data.data));
   }, []);

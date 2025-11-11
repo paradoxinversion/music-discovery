@@ -37,11 +37,6 @@ export default function EditTrackPage({
   };
 
   useEffect(() => {
-    checkAuthentication().then((user) => {
-      if (!user) {
-        router.push("/login");
-      }
-    });
     getTrackById(trackId).then((data) => {
       setTitle(data.title);
       setGenre(data.genre);
