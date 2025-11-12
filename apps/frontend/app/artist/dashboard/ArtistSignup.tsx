@@ -3,7 +3,8 @@ import { Formik, Field } from "formik";
 import * as Yup from "yup";
 import { ErrorText } from "@mda/components";
 import axiosInstance from "../../../util/axiosInstance";
-
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 interface ArtistSignupFormValues {
   artistName: string;
   genre: string;
@@ -26,6 +27,7 @@ const artistSignupSchema = Yup.object().shape({
 });
 
 export default function ArtistSignup() {
+  const router = useRouter();
   const initialValues: ArtistSignupFormValues = {
     artistName: "",
     genre: "",
@@ -55,8 +57,11 @@ export default function ArtistSignup() {
                 "Content-Type": "multipart/form-data",
               },
             });
+            toast.success("Artist profile created successfully");
+            router.push("/artist/dashboard");
           } catch (error) {
             console.error("Error saving artist profile:", error);
+            toast.error("Error saving artist profile");
           }
         }}
       >
