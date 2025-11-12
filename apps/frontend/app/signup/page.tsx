@@ -70,6 +70,24 @@ export default function SignUpPage() {
             {errors.password && touched.password ? (
               <ErrorText message={errors.password} />
             ) : null}
+            <p>
+              By submitting this form, you agree to our{" "}
+              <a target="blank" href="/tos">
+                Terms of Service
+              </a>{" "}
+              and{" "}
+              <a target="blank" href="/privacy">
+                Privacy Policy
+              </a>
+              .
+            </p>
+            <p>
+              Don't forget to review our{" "}
+              <a target="blank" href="/community-standards">
+                Community Guidelines
+              </a>
+              !
+            </p>
             <Button type="submit" label="Sign Up" />
           </form>
         )}
