@@ -65,18 +65,27 @@ type EditableAlbum = Partial<Omit<IAlbum, "artistId">>;
  * A music artist/band.
  */
 interface IArtist {
+  /** The artist's name. Must be unique. */
   name: string;
+  /** A URL-friendly version of the artist's name. Must be unique. */
+  slug: string;
+  /** The artist's primary genre. */
   genre: string;
+  /** A brief biography of the artist. */
   biography: string;
   /**
    * ID of the user managing this artist's profile.
    */
   managingUserId: string;
+  /** A map of social and music platform links. */
   links?: {
     [key in CommonLinkKeySocial]?: string;
   };
+  /** List of album IDs associated with the artist. */
   albums?: string[];
+  /** List of track IDs associated with the artist. */
   tracks?: string[];
+  /** S3 location to the artist's artwork/image. */
   artistArt?: string | null;
 }
 

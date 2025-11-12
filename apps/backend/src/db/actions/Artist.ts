@@ -67,6 +67,15 @@ export const getArtistById = async (artistId: string) => {
   }
 };
 
+export const getArtistBySlug = async (slug: string) => {
+  try {
+    const artist = await Artist.findOne({ slug });
+    return artist?.toJSON({ flattenMaps: true }) || null;
+  } catch (error) {
+    throw new Error(`Error retrieving artist: ${error}`);
+  }
+};
+
 export const getArtistsByIds = async (artistIds: string[]) => {
   try {
     const artists = await Artist.find({ _id: { $in: artistIds } });

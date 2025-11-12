@@ -12,6 +12,7 @@ import {
   getSimilarArtists,
   updateArtist,
   setFavorite as setFavoriteArtist,
+  getBySlug,
 } from "../controllers/artist";
 import {
   createAlbum,
@@ -71,7 +72,7 @@ router
   .delete(isLoggedIn, deleteArtist);
 router.route("/artist/:id/favorite").post(isLoggedIn, setFavoriteArtist);
 router.route("/artist/:id/similar").get(getSimilarArtists);
-
+router.route("/artist/slug/:slug").get(getBySlug);
 // Album Endpoints
 router
   .route("/albums")
