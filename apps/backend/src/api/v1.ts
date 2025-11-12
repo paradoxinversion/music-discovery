@@ -35,6 +35,7 @@ import {
 import { getFavorites, getManagedArtists } from "../controllers/user";
 import isLoggedIn from "../middleware/isLoggedIn";
 import Multer from "multer";
+import { getGenres } from "../controllers/genre";
 
 const upload = Multer({
   storage: Multer.memoryStorage(),
@@ -47,6 +48,7 @@ const router = express.Router();
 
 // Health Check Endpoint
 router.route("/health").get(healthCheck);
+router.route("/genre").get(getGenres);
 
 // Authentication Endpoints
 router.route("/auth/check-auth").get(checkAuth);
