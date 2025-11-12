@@ -38,7 +38,7 @@ interface ITrack {
 
 type TrackSubmissionData = Pick<
   ITrack,
-  "title" | "genre" | "artistId" | "isrc" | "trackArt"
+  "title" | "genre" | "artistId" | "isrc" | "trackArt" | "links"
 >;
 
 type EditableTrack = Partial<

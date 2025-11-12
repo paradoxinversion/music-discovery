@@ -22,7 +22,7 @@ const ResourceTile = ({
       <div className="hidden bg-gray-700 w-16 h-16 md:h-32 md:w-32 md:mb-4 md:flex md:items-center md:justify-center">
         {imageUrl ? (
           <img
-            src={`https://picsum.photos/512?random`}
+            src={`data:image/jpeg;base64,${imageUrl}`}
             alt={`Album ${mainText}`}
             className="h-full w-full object-cover rounded-sm"
           />
