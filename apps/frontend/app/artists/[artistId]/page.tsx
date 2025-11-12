@@ -1,14 +1,25 @@
 "use client";
 
 import axios from "axios";
-import { useEffect, useState, use } from "react";
+import { useEffect, use } from "react";
 import Link from "next/link";
 import setFavoriteArtist from "../../../actions/setFavoriteArtist";
 import { useAppSelector } from "../../../lib/hooks";
 import { useDispatch } from "react-redux";
 import { setFavoriteArtists } from "../../../lib/features/users/userSlice";
 import { ImgContainer } from "@mda/components";
-import getArtistById from "../../../actions/getArtistDataById";
+import useSWR from "swr";
+import SimilarArtists from "./SimilarArtists";
+import getRandomArtists from "../../../actions/getRandomArtists";
+import axiosInstance from "../../../util/axiosInstance";
+import OtherArtists from "./OtherArtists";
+
+const artistFetcher = (url: string) =>
+  axiosInstance.get(url).then((res) => res.data.data);
+const similarArtistsFetcher = (url: string) =>
+  axiosInstance.get(url).then((res) => res.data.data);
+const otherArtistsFetcher = async (exclude: string) =>
+  getRandomArtists(exclude);
 
 export default function ArtistPage({
   params,
@@ -16,12 +27,46 @@ export default function ArtistPage({
   params: Promise<{ artistId: string }>;
 }) {
   const artistId = use(params).artistId;
-  const [artistData, setArtistData] = useState(null);
-  const [similarArtists, setSimilarArtists] = useState([]);
-  const [otherArtists, setOtherArtists] = useState([]);
+
+  const {
+    data: mainArtistData,
+    error: mainArtistDataError,
+    isLoading: isMainArtistLoading,
+  } = useSWR(`/artists/${artistId}`, artistFetcher, {
+    revalidateOnFocus: false,
+  });
+
+  const {
+    data: similarArtistsData,
+    error: similarArtistsError,
+    isLoading: isSimilarArtistsLoading,
+  } = useSWR(`/artist/${artistId}/similar`, similarArtistsFetcher, {
+    revalidateOnFocus: false,
+  });
+
+  const {
+    data: otherArtistsData,
+    error: otherArtistsError,
+    isLoading: isOtherArtistsLoading,
+  } = useSWR(
+    () => {
+      const exclude = [
+        artistId,
+        ...similarArtistsData.map((artist) => artist._id),
+      ].join(",");
+      return `${exclude}`;
+    },
+    otherArtistsFetcher,
+    {
+      revalidateOnFocus: false,
+    },
+  );
+
   const user = useAppSelector((state) => state.user);
   const dispatch = useDispatch();
+
   const artistFavorited = user.favoriteArtists.includes(artistId);
+
   const handleFavoriteClick = async () => {
     try {
       const response = await setFavoriteArtist(artistId, artistFavorited);
@@ -32,60 +77,20 @@ export default function ArtistPage({
     }
   };
 
-  const fetchSimilarArtists = async (id: string) => {
-    try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/artist/${id}/similar`,
-      );
-      setSimilarArtists(response.data.data);
-    } catch (error) {
-      console.error("Error fetching similar artists:", error);
-    }
-  };
-  const fetchOtherArtists = async () => {
-    try {
-      const exclude = [
-        artistId,
-        ...similarArtists.map((artist) => artist._id),
-      ].join(",");
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/artists/random?exclude=${exclude}`,
-      );
-      setOtherArtists(response.data.data);
-    } catch (error) {
-      console.error("Error fetching other artists:", error);
-    }
-  };
-  useEffect(() => {
-    const fetchArtistData = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/artists/${artistId}`,
-        );
-        setArtistData(response.data.data);
-      } catch (error) {
-        console.error("Error fetching artist data:", error);
-      }
-    };
-
-    getArtistById(artistId, true).then((data) => {
-      setArtistData(data);
-    });
-    fetchSimilarArtists(artistId);
-    fetchOtherArtists();
-  }, [artistId]);
-
-  if (!artistData) {
+  if (isMainArtistLoading) {
     return <div>Loading...</div>;
+  }
+  if (mainArtistDataError) {
+    return <div>Error: {mainArtistDataError.message}</div>;
   }
 
   return (
-    <div className="flex flex-col md:flex-row flex-grow py-2 px-4">
+    <div className="flex flex-col md:flex-row grow py-2 px-4">
       <div id="artist-details" className="mr-8 md:w-1/2">
-        <h1 className="text-2xl font-bold">{artistData.name}</h1>
+        <h1 className="text-2xl font-bold">{mainArtistData.name}</h1>
         <ImgContainer
-          src={`data:image/jpeg;base64,${artistData.artistArt}`}
-          alt={artistData.name}
+          src={`data:image/jpeg;base64,${mainArtistData.artistArt}`}
+          alt={mainArtistData.name}
         />
         <div onClick={handleFavoriteClick} className="cursor-pointer">
           <svg
@@ -98,7 +103,7 @@ export default function ArtistPage({
           </svg>
         </div>
 
-        <p>{artistData.biography}</p>
+        <p>{mainArtistData.biography}</p>
         <div id="artist-external-links" className="mt-2">
           <h2 className="text-xl font-semibold">Social Links</h2>
           <a
@@ -119,9 +124,9 @@ export default function ArtistPage({
       <div className="md:w-1/3">
         <div id="artist-tracks">
           <h2 className="text-xl font-semibold">Top Tracks</h2>
-          {artistData.tracks && artistData.tracks.length > 0 ? (
+          {mainArtistData.tracks && mainArtistData.tracks.length > 0 ? (
             <ul className="list-disc list-inside">
-              {artistData.tracks.map((track) => (
+              {mainArtistData.tracks.map((track) => (
                 <li key={track._id}>
                   <Link href={`/track/${track._id}`}>{track.title}</Link>
                 </li>
@@ -131,34 +136,16 @@ export default function ArtistPage({
             <p>No tracks available.</p>
           )}
         </div>
-        <div id="suggestions">
-          <h2 className="text-xl font-semibold mt-4">You might also like:</h2>
-          {similarArtists.length > 0 ? (
-            <ul className="list-disc list-inside">
-              {similarArtists.map((artist) => (
-                <li key={artist._id}>
-                  <Link href={`/artists/${artist._id}`}>{artist.name}</Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>Loading suggestions...</p>
-          )}
-        </div>
-        <div id="other-suggestions">
-          <h2 className="text-xl font-semibold mt-4">Other artists:</h2>
-          {otherArtists.length > 0 ? (
-            <ul className="list-disc list-inside">
-              {otherArtists.map((artist) => (
-                <li key={artist._id}>
-                  <Link href={`/artists/${artist._id}`}>{artist.name}</Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>Loading suggestions...</p>
-          )}
-        </div>
+        <SimilarArtists
+          similarArtistsData={similarArtistsData}
+          similarArtistsError={similarArtistsError}
+          isSimilarArtistsLoading={isSimilarArtistsLoading}
+        />
+        <OtherArtists
+          otherArtistsData={otherArtistsData}
+          otherArtistsError={otherArtistsError}
+          isOtherArtistsLoading={isOtherArtistsLoading}
+        />
       </div>
     </div>
   );
