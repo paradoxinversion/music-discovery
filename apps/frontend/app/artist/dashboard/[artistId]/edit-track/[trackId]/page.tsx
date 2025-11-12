@@ -1,17 +1,22 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { use } from "react";
+import { use, useState } from "react";
 import submitEditTrack from "../../../../../../actions/submitEditTrack";
 import { Formik, Field } from "formik";
 import { ErrorText } from "@mda/components";
 import axiosInstance from "../../../../../../util/axiosInstance";
 import useSWR from "swr";
+import deleteTrack from "../../../../../../actions/deleteTrack";
+import toast from "react-hot-toast";
 
 interface TrackFormValues {
   title: string;
   genre: string;
   isrc?: string;
   trackArt?: File | string;
+  links?: {
+    [key: string]: string;
+  };
 }
 
 const linkTypes = ["spotify", "appleMusic", "youtube", "soundcloud"];
@@ -24,6 +29,7 @@ export default function EditTrackPage({
 }) {
   const trackId = use(params).trackId;
   const artistId = use(params).artistId;
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const { data, error, isLoading } = useSWR(
     `tracks/${trackId}?withLinks=true`,
     fetcher,
@@ -42,6 +48,7 @@ export default function EditTrackPage({
     genre: data.data.genre,
     isrc: data.data.isrc || undefined,
     trackArt: data.data.trackArt,
+    links: data.data.links,
   };
 
   return (
@@ -59,10 +66,10 @@ export default function EditTrackPage({
           };
           const response = await submitEditTrack(trackId, editData);
           if (response.status === 200) {
-            console.log("Track edited successfully");
+            toast.success("Track edited successfully");
             router.push(`/artist/dashboard/${artistId}`);
           } else {
-            console.log("Error editing track");
+            toast.error("Error editing track");
           }
         }}
       >
@@ -102,6 +109,30 @@ export default function EditTrackPage({
             >
               Submit
             </button>
+            <button
+              type="button"
+              className="bg-red-500 text-white p-2 mt-4 rounded"
+              onClick={() => setConfirmDelete(true)}
+            >
+              Delete Track
+            </button>
+            {confirmDelete && (
+              <div className="mt-4">
+                <p>Are you sure you want to delete this track?</p>
+                <button
+                  type="button"
+                  className="bg-red-700 text-white p-2 mt-2 rounded"
+                  onClick={async () => {
+                    await deleteTrack(trackId);
+                    setConfirmDelete(false);
+                    toast.success("Track deleted successfully");
+                    router.push(`/artist/dashboard/${artistId}`);
+                  }}
+                >
+                  Yes, Delete
+                </button>
+              </div>
+            )}
           </form>
         )}
       </Formik>

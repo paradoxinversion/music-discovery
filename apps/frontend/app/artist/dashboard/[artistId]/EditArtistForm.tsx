@@ -2,10 +2,11 @@
 import { EditableArtist } from "@common/types/src/types";
 import React from "react";
 import editArtistData from "../../../../actions/editArtistData";
-import { Button, ErrorText } from "@mda/components";
+import { Button, ErrorText, ImgContainer } from "@mda/components";
 import { Formik, Field } from "formik";
 import * as Yup from "yup";
-
+import toast from "react-hot-toast";
+const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
 interface EditArtistFormValues {
   artistArt: File | string;
   artistName: string;
@@ -35,6 +36,18 @@ const editArtistSchema = Yup.object().shape({
     .max(50, "Genre must be at most 50 characters")
     .required("Genre is required"),
   bio: Yup.string().max(1500, "Bio must be at most 1500 characters"),
+  artistArt: Yup.mixed()
+    .test(
+      "fileSize",
+      "File size is too large. Maximum size is 2MB.",
+      (value) => {
+        if (value && value instanceof File) {
+          return value.size <= MAX_FILE_SIZE_BYTES;
+        }
+        return true; // If no file is provided, skip this test
+      },
+    )
+    .nullable(),
   // Additional validations for social links can be added here
 });
 
@@ -63,23 +76,31 @@ export default function EditArtistForm({
       initialValues={initialValues}
       validationSchema={editArtistSchema}
       onSubmit={async (values) => {
-        const updateData = await editArtistData(artistId, {
-          name: values.artistName,
-          genre: values.genre,
-          biography: values.bio,
-          artistArt:
-            values.artistArt instanceof File ? values.artistArt : undefined,
-          links: socialPlatforms.reduce(
-            (acc, platform) => {
-              if (values[platform]) {
-                acc[platform] = values[platform];
-              }
-              return acc;
-            },
-            {} as { [key: string]: string },
-          ),
-        });
-        setArtistDataAction(updateData);
+        try {
+          const updateData = await editArtistData(artistId, {
+            name: values.artistName,
+            genre: values.genre,
+            biography: values.bio,
+            artistArt:
+              values.artistArt instanceof File ? values.artistArt : undefined,
+            links: socialPlatforms.reduce(
+              (acc, platform) => {
+                if (values[platform]) {
+                  acc[platform] = values[platform];
+                }
+                return acc;
+              },
+              {} as { [key: string]: string },
+            ),
+          });
+          toast.success("Artist updated successfully");
+          setArtistDataAction(updateData);
+          setEditArtistDataAction?.(false);
+        } catch (error) {
+          console.error("Error updating artist:", error);
+          toast.error("Error updating artist");
+          return;
+        }
       }}
     >
       {({ handleSubmit, setFieldValue, errors, touched }) => (
@@ -98,6 +119,11 @@ export default function EditArtistForm({
           ) : null}
 
           <label>Photo</label>
+          {artistData?.artistArt && (
+            <ImgContainer
+              src={`data:image/jpeg;base64,${artistData.artistArt}`}
+            />
+          )}
           <input
             type="file"
             name="photo"

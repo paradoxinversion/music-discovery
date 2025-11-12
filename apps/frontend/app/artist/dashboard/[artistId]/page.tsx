@@ -3,7 +3,6 @@ import { useRouter } from "next/navigation";
 
 import { use, useEffect, useState } from "react";
 import getArtistById from "../../../../actions/getArtistDataById";
-import checkAuthentication from "../../../../actions/checkAuthentication";
 import getTracksByArtist from "../../../../actions/getTracksByArtist";
 import { Button } from "@mda/components";
 import EditArtistForm from "./EditArtistForm";
@@ -20,7 +19,7 @@ export default function Page({
   const [artistTracks, setArtistTracks] = useState([]);
   const [editArtistData, setEditArtistData] = useState(false);
   useEffect(() => {
-    getArtistById(artistId).then((data) => setArtistData(data));
+    getArtistById(artistId, true).then((data) => setArtistData(data));
     getTracksByArtist(artistId).then((data) => setArtistTracks(data.data));
   }, []);
   const handleDeleteTrack = async (trackId: string) => {
