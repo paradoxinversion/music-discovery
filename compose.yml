@@ -18,7 +18,9 @@ services:
         "-public-host",
         "fake-gcs-server",
         "-backend",
-        "memory",
+        "filesystem",
+        "-filesystem-root",
+        "/storage",
       ]
   mongo:
     attach: false
