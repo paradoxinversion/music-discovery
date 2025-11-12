@@ -61,13 +61,14 @@ export const getArtists = async (req: Request, res: Response) => {
 
 export const getById = async (req: Request, res: Response) => {
   const artistId = req.params.id;
+  const returnArtistArt = req.query.includeArt === "true";
   if (!artistId) {
     res.status(400).json({ status: "ERROR", message: "Artist ID is required" });
     return;
   }
   const artist = await getArtistById(artistId);
   let artistArt = null;
-  if (artist && artist.artistArt) {
+  if (artist && returnArtistArt && artist.artistArt) {
     const art = await getImageAtPath(artist?.artistArt);
     if (art) {
       artistArt = Buffer.from(art).toString("base64");

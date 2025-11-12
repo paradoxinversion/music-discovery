@@ -2,7 +2,8 @@ import { ITrack, IUser, TrackSubmissionData } from "@common/types/src/types";
 import Track from "../models/Track";
 import User from "../models/User";
 import { createImagePath } from "../../utils/imageUtilities";
-import { upload } from "../../cloud/storage";
+import { deleteFile, upload } from "../../cloud/storage";
+import Artist from "../models/Artist";
 
 /**
  * Creates a new track in the database.
@@ -25,15 +26,22 @@ export const createTrack = async (
     );
   }
   let trackArtDestination = null;
-  if (process.env.NODE_ENV === "production" && trackArt) {
+  if (trackArt) {
     trackArtDestination = await upload(
       createImagePath(managingUser, trackArt, trackData.title),
       trackArt,
     );
     trackData.trackArt = trackArtDestination;
   }
-  const track = new Track(trackData);
+  console.log("Creating track with links:", trackData.links);
+  const track = new Track({
+    ...trackData,
+    links: { ...(trackData.links || {}) },
+  });
   await track.save();
+  await Artist.findByIdAndUpdate(trackData.artistId, {
+    $push: { tracks: track._id },
+  });
   return track;
 };
 /**
@@ -80,6 +88,7 @@ export const getRandomTracks = async (count: number) => {
           duration: 1,
           isrc: 1,
           genre: 1,
+          trackArt: 1,
           artistName: "$artist.name", // include artist name
         },
       },
@@ -192,6 +201,12 @@ export const deleteTrack = async (userId: string, trackId: string) => {
     );
   }
   const deletedTrack = await Track.findByIdAndDelete(trackId);
+  await Artist.findByIdAndUpdate(track?.artistId, {
+    $pull: { tracks: trackId },
+  });
+  if (track?.trackArt) {
+    await deleteFile(track?.trackArt);
+  }
   if (!deletedTrack) {
     throw new Error(`Track with ID ${trackId} not found`);
   }

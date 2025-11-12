@@ -1,4 +1,4 @@
-import { Storage } from "@google-cloud/storage";
+import { ApiError, Storage } from "@google-cloud/storage";
 let storage: Storage;
 const imgBucketName = "mda-img-store";
 if (process.env.NODE_ENV === "production") {
@@ -26,9 +26,15 @@ async function getImageContents(filePath: string) {
     const file = storage.bucket(imgBucketName).file(filePath);
     const [contents] = await file.download();
     return contents;
-  } catch (error) {
-    console.error("Error getting image contents from storage:", error);
-    throw error;
+  } catch (error: unknown) {
+    let errString =
+      "An error occurred while getting image contents from storage. ";
+    if (error instanceof ApiError && error.code === 404) {
+      errString += `File '${filePath}' not found.`;
+      console.warn(errString);
+      return null;
+    }
+    // throw error;
   }
 }
 
@@ -48,5 +54,15 @@ async function upload(destFileName: string, contents: Express.Multer.File) {
     throw error;
   }
 }
-export { upload, getImageContents };
+
+async function deleteFile(filePath: string) {
+  try {
+    await storage.bucket(imgBucketName).file(filePath).delete();
+    console.log(`File ${filePath} deleted from bucket ${imgBucketName}.`);
+  } catch (error) {
+    console.error("Error deleting file from storage:", error);
+    throw error;
+  }
+}
+export { upload, getImageContents, deleteFile };
 export default storage;

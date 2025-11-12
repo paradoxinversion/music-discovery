@@ -10,7 +10,7 @@ import {
 } from "../db/actions/Track";
 import Joi from "joi";
 import { addFavoriteTrack, removeFavoriteTrack } from "../db/actions/User";
-import { TrackSubmissionData } from "@common/types/src/types";
+import { ITrack, TrackSubmissionData } from "@common/types/src/types";
 import { getImageAtPath } from "../db/actions/Storage";
 
 const submitTrack = async (req: Request, res: Response) => {
@@ -19,13 +19,19 @@ const submitTrack = async (req: Request, res: Response) => {
     artistId: Joi.string().required(),
     genre: Joi.string().required(),
     isrc: Joi.string().optional(),
-    trackArt: Joi.object().optional(),
+    trackArt: Joi.any().optional(),
+    links: Joi.object()
+      // .pattern(
+      //   Joi.string().valid("spotify", "appleMusic", "youtube", "soundcloud"),
+      //   Joi.string().uri(),
+      // )
+      .optional(),
   });
   const managingUserId = req.user._id;
   try {
     const { error, value } = trackSchema.validate(req.body);
     if (error) {
-      throw new Error(error.message);
+      throw new Error("Invalid track data: " + error.message);
     }
     const trackData: TrackSubmissionData & { managingUserId: string } = {
       ...value,
@@ -124,7 +130,22 @@ const getRandom = async (req: Request, res: Response) => {
   const count = 8;
 
   const tracks = await getRandomTracks(count);
-  res.status(200).json({ status: "OK", data: tracks });
+  const trackReturn = await tracks.reduce(
+    async (acc, track: ITrack) => {
+      const resolvedAcc = await acc;
+      if (track.trackArt) {
+        await getImageAtPath(track.trackArt).then((art) => {
+          if (art) {
+            track.trackArt = Buffer.from(art).toString("base64");
+          }
+        });
+      }
+      resolvedAcc.push(track);
+      return resolvedAcc;
+    },
+    [] as typeof tracks,
+  );
+  res.status(200).json({ status: "OK", data: trackReturn });
 };
 
 const deleteTrack = async (req: Request, res: Response) => {
