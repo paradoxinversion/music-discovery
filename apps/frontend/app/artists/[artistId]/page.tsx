@@ -8,6 +8,7 @@ import { useAppSelector } from "../../../lib/hooks";
 import { useDispatch } from "react-redux";
 import { setFavoriteArtists } from "../../../lib/features/users/userSlice";
 import { ImgContainer } from "@mda/components";
+import getArtistById from "../../../actions/getArtistDataById";
 
 export default function ArtistPage({
   params,
@@ -67,7 +68,9 @@ export default function ArtistPage({
       }
     };
 
-    fetchArtistData();
+    getArtistById(artistId, true).then((data) => {
+      setArtistData(data);
+    });
     fetchSimilarArtists(artistId);
     fetchOtherArtists();
   }, [artistId]);
@@ -114,6 +117,20 @@ export default function ArtistPage({
         </div>
       </div>
       <div className="md:w-1/3">
+        <div id="artist-tracks">
+          <h2 className="text-xl font-semibold">Top Tracks</h2>
+          {artistData.tracks && artistData.tracks.length > 0 ? (
+            <ul className="list-disc list-inside">
+              {artistData.tracks.map((track) => (
+                <li key={track._id}>
+                  <Link href={`/track/${track._id}`}>{track.title}</Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No tracks available.</p>
+          )}
+        </div>
         <div id="suggestions">
           <h2 className="text-xl font-semibold mt-4">You might also like:</h2>
           {similarArtists.length > 0 ? (
