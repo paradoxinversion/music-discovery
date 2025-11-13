@@ -253,14 +253,60 @@ export const getFavoriteArtists = async (userId: string) => {
  */
 export const getFavorites = async (userId: string) => {
   try {
-    const user = await User.findById(userId)
-      .populate("favoriteTracks")
-      .populate("favoriteArtists")
-      .populate("favoriteAlbums");
+    const user = await User.aggregate([
+      { $match: { _id: userId } },
+      {
+        $lookup: {
+          from: "tracks",
+          localField: "favoriteTracks",
+          foreignField: "_id",
+          as: "favoriteTracks",
+          pipeline: [
+            // lookup the track's artist and project artist.slug as artistSlug
+            {
+              $lookup: {
+                from: "artists",
+                let: { artistId: "$artistId" },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        // convert the track.artistId (string) to ObjectId for matching
+                        $eq: ["$_id", { $toObjectId: "$$artistId" }],
+                      },
+                    },
+                  },
+                  { $project: { slug: 1 } },
+                ],
+                as: "artist",
+              },
+            },
+            { $unwind: { path: "$artist", preserveNullAndEmptyArrays: true } },
+            {
+              $project: {
+                title: 1,
+                genre: 1,
+                trackArt: 1,
+                slug: 1,
+                artistSlug: "$artist.slug",
+              },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "artists",
+          localField: "favoriteArtists",
+          foreignField: "_id",
+          as: "favoriteArtists",
+          pipeline: [{ $project: { name: 1, artistArt: 1, slug: 1 } }],
+        },
+      },
+    ]);
     return {
-      favoriteTracks: user?.favoriteTracks || [],
-      favoriteArtists: user?.favoriteArtists || [],
-      favoriteAlbums: user?.favoriteAlbums || [],
+      favoriteTracks: user[0]?.favoriteTracks || [],
+      favoriteArtists: user[0]?.favoriteArtists || [],
     };
   } catch (error) {
     throw new Error(`Error retrieving favorites: ${error}`);

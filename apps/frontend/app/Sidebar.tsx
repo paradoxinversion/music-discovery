@@ -60,7 +60,9 @@ export default function Sidebar() {
           >
             <p
               className="no-underline pl-2"
-              onClick={() => router.push(`/track/${track._id}`)}
+              onClick={() =>
+                router.push(`/track/${track.artistSlug}/${track.slug}`)
+              }
             >
               {track.title}
             </p>
