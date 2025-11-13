@@ -57,7 +57,7 @@ export default function EditTrackPage({
   };
 
   return (
-    <div>
+    <div className="w-full p-4">
       <Formik
         initialValues={initialValues}
         onSubmit={async (values) => {
@@ -80,7 +80,6 @@ export default function EditTrackPage({
               {} as { [key in MusicPlatformLinks]: string },
             ),
           };
-          console.log("Submitting edit data:", editData);
           const response = await submitEditTrack(trackId, editData);
           if (response.status === 200) {
             toast.success("Track edited successfully");
@@ -91,7 +90,7 @@ export default function EditTrackPage({
         }}
       >
         {({ handleSubmit, setFieldValue, errors, touched }) => (
-          <form className="flex flex-col p-4" onSubmit={handleSubmit}>
+          <form className="flex flex-col" onSubmit={handleSubmit}>
             <label htmlFor="title">Title</label>
             <Field id="title" type="text" name="title" />
             {errors.title && touched.title ? (
@@ -120,34 +119,54 @@ export default function EditTrackPage({
                 setFieldValue("trackArt", event.currentTarget.files[0])
               }
             />
-            <button
-              type="submit"
-              className="bg-blue-500 text-white p-2 mt-4 rounded"
-            >
-              Submit
-            </button>
-            <button
-              type="button"
-              className="bg-red-500 text-white p-2 mt-4 rounded"
-              onClick={() => setConfirmDelete(true)}
-            >
-              Delete Track
-            </button>
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                className="bg-blue-500 text-white p-2 mt-4 rounded"
+              >
+                Submit
+              </button>
+              <button
+                type="button"
+                className="bg-red-500 text-white p-2 mt-4 rounded"
+                onClick={() => setConfirmDelete(true)}
+              >
+                Delete Track
+              </button>
+              <button
+                type="button"
+                className="bg-blue-500 text-white p-2 mt-4 rounded"
+                onClick={() => router.push(`/artist/dashboard/${artistId}`)}
+              >
+                Cancel
+              </button>
+            </div>
             {confirmDelete && (
               <div className="mt-4">
                 <p>Are you sure you want to delete this track?</p>
-                <button
-                  type="button"
-                  className="bg-red-700 text-white p-2 mt-2 rounded"
-                  onClick={async () => {
-                    await deleteTrack(trackId);
-                    setConfirmDelete(false);
-                    toast.success("Track deleted successfully");
-                    router.push(`/artist/dashboard/${artistId}`);
-                  }}
-                >
-                  Yes, Delete
-                </button>
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    className="bg-red-700 text-white p-2 mt-2 rounded"
+                    onClick={async () => {
+                      await deleteTrack(trackId);
+                      setConfirmDelete(false);
+                      toast.success("Track deleted successfully");
+                      router.push(`/artist/dashboard/${artistId}`);
+                    }}
+                  >
+                    Yes, Delete
+                  </button>
+                  <button
+                    type="button"
+                    className="bg-blue-500 text-white p-2 mt-2 rounded"
+                    onClick={async () => {
+                      setConfirmDelete(false);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
           </form>

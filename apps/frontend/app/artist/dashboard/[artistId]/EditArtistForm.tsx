@@ -164,12 +164,13 @@ export default function EditArtistForm({
               />
             </div>
           ))}
-
-          <Button label="Save Changes" type="submit" />
-          <Button
-            label="Cancel"
-            onClick={() => setEditArtistDataAction?.(false)}
-          />
+          <div className="flex gap-4">
+            <Button label="Save Changes" type="submit" />
+            <Button
+              label="Cancel"
+              onClick={() => setEditArtistDataAction?.(false)}
+            />
+          </div>
         </form>
       )}
     </Formik>
