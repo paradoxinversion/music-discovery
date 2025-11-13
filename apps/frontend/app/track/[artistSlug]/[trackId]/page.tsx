@@ -1,20 +1,39 @@
 "use client";
 import axios from "axios";
-import { useEffect, useState, use } from "react";
-import { useAppSelector } from "../../../lib/hooks";
+import { use } from "react";
+import { useAppSelector } from "../../../../lib/hooks";
 import { useDispatch } from "react-redux";
-import { setFavoriteTracks } from "../../../lib/features/users/userSlice";
+import { setFavoriteTracks } from "../../../../lib/features/users/userSlice";
 import { ImgContainer } from "@mda/components";
-
+import axiosInstance from "../../../../util/axiosInstance";
+import useSWR from "swr";
+const fetcher = (url) => axiosInstance.get(url).then((res) => res.data.data);
 export default function TrackPage({
   params,
 }: {
-  params: Promise<{ trackId: string }>;
+  params: Promise<{ artistSlug: string; trackId: string }>;
 }) {
+  const { artistSlug, trackId } = use(params);
+  const { data: trackData } = useSWR(
+    `/track/slug/${trackId}/artist/${artistSlug}`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    },
+  );
+  const { data: similarTracks } = useSWR(
+    () => {
+      return `/tracks/${trackData._id}/similar`;
+    },
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    },
+  );
+
   const dispatch = useDispatch();
-  const trackId = use(params).trackId;
-  const [trackData, setTrackData] = useState(null);
-  const [similarTracks, setSimilarTracks] = useState([]);
   const user = useAppSelector((state) => state.user);
   const trackFavorited = user.favoriteTracks.includes(trackId);
 
@@ -37,32 +56,7 @@ export default function TrackPage({
       console.error("Error liking track:", error);
     }
   };
-  useEffect(() => {
-    const fetchTrackData = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/tracks/${trackId}`,
-        );
-        setTrackData(response.data.data);
-      } catch (error) {
-        console.error("Error fetching track data:", error);
-      }
-    };
 
-    const fetchSimilarTracks = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/tracks/${trackId}/similar`,
-        );
-        setSimilarTracks(response.data.data);
-      } catch (error) {
-        console.error("Error fetching similar tracks:", error);
-      }
-    };
-
-    fetchTrackData();
-    fetchSimilarTracks();
-  }, [trackId]);
   function formatSecondsToMMSS(totalSeconds) {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
@@ -101,7 +95,7 @@ export default function TrackPage({
         )}
 
         {trackData.artistId?.name && (
-          <a href={`/artists/${trackData.artistId._id}`}>
+          <a href={`/artists/${trackData.artistId.slug}`}>
             {trackData.artistId.name}
           </a>
         )}
@@ -131,11 +125,11 @@ export default function TrackPage({
 
       <div id="track-suggestions" className=" md:w-1/2">
         <h2 className="text-xl font-semibold">You might also like:</h2>
-        {similarTracks.length > 0 ? (
+        {similarTracks && similarTracks.length > 0 ? (
           <ul className="list-disc list-inside">
             {similarTracks.map((track) => (
               <li key={track._id}>
-                <a href={`/track/${track._id}`}>
+                <a href={`/track/${track.artistSlug}/${track.slug}`}>
                   {track.title} by {track?.artistName}
                 </a>
               </li>
