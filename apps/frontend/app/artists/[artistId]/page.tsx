@@ -137,7 +137,9 @@ export default function ArtistPage({
             <ul className="list-disc list-inside">
               {mainArtistData.tracks.map((track) => (
                 <li key={track._id}>
-                  <Link href={`/track/${track._id}`}>{track.title}</Link>
+                  <Link href={`/track/${mainArtistData.slug}/${track.slug}`}>
+                    {track.title}
+                  </Link>
                 </li>
               ))}
             </ul>
