@@ -1,21 +1,23 @@
-import { Icon, IconName } from "../Icons/Icons";
+import { Icon, IconName } from "../Icons/Icons.js";
 
-export interface ArtistExternalLinksProps {
+export interface ExternalLinkListProps {
   containerClasses?: string;
   links: { [key: string]: string | undefined };
   linkContainerType: "list" | "cloud";
   hideLinkTitle?: boolean;
+  title: string;
 }
 
-export default function ArtistExternalLinks({
+export default function ExternalLinkList({
   links,
   containerClasses = "mt-2",
   linkContainerType = "list",
   hideLinkTitle = false,
-}: ArtistExternalLinksProps) {
+  title = "Links",
+}: ExternalLinkListProps) {
   return (
     <div id="artist-external-links" className={containerClasses}>
-      <h2 className="text-xl font-semibold">Social Links</h2>
+      <h2 className="text-xl font-semibold">{title}</h2>
       <div
         id="links-container"
         className={

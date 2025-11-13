@@ -4,7 +4,7 @@ import { use } from "react";
 import { useAppSelector } from "../../../../lib/hooks";
 import { useDispatch } from "react-redux";
 import { setFavoriteTracks } from "../../../../lib/features/users/userSlice";
-import { ImgContainer } from "@mda/components";
+import { ExternalLinkList, ImgContainer } from "@mda/components";
 import axiosInstance from "../../../../util/axiosInstance";
 import useSWR from "swr";
 const fetcher = (url) => axiosInstance.get(url).then((res) => res.data.data);
@@ -75,6 +75,11 @@ export default function TrackPage({
     <div id="track-page" className="flex flex-col p-4 md:flex-row grow h-full">
       <div id="track-details" className="mr-8 md:w-1/2">
         <h1 className="text-2xl font-bold">{trackData.title}</h1>
+        {trackData.artistId?.name && (
+          <a href={`/artists/${trackData.artistId.slug}`}>
+            {trackData.artistId.name}
+          </a>
+        )}
         <ImgContainer
           src={
             trackData.trackArt
@@ -98,32 +103,16 @@ export default function TrackPage({
           <p className="italic">Log in to add this track to your favorites</p>
         )}
 
-        {trackData.artistId?.name && (
-          <a href={`/artists/${trackData.artistId.slug}`}>
-            {trackData.artistId.name}
-          </a>
-        )}
         {trackData.album && <a href="#">{trackData.album}</a>}
         {trackData.duration && (
           <p>Duration: {formatSecondsToMMSS(trackData.duration)}</p>
         )}
         <div id="track-external-links">
-          <h1 className="text-2xl font-bold">Listen on:</h1>
-          {trackData.links && Object.keys(trackData.links).length > 0 ? (
-            Object.keys(trackData.links).map((key, index) => (
-              <div key={index}>
-                <a
-                  href={trackData.links[key]}
-                  target="_blank"
-                  className="text-blue-500"
-                >
-                  {key.charAt(0).toUpperCase() + key.slice(1)}
-                </a>
-              </div>
-            ))
-          ) : (
-            <p>No external links available.</p>
-          )}
+          <ExternalLinkList
+            links={trackData.links}
+            linkContainerType="cloud"
+            title="Listen on"
+          />
         </div>
       </div>
 

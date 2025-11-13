@@ -12,7 +12,7 @@ import SimilarArtists from "./SimilarArtists";
 import getRandomArtists from "../../../actions/getRandomArtists";
 import axiosInstance from "../../../util/axiosInstance";
 import OtherArtists from "./OtherArtists";
-import { ArtistExternalLinks } from "@mda/components";
+import { ExternalLinkList } from "@mda/components";
 
 const artistFetcher = (url: string) =>
   axiosInstance.get(url).then((res) => res.data.data);
@@ -123,9 +123,10 @@ export default function ArtistPage({
           <h2 className="text-xl font-semibold">About this Artist</h2>
           <p>{mainArtistData.biography}</p>
         </section>
-        <ArtistExternalLinks
+        <ExternalLinkList
           links={mainArtistData.links}
           linkContainerType="cloud"
+          title="Find me on"
         />
       </div>
       <div className="md:w-1/3">

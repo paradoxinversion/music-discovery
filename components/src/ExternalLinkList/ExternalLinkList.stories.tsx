@@ -1,15 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import ArtistExternalLinks from "./ArtistExternalLinks";
+import ExternalLinkList from "./ExternalLinkList";
 
 const meta = {
-  title: "Atoms/ArtistExternalLinks",
-  component: ArtistExternalLinks,
+  title: "Atoms/ExternalLinkList",
+  component: ExternalLinkList,
   parameters: {
     layout: "centered",
   },
   tags: ["autodocs"],
   args: {},
-} satisfies Meta<typeof ArtistExternalLinks>;
+} satisfies Meta<typeof ExternalLinkList>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
@@ -30,6 +30,7 @@ export const List: Story = {
     links: defaultLinks,
     containerClasses: "mt-2",
     linkContainerType: "list",
+    title: "Social Links",
   },
 };
 
@@ -39,5 +40,6 @@ export const Cloud: Story = {
     containerClasses: "mt-2",
     linkContainerType: "cloud",
     hideLinkTitle: false,
+    title: "Social Links",
   },
 };
