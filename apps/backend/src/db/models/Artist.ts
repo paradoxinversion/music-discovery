@@ -49,7 +49,10 @@ const ArtistSchema: Schema<IArtist> = new Schema({
 
 ArtistSchema.pre("validate", function (next) {
   if (!this.slug || this.isModified("name")) {
-    this.slug = this.name.toLowerCase().replace(/\s+/g, "-");
+    this.slug = this.name
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "");
   }
   next();
 });

@@ -60,7 +60,7 @@ export const getAllArtists = async (): Promise<IArtist[]> => {
  */
 export const getArtistById = async (artistId: string) => {
   try {
-    const artist = await Artist.findById(artistId);
+    const artist = await Artist.findById(artistId).populate("tracks");
     return artist?.toJSON({ flattenMaps: true }) || null;
   } catch (error) {
     throw new Error(`Error retrieving artist: ${error}`);
@@ -69,7 +69,7 @@ export const getArtistById = async (artistId: string) => {
 
 export const getArtistBySlug = async (slug: string) => {
   try {
-    const artist = await Artist.findOne({ slug });
+    const artist = await Artist.findOne({ slug }).populate("tracks");
     return artist?.toJSON({ flattenMaps: true }) || null;
   } catch (error) {
     throw new Error(`Error retrieving artist: ${error}`);
@@ -116,6 +116,7 @@ export const getSimilarArtists = async (artistId: string, count: number) => {
       {
         $project: {
           name: 1,
+          slug: 1,
         },
       },
     ]);
