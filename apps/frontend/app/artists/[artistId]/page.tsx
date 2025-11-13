@@ -1,7 +1,6 @@
 "use client";
 
-import axios from "axios";
-import { useEffect, use } from "react";
+import { use } from "react";
 import Link from "next/link";
 import setFavoriteArtist from "../../../actions/setFavoriteArtist";
 import { useAppSelector } from "../../../lib/hooks";
@@ -32,7 +31,7 @@ export default function ArtistPage({
     data: mainArtistData,
     error: mainArtistDataError,
     isLoading: isMainArtistLoading,
-  } = useSWR(`/artists/${artistId}`, artistFetcher, {
+  } = useSWR(`/artist/slug/${artistId}`, artistFetcher, {
     revalidateOnFocus: false,
   });
 
@@ -40,9 +39,15 @@ export default function ArtistPage({
     data: similarArtistsData,
     error: similarArtistsError,
     isLoading: isSimilarArtistsLoading,
-  } = useSWR(`/artist/${artistId}/similar`, similarArtistsFetcher, {
-    revalidateOnFocus: false,
-  });
+  } = useSWR(
+    () => {
+      return `/artist/${mainArtistData._id}/similar`;
+    },
+    similarArtistsFetcher,
+    {
+      revalidateOnFocus: false,
+    },
+  );
 
   const {
     data: otherArtistsData,
@@ -69,7 +74,10 @@ export default function ArtistPage({
 
   const handleFavoriteClick = async () => {
     try {
-      const response = await setFavoriteArtist(artistId, artistFavorited);
+      const response = await setFavoriteArtist(
+        mainArtistData._id,
+        artistFavorited,
+      );
       console.log("Favorite updated:", response);
       dispatch(setFavoriteArtists(response.data));
     } catch (error) {
@@ -106,24 +114,25 @@ export default function ArtistPage({
         <p>{mainArtistData.biography}</p>
         <div id="artist-external-links" className="mt-2">
           <h2 className="text-xl font-semibold">Social Links</h2>
-          <a
-            href={`https://open.spotify.com/artist/${artistId}`}
-            target="_blank"
-          >
-            Listen on Spotify
-          </a>
-          <br />
-          <a
-            href={`https://music.apple.com/us/artist/${artistId}`}
-            target="_blank"
-          >
-            Listen on Apple Music
-          </a>
+          {mainArtistData.links &&
+            Object.keys(mainArtistData.links).map((key) => {
+              const url = mainArtistData.links[key];
+              if (url) {
+                return (
+                  <div key={key}>
+                    <a href={url} className="text-blue-500 underline">
+                      {key.charAt(0).toUpperCase() + key.slice(1)}
+                    </a>
+                  </div>
+                );
+              }
+              return null;
+            })}
         </div>
       </div>
       <div className="md:w-1/3">
         <div id="artist-tracks">
-          <h2 className="text-xl font-semibold">Top Tracks</h2>
+          <h2 className="text-xl font-semibold">Tracks</h2>
           {mainArtistData.tracks && mainArtistData.tracks.length > 0 ? (
             <ul className="list-disc list-inside">
               {mainArtistData.tracks.map((track) => (
