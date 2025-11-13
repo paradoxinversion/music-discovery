@@ -6,26 +6,18 @@ import { Button, ErrorText, ImgContainer } from "@mda/components";
 import { Formik, Field } from "formik";
 import * as Yup from "yup";
 import toast from "react-hot-toast";
+import { socialPlatformLinks } from "@common/json-data";
+import type { SocialPlatformLinks } from "@common/json-data";
 const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
 interface EditArtistFormValues {
   artistArt: File | string;
   artistName: string;
   genre: string;
   bio: string;
-  facebook?: string;
-  twitterX?: string;
-  instagram?: string;
-  tiktok?: string;
-  bluesky?: string;
+  links?: {
+    [key in SocialPlatformLinks]: string;
+  };
 }
-
-const socialPlatforms = [
-  "facebook",
-  "twitterX",
-  "instagram",
-  "tiktok",
-  "bluesky",
-];
 
 const editArtistSchema = Yup.object().shape({
   artistName: Yup.string()
@@ -69,7 +61,17 @@ export default function EditArtistForm({
     artistName: artistData?.name || "",
     genre: artistData?.genre || "",
     bio: artistData?.biography || "",
-    ...artistData?.links,
+    links: Object.values(socialPlatformLinks).reduce(
+      (acc, platform) => {
+        if (artistData?.links && artistData.links[platform.name]) {
+          acc[platform.name] = artistData.links[platform.name];
+        } else {
+          acc[platform.name] = "";
+        }
+        return acc;
+      },
+      {} as { [key in SocialPlatformLinks]: string },
+    ),
   };
   return (
     <Formik
@@ -83,14 +85,17 @@ export default function EditArtistForm({
             biography: values.bio,
             artistArt:
               values.artistArt instanceof File ? values.artistArt : undefined,
-            links: socialPlatforms.reduce(
+            links: Object.values(socialPlatformLinks).reduce(
               (acc, platform) => {
-                if (values[platform]) {
-                  acc[platform] = values[platform];
+                if (values.links[platform.name]) {
+                  acc[platform.name] = platform.urlPattern.replace(
+                    "{url}",
+                    values.links[platform.name],
+                  );
                 }
                 return acc;
               },
-              {} as { [key: string]: string },
+              {} as { [key in SocialPlatformLinks]: string },
             ),
           });
           toast.success("Artist updated successfully");
@@ -144,15 +149,13 @@ export default function EditArtistForm({
             <ErrorText message={errors.bio} />
           ) : null}
 
-          {socialPlatforms.map((platform) => (
-            <div key={platform} className="flex flex-col">
-              <label>
-                {platform.charAt(0).toUpperCase() + platform.slice(1)}
-              </label>
+          {Object.values(socialPlatformLinks).map((platform) => (
+            <div key={platform.name} className="flex flex-col">
+              <label>{platform.name}</label>
               <Field
                 type="text"
-                name={platform}
-                placeholder={`Enter your ${platform} link`}
+                name={`links.${platform.name}`}
+                placeholder={`Enter your ${platform.name} link`}
               />
             </div>
           ))}

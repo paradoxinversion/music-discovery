@@ -8,6 +8,7 @@ import axiosInstance from "../../../../../../util/axiosInstance";
 import useSWR from "swr";
 import deleteTrack from "../../../../../../actions/deleteTrack";
 import toast from "react-hot-toast";
+import { musicPlatformLinks, MusicPlatformLinks } from "@common/json-data";
 
 interface TrackFormValues {
   title: string;
@@ -15,11 +16,10 @@ interface TrackFormValues {
   isrc?: string;
   trackArt?: File | string;
   links?: {
-    [key: string]: string;
+    [key in MusicPlatformLinks]: string;
   };
 }
 
-const linkTypes = ["spotify", "appleMusic", "youtube", "soundcloud"];
 const fetcher = (url: string) =>
   axiosInstance.get(url, { withCredentials: true }).then((res) => res.data);
 export default function EditTrackPage({
@@ -48,7 +48,12 @@ export default function EditTrackPage({
     genre: data.data.genre,
     isrc: data.data.isrc || undefined,
     trackArt: data.data.trackArt,
-    links: data.data.links,
+    links: Object.keys(data.data.links).reduce((acc: any, key: string) => {
+      acc[key] = data.data.links[key].replace("{url}", data.data.links[key]);
+      return acc;
+    }, {}) as {
+      [key in MusicPlatformLinks]: string;
+    },
   };
 
   return (
@@ -63,7 +68,19 @@ export default function EditTrackPage({
             artistId: artistId,
             trackArt:
               values.trackArt instanceof File ? values.trackArt : undefined,
+            links: Object.keys(values.links).reduce(
+              (acc: any, key: string) => {
+                if (values.links && values.links[key as MusicPlatformLinks]) {
+                  acc[key] = musicPlatformLinks[
+                    key as MusicPlatformLinks
+                  ].replace("{url}", values.links[key as MusicPlatformLinks]);
+                }
+                return acc;
+              },
+              {} as { [key in MusicPlatformLinks]: string },
+            ),
           };
+          console.log("Submitting edit data:", editData);
           const response = await submitEditTrack(trackId, editData);
           if (response.status === 200) {
             toast.success("Track edited successfully");
@@ -88,7 +105,7 @@ export default function EditTrackPage({
             <label>ISRC</label>
             <Field id="isrc" type="text" name="isrc" />
             <p>Links</p>
-            {linkTypes.map((link) => (
+            {Object.keys(musicPlatformLinks).map((link) => (
               <div key={link} className="flex flex-col">
                 <label htmlFor={link}>{link}</label>
                 <Field id={link} type="text" name={`links.${link}`} />
