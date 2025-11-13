@@ -1,7 +1,8 @@
+import { IArtist } from "@common/types/src/types";
 import Link from "next/link";
 
 interface SimilarArtistsProps {
-  similarArtistsData?: any;
+  similarArtistsData?: IArtist[];
   similarArtistsError?: any;
   isSimilarArtistsLoading?: boolean;
 }
@@ -23,13 +24,13 @@ export default function SimilarArtists({
       {similarArtistsData.length > 0 ? (
         <ul className="list-disc list-inside">
           {similarArtistsData.map((artist) => (
-            <li key={artist._id}>
-              <Link href={`/artists/${artist._id}`}>{artist.name}</Link>
+            <li key={`similar-artist-${artist.slug}`}>
+              <Link href={`/artists/${artist.slug}`}>{artist.name}</Link>
             </li>
           ))}
         </ul>
       ) : (
-        <p>Loading suggestions...</p>
+        <p>No similar artists found (yet)</p>
       )}
     </div>
   );

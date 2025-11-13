@@ -23,8 +23,8 @@ export default function OtherArtists({
       {otherArtistsData && otherArtistsData.length > 0 && (
         <ul className="list-disc list-inside">
           {otherArtistsData.map((artist) => (
-            <li key={artist._id}>
-              <Link href={`/artists/${artist._id}`}>{artist.name}</Link>
+            <li key={`other-artist-${artist.slug}`}>
+              <Link href={`/artists/${artist.slug}`}>{artist.name}</Link>
             </li>
           ))}
         </ul>

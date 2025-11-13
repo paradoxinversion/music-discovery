@@ -35,7 +35,9 @@ export default function Page() {
                 mainText={track.title}
                 subText={track.artistName}
                 imageUrl={track.trackArt}
-                onClick={() => router.push(`/track/${track._id}`)}
+                onClick={() =>
+                  router.push(`/track/${track.artistSlug}/${track.slug}`)
+                }
               />
             ))}
           />

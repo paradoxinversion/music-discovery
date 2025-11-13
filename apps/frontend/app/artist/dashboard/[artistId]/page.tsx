@@ -39,6 +39,10 @@ export default function Page({
           <div id="artist-details">
             <h2 className="text-xl font-semibold">{artistData.name}</h2>
           </div>
+          <Button
+            label="Go to Artist Page"
+            onClick={() => router.push(`/artists/${artistData.slug}`)}
+          />
           {!editArtistData && (
             <Button
               label="Edit Artist Details"
