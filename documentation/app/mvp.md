@@ -45,13 +45,13 @@ For costs considerations, artists will be able to upload only a few tracks. A si
 
 ## MVP Checklist
 
-- [ ] Users can create accounts
-- [ ] Users with accounts can log in and browse the platform with store backed sessions
+- [x] Users can create accounts
+- [x] Users with accounts can log in and browse the platform with stored backed sessions
 - [ ] Users with accounts can create artist profiles with social links (ie, Meta, YouTube channels, etc)
 - [ ] Users with artist profiles can upload information about their tracks (ie, genre, release dates, where to listen, etc)
 - [ ] Users that manage artists can delete their associated artists and tracks. Deletion should cascade (ie, deleting an artist deletes all tracks and associated data)
-- [ ] Users can add tracks and artists to a list of favorites
+- [x] Users can add tracks and artists to a list of favorites
 - [ ] Users can delete their accounts. Deletion should cascade, causing deletion of all associated artists, tracks, and other data (ie, cloud stored files, etc)
-- [ ] Users can browse a simple discovery page that surfaces a random sampling of tracks
-- [ ] Track pages recommend tracks of the same genre
-- [ ] Artist pages recommend artists of the same genre
+- [x] Users can browse a simple discovery page that surfaces a random sampling of tracks
+- [x] Track pages recommend tracks of the same genre
+- [x] Artist pages recommend artists of the same genre
