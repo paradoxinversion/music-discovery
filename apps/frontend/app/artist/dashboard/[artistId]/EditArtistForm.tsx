@@ -117,44 +117,49 @@ export default function EditArtistForm({
           }}
           encType="multipart/form-data"
         >
-          <label>Artist Name</label>
-          <Field type="text" name="artistName" />
+          <label htmlFor="artistName">Artist Name</label>
+          <Field type="text" name="artistName" id="artistName" />
           {errors.artistName && touched.artistName ? (
             <ErrorText message={errors.artistName} />
           ) : null}
 
-          <label>Photo</label>
-          {artistData?.artistArt && (
-            <ImgContainer
-              src={`data:image/jpeg;base64,${artistData.artistArt}`}
-            />
-          )}
+          <label htmlFor="artistArt">Artwork</label>
+          <ImgContainer
+            src={
+              artistData.artistArt
+                ? `data:image/jpeg;base64,${artistData.artistArt}`
+                : undefined
+            }
+          />
           <input
             type="file"
-            name="photo"
+            name="artistArt"
+            id="artistArt"
+            accept="image/*"
             onChange={(event) =>
               setFieldValue("artistArt", event.currentTarget.files[0])
             }
           />
 
-          <label>Genre</label>
-          <Field type="text" name="genre" />
+          <label htmlFor="genre">Genre</label>
+          <Field type="text" name="genre" id="genre" />
           {errors.genre && touched.genre ? (
             <ErrorText message={errors.genre} />
           ) : null}
 
-          <label>Bio</label>
-          <Field as="textarea" name="bio" />
+          <label htmlFor="bio">Bio</label>
+          <Field as="textarea" name="bio" id="bio" />
           {errors.bio && touched.bio ? (
             <ErrorText message={errors.bio} />
           ) : null}
 
           {Object.values(socialPlatformLinks).map((platform) => (
             <div key={platform.name} className="flex flex-col">
-              <label>{platform.name}</label>
+              <label htmlFor={`links.${platform.name}`}>{platform.name}</label>
               <Field
                 type="text"
                 name={`links.${platform.name}`}
+                id={`links.${platform.name}`}
                 placeholder={`Enter your ${platform.name} link`}
               />
             </div>
