@@ -1,0 +1,50 @@
+{
+  "Meta": {
+    "name": "Meta",
+    "urlPattern": "https://www.facebook.com/{url}"
+  },
+  "YouTube": {
+    "name": "YouTube",
+    "urlPattern": "https://www.youtube.com/{url}"
+  },
+  "Twitter": {
+    "name": "Twitter",
+    "urlPattern": "https://twitter.com/{url}"
+  },
+  "Instagram": {
+    "name": "Instagram",
+    "urlPattern": "https://www.instagram.com/{url}"
+  },
+  "TikTok": {
+    "name": "TikTok",
+    "urlPattern": "https://www.tiktok.com/@{url}"
+  },
+  "SoundCloud": {
+    "name": "SoundCloud",
+    "urlPattern": "https://soundcloud.com/{url}"
+  },
+  "Spotify": {
+    "name": "Spotify",
+    "urlPattern": "https://open.spotify.com/artist/{url}"
+  },
+  "Bluesky": {
+    "name": "Bluesky",
+    "urlPattern": "https://bsky.app/profile/{url}"
+  },
+  "Twitch": {
+    "name": "Twitch",
+    "urlPattern": "https://www.twitch.tv/{url}"
+  },
+  "Bandcamp": {
+    "name": "Bandcamp",
+    "urlPattern": "https://{url}.bandcamp.com/"
+  },
+  "Official Website": {
+    "name": "Official Website",
+    "urlPattern": "https://{url}"
+  },
+  "Apple Music": {
+    "name": "Apple Music",
+    "urlPattern": "https://music.apple.com/artist/{url}"
+  }
+}
