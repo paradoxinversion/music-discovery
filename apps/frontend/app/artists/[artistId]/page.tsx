@@ -126,6 +126,7 @@ export default function ArtistPage({
         <ExternalLinkList
           links={mainArtistData.links}
           linkContainerType="cloud"
+          containerClasses="mb-4 mt-4"
           title="Find me on"
         />
       </div>
