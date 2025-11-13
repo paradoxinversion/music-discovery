@@ -2,7 +2,13 @@
 import { Button } from "@mda/components";
 import { useAppSelector } from "../../../lib/hooks";
 import { useState } from "react";
-export default function UserVitalSettings() {
+
+interface UserVitalSettingsProps {
+  setCurrentPage?: (page: string) => void;
+}
+export default function UserVitalSettings({
+  setCurrentPage,
+}: UserVitalSettingsProps) {
   const user = useAppSelector((state) => state.user);
   const [preDelete, setPreDelete] = useState(false);
   const [username, setUsername] = useState(user.username);
@@ -39,6 +45,10 @@ export default function UserVitalSettings() {
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
           <Button label="Update Settings" onClick={() => {}} />
+          <Button
+            label="Back to Settings"
+            onClick={() => setCurrentPage && setCurrentPage("favorites")}
+          />
         </form>
       </div>
       <div className="mt-8 border-t pt-4">

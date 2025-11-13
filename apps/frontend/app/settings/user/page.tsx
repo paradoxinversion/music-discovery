@@ -8,20 +8,19 @@ export default function Page() {
   const [currentPage, setCurrentPage] = useState("favorites");
   return (
     <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">User Settings</h1>
       <div className="flex space-x-4 mb-4">
         <Button
           label="Artist Settings"
           onClick={() => router.push("/artist/dashboard")}
         />
-        <Button
-          label="User Favorites"
-          onClick={() => setCurrentPage("favorites")}
-        />
         <Button label="User Data" onClick={() => setCurrentPage("data")} />
       </div>
       <div>
         {currentPage === "favorites" && <div>User Favorites Content</div>}
-        {currentPage === "data" && <UserVitalSettings />}
+        {currentPage === "data" && (
+          <UserVitalSettings setCurrentPage={setCurrentPage} />
+        )}
       </div>
     </div>
   );
