@@ -8,7 +8,8 @@ import * as Yup from "yup";
 import toast from "react-hot-toast";
 import useSWR from "swr";
 import axiosInstance from "../../../../../util/axiosInstance";
-import { CommonLinkKeyMusic } from "@common/types/src/types";
+import { musicPlatformLinks, MusicPlatformLinks } from "@common/json-data";
+
 const fetcher = (url: string) => axiosInstance.get(url).then((res) => res.data);
 interface TrackFormValues {
   title: string;
@@ -16,10 +17,9 @@ interface TrackFormValues {
   isrc?: string;
   trackArt?: File | string;
   links?: {
-    [key in CommonLinkKeyMusic]?: string;
+    [key in MusicPlatformLinks]?: string;
   };
 }
-const socialPlatforms = ["spotify", "appleMusic", "youtube", "soundcloud"];
 const trackSchema = Yup.object().shape({
   title: Yup.string().required("Track title is required"),
   genre: Yup.string().required("Genre is required"),
@@ -47,12 +47,12 @@ export default function AddTrackPage({
     genre: "",
     isrc: undefined,
     trackArt: undefined,
-    links: socialPlatforms.reduce(
+    links: Object.keys(musicPlatformLinks).reduce(
       (acc, platform) => ({
         ...acc,
         [platform]: "",
       }),
-      {} as { [key in CommonLinkKeyMusic]?: string },
+      {} as { [key in MusicPlatformLinks]?: string },
     ),
   };
 
@@ -70,7 +70,7 @@ export default function AddTrackPage({
               artistId: artistId,
               trackArt:
                 values.trackArt instanceof File ? values.trackArt : undefined,
-              links: socialPlatforms.reduce(
+              links: Object.keys(musicPlatformLinks).reduce(
                 (acc, platform) => {
                   if (values[platform]) {
                     acc[platform] = values[platform];
@@ -101,6 +101,15 @@ export default function AddTrackPage({
             {errors.title && touched.title ? (
               <ErrorText message={errors.title} />
             ) : null}
+            <label htmlFor="trackArt">Track Art</label>
+            <input
+              id="trackArt"
+              type="file"
+              name="trackArt"
+              onChange={(event) =>
+                setFieldValue("trackArt", event.currentTarget.files[0])
+              }
+            />
             <label htmlFor="genre">Genre</label>
             <Field
               id="genre"
@@ -123,28 +132,23 @@ export default function AddTrackPage({
             {errors.isrc && touched.isrc ? (
               <ErrorText message={errors.isrc} />
             ) : null}
-            <p>Links</p>
-            {socialPlatforms.map((platform) => (
-              <div key={platform} className="flex flex-col">
-                <label htmlFor={platform}>
-                  {platform
-                    .split(/(?=[A-Z])/)
-                    .join(" ")
-                    .toLowerCase()}
+            <p className="text-xl font-bold">Links</p>
+            {Object.keys(musicPlatformLinks).map((platform) => (
+              <div key={platform} className="flex flex-col mb-2">
+                <label htmlFor={platform} className="mb-2">
+                  {platform}
                 </label>
                 <Field id={platform} type="text" name={`${platform}`} />
               </div>
             ))}
-            <label htmlFor="trackArt">Track Art</label>
-            <input
-              id="trackArt"
-              type="file"
-              name="trackArt"
-              onChange={(event) =>
-                setFieldValue("trackArt", event.currentTarget.files[0])
-              }
-            />
-            <Button label="Add Track" type="submit" />
+
+            <div className="flex gap-4">
+              <Button label="Add Track" type="submit" />
+              <Button
+                label="Cancel"
+                onClick={() => router.push(`/artist/dashboard/${artistId}`)}
+              />
+            </div>
           </form>
         )}
       </Formik>
