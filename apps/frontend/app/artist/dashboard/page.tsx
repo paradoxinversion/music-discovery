@@ -1,9 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
-
 import ArtistSignup from "./ArtistSignup";
 import { useEffect, useState } from "react";
-import checkAuthentication from "../../../actions/checkAuthentication";
 import { useAppSelector } from "../../../lib/hooks";
 import getManagedArtists from "../../../actions/getManagedArtists";
 import { Button } from "@mda/components";
