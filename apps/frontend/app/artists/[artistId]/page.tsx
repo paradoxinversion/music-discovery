@@ -119,8 +119,10 @@ export default function ArtistPage({
         ) : (
           <p className="italic">Log in to add this artist to your favorites</p>
         )}
-
-        <p>{mainArtistData.biography}</p>
+        <section id="artist-biography">
+          <h2 className="text-xl font-semibold">About this Artist</h2>
+          <p>{mainArtistData.biography}</p>
+        </section>
         <ArtistExternalLinks
           links={mainArtistData.links}
           linkContainerType="cloud"
