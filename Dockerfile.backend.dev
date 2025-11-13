@@ -11,6 +11,8 @@ COPY apps/backend/package.json apps/backend/tsconfig.json ./apps/backend/
 COPY apps/backend/src/ ./apps/backend/src/
 COPY apps/backend/test-helpers/ ./apps/backend/test-helpers/
 COPY common/types/package.json common/types/tsconfig.json ./common/types/
+COPY common/json-data/package.json common/json-data/tsconfig.json ./common/json-data/
+COPY common/json-data/src/ ./common/json-data/src/
 COPY common/types/src/ ./common/types/src/
 
 RUN corepack enable && yarn install
@@ -19,6 +21,7 @@ FROM backend-base AS backend-build
 WORKDIR /app
 
 RUN yarn workspace @common/types build
+RUN yarn workspace @common/json-data build
 
 FROM node:${NODE_VERSION}-alpine AS backend-test
 WORKDIR /app
