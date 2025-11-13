@@ -35,7 +35,7 @@ export default function TrackPage({
 
   const dispatch = useDispatch();
   const user = useAppSelector((state) => state.user);
-  const trackFavorited = user.favoriteTracks.includes(trackId);
+  const trackFavorited = user.favoriteTracks.includes(trackData?._id);
 
   const likeTrack = async () => {
     try {
@@ -43,10 +43,10 @@ export default function TrackPage({
         throw new Error("User must be logged in to like a track");
       }
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/tracks/${trackId}/favorite`,
+        `${process.env.NEXT_PUBLIC_API_URL}/tracks/${trackData._id}/favorite`,
         {
           userId: user.userId,
-          trackId: trackId,
+          trackId: trackData._id,
           remove: trackFavorited,
         },
         { withCredentials: true },

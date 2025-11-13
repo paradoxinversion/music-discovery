@@ -70,7 +70,7 @@ export default function ArtistPage({
   const user = useAppSelector((state) => state.user);
   const dispatch = useDispatch();
 
-  const artistFavorited = user.favoriteArtists.includes(artistId);
+  const artistFavorited = user.favoriteArtists.includes(mainArtistData?._id);
 
   const handleFavoriteClick = async () => {
     try {
