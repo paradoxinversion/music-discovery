@@ -5,6 +5,7 @@ import ErrorText from "./ErrorText/ErrorText";
 import ResourceTile from "./ResourceTile/ResourceTile";
 import ResourceTileList from "./ResourceTileList/ResourceTileList";
 import useWindowDimensions from "./hooks/useWindowDimensions";
+import ArtistExternalLinks from "./ArtistExternalLinks/ArtistExternalLinks";
 
 export {
   Button,
@@ -14,4 +15,5 @@ export {
   ResourceTile,
   ResourceTileList,
   useWindowDimensions,
+  ArtistExternalLinks,
 };
