@@ -76,7 +76,11 @@ export default function TrackPage({
       <div id="track-details" className="mr-8 md:w-1/2">
         <h1 className="text-2xl font-bold">{trackData.title}</h1>
         <ImgContainer
-          src={`data:image/jpeg;base64,${trackData.trackArt}`}
+          src={
+            trackData.trackArt
+              ? `data:image/jpeg;base64,${trackData.trackArt}`
+              : undefined
+          }
           alt="Album Art"
         />
         {user.loggedIn ? (

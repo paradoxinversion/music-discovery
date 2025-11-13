@@ -97,7 +97,11 @@ export default function ArtistPage({
       <div id="artist-details" className="mr-8 md:w-1/2">
         <h1 className="text-2xl font-bold">{mainArtistData.name}</h1>
         <ImgContainer
-          src={`data:image/jpeg;base64,${mainArtistData.artistArt}`}
+          src={
+            mainArtistData.artistArt
+              ? `data:image/jpeg;base64,${mainArtistData.artistArt}`
+              : undefined
+          }
           alt={mainArtistData.name}
         />
         <div onClick={handleFavoriteClick} className="cursor-pointer">
