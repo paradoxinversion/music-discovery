@@ -8,7 +8,6 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [favoriteArtists, setFavoriteArtists] = useState([]);
   const [favoriteTracks, setFavoriteTracks] = useState([]);
-  const [favoriteAlbums, setFavoriteAlbums] = useState([]);
   const router = useRouter();
   const user = useAppSelector((state) => state.user);
   const getFavorites = async () => {
@@ -20,7 +19,6 @@ export default function Sidebar() {
 
     setFavoriteArtists(response.data.favorites.favoriteArtists);
     setFavoriteTracks(response.data.favorites.favoriteTracks);
-    setFavoriteAlbums(response.data.favorites.favoriteAlbums);
   };
 
   useEffect(() => {
@@ -46,7 +44,7 @@ export default function Sidebar() {
           >
             <p
               className="no-underline pl-2"
-              onClick={() => router.push(`/artists/${artist._id}`)}
+              onClick={() => router.push(`/artists/${artist.slug}`)}
             >
               {artist.name}
             </p>
@@ -65,22 +63,6 @@ export default function Sidebar() {
               onClick={() => router.push(`/track/${track._id}`)}
             >
               {track.title}
-            </p>
-          </div>
-        ))}
-      </div>
-      <div id="sidebar-favorite-albums">
-        <p>Favorite Albums</p>
-        {favoriteAlbums.map((album) => (
-          <div
-            key={album._id}
-            className="mt-2 hover:bg-gray-600 cursor-pointer"
-          >
-            <p
-              className="no-underline pl-2"
-              onClick={() => router.push(`/album/${album._id}`)}
-            >
-              {album.title}
             </p>
           </div>
         ))}

@@ -24,6 +24,11 @@ type CommonLinkKeySocial =
  */
 interface ITrack {
   title: string;
+  /**
+   * A URL-friendly version of the track's title.
+   * Does not need to be unique, but care should be taken when querying.
+   * */
+  slug: string;
   artistId: string;
   albumId: string;
   duration?: number;
