@@ -10,6 +10,7 @@
     "start": "node ./dist/server.js"
   },
   "dependencies": {
+    "@common/json-data": "workspace:^",
     "@google-cloud/secret-manager": "^6.1.1",
     "@google-cloud/storage": "^7.17.2",
     "bcrypt": "^6.0.0",

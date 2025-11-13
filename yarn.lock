@@ -233,6 +233,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@common/json-data@workspace:^, @common/json-data@workspace:common/json-data":
+  version: 0.0.0-use.local
+  resolution: "@common/json-data@workspace:common/json-data"
+  languageName: unknown
+  linkType: soft
+
 "@common/types@workspace:^, @common/types@workspace:common/types":
   version: 0.0.0-use.local
   resolution: "@common/types@workspace:common/types"
@@ -3134,6 +3140,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backend@workspace:apps/backend"
   dependencies:
+    "@common/json-data": "workspace:^"
     "@common/types": "workspace:^"
     "@google-cloud/secret-manager": "npm:^6.1.1"
     "@google-cloud/storage": "npm:^7.17.2"
@@ -4669,6 +4676,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "frontend@workspace:apps/frontend"
   dependencies:
+    "@common/json-data": "workspace:^"
     "@common/types": "workspace:^"
     "@mda/components": "workspace:^"
     "@reduxjs/toolkit": "npm:^2.9.0"
