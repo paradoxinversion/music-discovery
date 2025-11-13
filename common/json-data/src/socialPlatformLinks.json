@@ -1,6 +1,6 @@
 {
-  "Meta": {
-    "name": "Meta",
+  "Facebook": {
+    "name": "Facebook",
     "urlPattern": "https://www.facebook.com/{url}"
   },
   "YouTube": {
