@@ -39,9 +39,6 @@ export const createTrack = async (
     links: { ...(trackData.links || {}) },
   });
   await track.save();
-  await Artist.findByIdAndUpdate(trackData.artistId, {
-    $push: { tracks: track._id },
-  });
   return track;
 };
 /**
@@ -54,7 +51,23 @@ export const getAllTracks = async (): Promise<ITrack[]> => {
 };
 
 export const getTrackById = async (trackId: string) => {
-  const track = await Track.findById(trackId).populate("artistId", "name");
+  const track = await Track.findById(trackId).populate("artistId", "name slug");
+  if (!track) {
+    return null;
+  }
+
+  return track?.toJSON({ flattenMaps: true }) as ITrack | null;
+};
+
+export const getTrackBySlugAndArtist = async (
+  trackSlug: string,
+  artistSlug: string,
+) => {
+  const artist = await Artist.findOne({ slug: artistSlug }).select("_id");
+  const track = await Track.findOne({
+    slug: trackSlug,
+    artistId: artist?._id,
+  }).populate("artistId", "name slug");
   if (!track) {
     return null;
   }
@@ -89,7 +102,9 @@ export const getRandomTracks = async (count: number) => {
           isrc: 1,
           genre: 1,
           trackArt: 1,
-          artistName: "$artist.name", // include artist name
+          slug: 1,
+          artistName: "$artist.name",
+          artistSlug: "$artist.slug",
         },
       },
     ]).exec();
@@ -122,7 +137,9 @@ export const getTracksByGenre = async (genre: string, limit: number) => {
     {
       $project: {
         title: 1,
+        slug: 1,
         artistName: "$artist.name",
+        artistSlug: "$artist.slug",
       },
     },
   ]).exec();

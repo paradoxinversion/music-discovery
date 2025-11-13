@@ -7,12 +7,13 @@ import {
   createTrack,
   updateTrack as updateTrackAction,
   deleteTrack as deleteTrackAction,
+  getTrackBySlugAndArtist,
 } from "../db/actions/Track";
 import Joi from "joi";
 import { addFavoriteTrack, removeFavoriteTrack } from "../db/actions/User";
 import { ITrack, TrackSubmissionData } from "@common/types/src/types";
 import { getImageAtPath } from "../db/actions/Storage";
-
+import { musicPlatformLinks } from "@common/json-data";
 const submitTrack = async (req: Request, res: Response) => {
   const trackSchema = Joi.object<TrackSubmissionData>({
     title: Joi.string().required(),
@@ -56,6 +57,30 @@ const getTrack = async (req: Request, res: Response) => {
   }
 
   const track = await getTrackById(trackId);
+  if (!track) {
+    return res
+      .status(404)
+      .json({ status: "ERROR", message: "Track not found" });
+  }
+  let trackArt = null;
+  if (track && track.trackArt) {
+    const art = await getImageAtPath(track?.trackArt);
+    if (art) {
+      trackArt = Buffer.from(art).toString("base64");
+    }
+  }
+  return res.status(200).json({ status: "OK", data: { ...track, trackArt } });
+};
+
+const getBySlugAndArtist = async (req: Request, res: Response) => {
+  const { trackSlug, artistSlug } = req.params;
+  if (!trackSlug || !artistSlug) {
+    return res
+      .status(400)
+      .json({ status: "ERROR", message: "slug and artistId are required" });
+  }
+
+  const track = await getTrackBySlugAndArtist(trackSlug, artistSlug);
   if (!track) {
     return res
       .status(404)
@@ -167,7 +192,7 @@ const updateTrack = async (req: Request, res: Response) => {
     isrc: Joi.string().optional(),
     links: Joi.object()
       .pattern(
-        Joi.string().valid("spotify", "appleMusic", "youtube", "soundcloud"),
+        Joi.string().valid(...Object.keys(musicPlatformLinks)),
         Joi.string().uri(),
       )
       .optional(),
@@ -233,4 +258,5 @@ export {
   getSimilarTracks,
   setFavorite,
   getTracksByArtistId,
+  getBySlugAndArtist,
 };

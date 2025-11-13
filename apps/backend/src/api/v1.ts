@@ -24,6 +24,7 @@ import {
 
 import {
   deleteTrack,
+  getBySlugAndArtist,
   getRandom as getRandomTracks,
   getSimilarTracks,
   getTrack,
@@ -89,6 +90,10 @@ router
   .route("/tracks")
   .post(isLoggedIn, upload.single("trackArt"), submitTrack);
 router.route("/tracks/random").get(getRandomTracks);
+router
+  .route("/track/slug/:trackSlug/artist/:artistSlug")
+  .get(getBySlugAndArtist);
+
 router
   .route("/tracks/:trackId")
   .get(getTrack)
