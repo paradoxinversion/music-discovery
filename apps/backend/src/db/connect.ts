@@ -4,6 +4,21 @@ import User from "./models/User";
 import { readFileSync } from "fs";
 
 export const connectToDatabase = async () => {
+  if (process.env.NODE_ENV === "test") {
+    try {
+      const host = process.env.LOCAL_TEST ? "localhost" : "mongo";
+      console.log(host);
+      await mongoose.connect(
+        `mongodb://${host}:27017/music-discovery-app-test`,
+      );
+      await mongoose.connection.db?.admin().command({ ping: 1 });
+    } catch (error) {
+      console.error("Error connecting to the test database:", error);
+      throw error; // Re-throw the error after logging it
+    }
+
+    return;
+  }
   if (process.env.NODE_ENV === "development") {
     try {
       await mongoose.connect(

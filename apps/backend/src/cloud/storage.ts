@@ -5,7 +5,9 @@ if (process.env.NODE_ENV === "production") {
   storage = new Storage();
 } else {
   storage = new Storage({
-    apiEndpoint: "http://fake-gcs-server:8080",
+    apiEndpoint: process.env.LOCAL_TEST
+      ? "http://localhost:8080"
+      : "http://fake-gcs-server:8080",
     projectId: "offbeat-test",
   });
   storage.getBuckets().then((buckets) => {
@@ -64,5 +66,18 @@ async function deleteFile(filePath: string) {
     throw error;
   }
 }
-export { upload, getImageContents, deleteFile };
+
+async function emptyBucket() {
+  try {
+    const bucket = storage.bucket(imgBucketName);
+    const [files] = await bucket.getFiles();
+    const deletePromises = files.map((file) => file.delete());
+    await Promise.all(deletePromises);
+    // console.log(`Emptied bucket ${imgBucketName}.`);
+  } catch (error) {
+    console.error("Error emptying bucket:", error);
+    throw error;
+  }
+}
+export { upload, getImageContents, deleteFile, emptyBucket };
 export default storage;

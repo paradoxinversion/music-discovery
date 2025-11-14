@@ -68,7 +68,9 @@ TrackSchema.post("save", async function (doc, next) {
     next();
   } catch (err) {
     console.error("Failed to add track id to artist.tracks:", err);
-    next(err);
+    if (err instanceof Error) {
+      next(err);
+    }
   }
 });
 

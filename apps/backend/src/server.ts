@@ -59,7 +59,7 @@ app.use(
   }),
 );
 
-app.use(morgan("dev"));
+app.use(morgan("combined"));
 app.use(limiter);
 app.use(express.json());
 app.use(cookieParser(process.env.SESSION_SECRET));

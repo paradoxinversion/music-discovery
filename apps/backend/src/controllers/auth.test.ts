@@ -64,6 +64,7 @@ describe("Check Auth", () => {
     mockResponse = {
       status: vi.fn().mockReturnThis(), // Allow chaining .status().json()
       json: vi.fn(),
+      set: vi.fn(),
     };
   });
 
@@ -81,6 +82,6 @@ describe("Check Auth", () => {
     // @ts-expect-error Mocking isAuthenticated method
     mockRequest.isAuthenticated = vi.fn().mockReturnValue(false);
     await checkAuth(mockRequest as Request, mockResponse as Response);
-    expect(mockResponse.status).toHaveBeenCalledWith(200);
+    expect(mockResponse.status).toHaveBeenCalledWith(401);
   });
 });

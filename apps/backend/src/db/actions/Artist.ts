@@ -18,7 +18,7 @@ import { createImagePath } from "../../utils/imageUtilities";
  */
 export const createArtist = async (
   userId: string,
-  artistData: Omit<IArtist, "managingUserId">,
+  artistData: Omit<IArtist, "managingUserId" | "slug">,
   artistArt?: Express.Multer.File,
 ): Promise<IArtist> => {
   try {

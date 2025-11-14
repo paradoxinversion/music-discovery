@@ -35,7 +35,7 @@ export const createNewArtist = async (req: Request, res: Response) => {
   }
   try {
     const user = req.user;
-    const artistData: Omit<IArtist, "managingUserId"> = {
+    const artistData: Omit<IArtist, "managingUserId" | "slug"> = {
       name: req.body.name,
       genre: req.body.genre,
       biography: req.body.biography,

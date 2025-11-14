@@ -4,6 +4,7 @@ import {
   deleteArtist,
   getAllArtists,
   getArtistById,
+  getArtistBySlug,
   getArtistsByIds,
   getRandomArtists,
   getSimilarArtists,
@@ -129,6 +130,30 @@ describe("Get Artist by ID", () => {
   it("Returns null if artist does not exist", async () => {
     const fakeArtistId = new mongoose.Types.ObjectId().toString();
     const fetchedArtist = await getArtistById(fakeArtistId);
+    expect(fetchedArtist).toBeNull();
+  });
+});
+
+describe("Get Artist by Slug", () => {
+  it("Fetches an artist by slug", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    await user.save();
+    const data = {
+      ...DEFAULT_TEST_ARTIST_DATA,
+      managingUserId: user.id.toString(),
+      links: { soundcloud: "https://soundcloud.com/testartist" },
+    };
+    const artist = new Artist(data);
+    await artist.save();
+
+    const fetchedArtist = await getArtistBySlug(artist.slug);
+    expect(fetchedArtist).toBeDefined();
+    expect(fetchedArtist?._id).toEqual(artist._id);
+    expect(fetchedArtist?.links).toEqual(data.links);
+  });
+
+  it("Returns null if artist does not exist", async () => {
+    const fetchedArtist = await getArtistBySlug("non-existent-slug");
     expect(fetchedArtist).toBeNull();
   });
 });

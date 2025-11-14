@@ -33,7 +33,6 @@ export const createTrack = async (
     );
     trackData.trackArt = trackArtDestination;
   }
-  console.log("Creating track with links:", trackData.links);
   const track = new Track({
     ...trackData,
     links: { ...(trackData.links || {}) },
