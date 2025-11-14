@@ -136,14 +136,16 @@ export default function AddTrackPage({
               <ErrorText message={errors.isrc} />
             ) : null}
             <p className="text-xl font-bold">Links</p>
-            {Object.keys(musicPlatformLinks).map((platform) => (
-              <div key={platform} className="flex flex-col mb-2">
-                <label htmlFor={`links.${platform}`} className="mb-2">
-                  {platform}
-                </label>
-                <Field id={platform} type="text" name={`links.${platform}`} />
-              </div>
-            ))}
+            {Object.keys(musicPlatformLinks)
+              .filter((platform) => platform !== "Bandcamp")
+              .map((platform) => (
+                <div key={platform} className="flex flex-col mb-2">
+                  <label htmlFor={`links.${platform}`} className="mb-2">
+                    {platform}
+                  </label>
+                  <Field id={platform} type="text" name={`links.${platform}`} />
+                </div>
+              ))}
 
             <div className="flex gap-4">
               <Button label="Add Track" type="submit" />

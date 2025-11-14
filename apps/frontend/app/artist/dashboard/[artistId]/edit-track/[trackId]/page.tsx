@@ -49,7 +49,10 @@ export default function EditTrackPage({
     isrc: data.data.isrc || undefined,
     trackArt: data.data.trackArt,
     links: Object.keys(data.data.links).reduce((acc: any, key: string) => {
-      acc[key] = data.data.links[key].replace("{url}", data.data.links[key]);
+      const re = /\/([^\/?#]+)\/?(\?[^#]*)?(?:#.*)?$/;
+      const match = data.data.links[key].match(re);
+      if (match === null) return acc;
+      acc[key] = match[0].slice(1);
       return acc;
     }, {}) as {
       [key in MusicPlatformLinks]: string;
@@ -104,12 +107,14 @@ export default function EditTrackPage({
             <label>ISRC</label>
             <Field id="isrc" type="text" name="isrc" />
             <p>Links</p>
-            {Object.keys(musicPlatformLinks).map((link) => (
-              <div key={link} className="flex flex-col">
-                <label htmlFor={link}>{link}</label>
-                <Field id={link} type="text" name={`links.${link}`} />
-              </div>
-            ))}
+            {Object.keys(musicPlatformLinks)
+              .filter((link) => link !== "Bandcamp")
+              .map((link) => (
+                <div key={link} className="flex flex-col">
+                  <label htmlFor={link}>{link}</label>
+                  <Field id={link} type="text" name={`links.${link}`} />
+                </div>
+              ))}
             <label htmlFor="trackArt">Track Art</label>
             <input
               id="trackArt"
