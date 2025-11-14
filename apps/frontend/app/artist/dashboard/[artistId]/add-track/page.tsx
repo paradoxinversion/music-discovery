@@ -45,7 +45,7 @@ export default function AddTrackPage({
   const initialValues: TrackFormValues = {
     title: "",
     genre: "",
-    isrc: undefined,
+    isrc: "",
     trackArt: undefined,
     links: Object.keys(musicPlatformLinks).reduce(
       (acc, platform) => ({
@@ -72,8 +72,11 @@ export default function AddTrackPage({
                 values.trackArt instanceof File ? values.trackArt : undefined,
               links: Object.keys(musicPlatformLinks).reduce(
                 (acc, platform) => {
-                  if (values[platform]) {
-                    acc[platform] = values[platform];
+                  if (values.links[platform]) {
+                    acc[platform] = musicPlatformLinks[platform].replace(
+                      "{url}",
+                      values.links[platform],
+                    );
                   }
                   return acc;
                 },
@@ -95,7 +98,7 @@ export default function AddTrackPage({
       >
         {({ handleSubmit, setFieldValue, errors, touched }) => (
           <form className="flex flex-col" onSubmit={handleSubmit}>
-            <h1>Add New Track</h1>
+            <h1 className="text-2xl font-bold mb-4">Add New Track</h1>
             <label htmlFor="title">Track Title</label>
             <Field id="title" type="text" name="title" />
             {errors.title && touched.title ? (
@@ -135,10 +138,10 @@ export default function AddTrackPage({
             <p className="text-xl font-bold">Links</p>
             {Object.keys(musicPlatformLinks).map((platform) => (
               <div key={platform} className="flex flex-col mb-2">
-                <label htmlFor={platform} className="mb-2">
+                <label htmlFor={`links.${platform}`} className="mb-2">
                   {platform}
                 </label>
-                <Field id={platform} type="text" name={`${platform}`} />
+                <Field id={platform} type="text" name={`links.${platform}`} />
               </div>
             ))}
 
