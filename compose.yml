@@ -35,7 +35,8 @@ services:
   backend:
     build:
       context: .
-      dockerfile: ./apps/backend/Dockerfile.dev
+      dockerfile: ./Dockerfile.backend.dev
+      target: backend-dev
     volumes:
       - type: bind
         source: ./apps/backend
@@ -66,10 +67,16 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend.dev
+    develop:
+      watch:
+        - path: ./components
+          action: rebuild
+          include: "./components/dist/**"
     volumes:
       - type: bind
         source: ./apps/frontend
         target: /app/apps/frontend
+
     environment:
       NODE_ENV: development
     ports:

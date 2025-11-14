@@ -1,6 +1,29 @@
 services:
+  fake-gcs-server:
+    attach: false
+    image: fsouza/fake-gcs-server:latest
+    ports:
+      - 8080:8080
+    networks:
+      - discovery-network
+    volumes:
+      - ../data:/data
+    command:
+      [
+        "-scheme",
+        "http",
+        "-port",
+        "8080",
+        "-external-url",
+        "http://fake-gcs-server:8080",
+        "-public-host",
+        "fake-gcs-server",
+        "-backend",
+        "memory",
+      ]
   mongo:
     image: mongo:latest
+    attach: false
     ports:
       - 27017:27017
     networks:
@@ -12,7 +35,7 @@ services:
         [
           "CMD",
           "echo",
-          '''db.runCommand("ping").ok'' | mongosh localhost:27017/music-discovery-app-test --quiet',
+          '''db.runCommand("ping").ok'' | mongosh mongo:27017/music-discovery-app-test --quiet',
         ]
       interval: 10s
       timeout: 30s
@@ -22,7 +45,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: ./apps/backend/Dockerfile
+      dockerfile: ./Dockerfile.backend.dev
       target: backend-test
     links:
       - mongo
