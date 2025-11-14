@@ -49,7 +49,7 @@ export default function EditTrackPage({
     isrc: data.data.isrc || undefined,
     trackArt: data.data.trackArt,
     links: Object.keys(data.data.links).reduce((acc: any, key: string) => {
-      const re = /\/([^\/?#]+)\/?(\?[^#]*)?(?:#.*)?$/;
+      const re = /\/@?([^\/?#]+)\/?(\?[^#]*)?(?:#.*)?$/;
       const match = data.data.links[key].match(re);
       if (match === null) return acc;
       acc[key] = match[0].slice(1);

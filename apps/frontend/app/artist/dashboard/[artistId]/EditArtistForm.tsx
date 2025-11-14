@@ -64,7 +64,12 @@ export default function EditArtistForm({
     links: Object.values(socialPlatformLinks).reduce(
       (acc, platform) => {
         if (artistData?.links && artistData.links[platform.name]) {
-          acc[platform.name] = artistData.links[platform.name];
+          const re = /\/@?([^\/?#]+)\/?(\?[^#]*)?(?:#.*)?$/;
+          const match = artistData.links[platform.name].match(re);
+          if (match === null) return acc;
+
+          acc[platform.name] =
+            platform.name === "TikTok" ? match[1] : match[0].slice(1);
         } else {
           acc[platform.name] = "";
         }
@@ -153,17 +158,21 @@ export default function EditArtistForm({
             <ErrorText message={errors.bio} />
           ) : null}
 
-          {Object.values(socialPlatformLinks).map((platform) => (
-            <div key={platform.name} className="flex flex-col">
-              <label htmlFor={`links.${platform.name}`}>{platform.name}</label>
-              <Field
-                type="text"
-                name={`links.${platform.name}`}
-                id={`links.${platform.name}`}
-                placeholder={`Enter your ${platform.name} link`}
-              />
-            </div>
-          ))}
+          {Object.values(socialPlatformLinks)
+            .filter((platform) => platform.name !== "Bandcamp")
+            .map((platform) => (
+              <div key={platform.name} className="flex flex-col">
+                <label htmlFor={`links.${platform.name}`}>
+                  {platform.name}
+                </label>
+                <Field
+                  type="text"
+                  name={`links.${platform.name}`}
+                  id={`links.${platform.name}`}
+                  placeholder={`Enter your ${platform.name} link`}
+                />
+              </div>
+            ))}
           <div className="flex gap-4">
             <Button label="Save Changes" type="submit" />
             <Button

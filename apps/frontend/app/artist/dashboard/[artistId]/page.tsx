@@ -85,12 +85,6 @@ export default function Page({
                           )
                         }
                       />
-                      <Button
-                        label="Delete"
-                        onClick={() => {
-                          handleDeleteTrack(track._id);
-                        }}
-                      />
                     </div>
                   </div>
                 ))}
