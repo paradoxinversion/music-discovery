@@ -1,10 +1,17 @@
 "use client";
 import axios from "axios";
-import { useAppSelector } from "../lib/hooks";
+import { useAppDispatch, useAppSelector } from "../lib/hooks";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Sidebar as SidebarComponent } from "@mda/components";
+import {
+  SidebarButton,
+  Sidebar as SidebarComponent,
+  SidebarSection,
+} from "@mda/components";
 import { unbounded } from "@/fonts";
+import logOut from "../actions/logout";
+import { unsetUser } from "../lib/features/users/userSlice";
+import toast from "react-hot-toast";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -13,6 +20,7 @@ export default function Sidebar() {
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const router = useRouter();
   const user = useAppSelector((state) => state.user);
+  const dispatch = useAppDispatch();
   const getFavorites = async () => {
     if (!user.loggedIn) return;
     const response = await axios.get(
@@ -81,6 +89,32 @@ export default function Sidebar() {
           onArtistClick={goToArtist}
           onTrackClick={goToTrack}
         />
+        <SidebarSection title="Settings & Logout">
+          <SidebarButton
+            textAlign="left"
+            label="Logout"
+            onClick={async () => {
+              try {
+                const logoutSuccessful = await logOut();
+                if (logoutSuccessful) {
+                  toast.success("Logged out successfully");
+                  dispatch(unsetUser());
+                  router.push("/");
+                }
+              } catch (error) {
+                toast.error(
+                  "Error during logout. You can log out manually by clearing site cookies.",
+                );
+                console.error("Error during logout:", error);
+              }
+            }}
+          />
+          <SidebarButton
+            textAlign="left"
+            label="Settings"
+            onClick={() => router.push("/settings/user")}
+          />
+        </SidebarSection>
       </div>
 
       {showMobileSidebar && (
@@ -100,15 +134,22 @@ export default function Sidebar() {
               </svg>
             </button>
             <p className={`${unbounded.className} text-2xl text-center grow`}>
-              Library
+              Library & Settings
             </p>
           </div>
-          <SidebarComponent
-            favoriteArtists={favoriteArtists}
-            favoriteTracks={favoriteTracks}
-            onArtistClick={goToArtist}
-            onTrackClick={goToTrack}
-          />
+
+          <section>
+            <SidebarComponent
+              favoriteArtists={favoriteArtists}
+              favoriteTracks={favoriteTracks}
+              onArtistClick={goToArtist}
+              onTrackClick={goToTrack}
+            />
+            <SidebarSection title="Settings & Logout">
+              <SidebarButton textAlign="left" label="Logout" />
+              <SidebarButton textAlign="left" label="Settings" />
+            </SidebarSection>
+          </section>
         </div>
       )}
     </div>
