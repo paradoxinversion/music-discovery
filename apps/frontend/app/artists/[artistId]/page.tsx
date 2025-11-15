@@ -32,7 +32,7 @@ export default function ArtistPage({
     data: mainArtistData,
     error: mainArtistDataError,
     isLoading: isMainArtistLoading,
-  } = useSWR(`/artist/slug/${artistId}`, artistFetcher, {
+  } = useSWR(`/artist/slug/${artistId}?includeArt=true`, artistFetcher, {
     revalidateOnFocus: false,
   });
 
@@ -90,7 +90,12 @@ export default function ArtistPage({
     return <div>Loading...</div>;
   }
   if (mainArtistDataError) {
-    return <div>Error: {mainArtistDataError.message}</div>;
+    return (
+      <div>
+        An error occurred while trying to load the artist. The artist might not
+        exist or there was a server error.
+      </div>
+    );
   }
 
   return (

@@ -7,17 +7,23 @@ import getTracksByArtist from "../../../../actions/getTracksByArtist";
 import { Button } from "@mda/components";
 import EditArtistForm from "./EditArtistForm";
 import deleteTrack from "../../../../actions/deleteTrack";
+import useAuth from "../../../../swrHooks/useAuth";
+import AccessUnauthorized from "../../../../commonComponents/AccessUnauthorized";
+import axiosInstance from "../../../../util/axiosInstance";
+import toast from "react-hot-toast";
 
 export default function Page({
   params,
 }: {
   params: Promise<{ artistId: string }>;
 }) {
+  const { authenticatedUser, isLoading, error } = useAuth();
   const router = useRouter();
   const artistId = use(params).artistId;
   const [artistData, setArtistData] = useState(null);
   const [artistTracks, setArtistTracks] = useState([]);
   const [editArtistData, setEditArtistData] = useState(false);
+  const [prepareDeleteArtist, setPrepareDeleteArtist] = useState(false);
   useEffect(() => {
     getArtistById(artistId, true).then((data) => setArtistData(data));
     getTracksByArtist(artistId).then((data) => setArtistTracks(data.data));
@@ -30,7 +36,12 @@ export default function Page({
       );
     }
   };
-
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  if (error) {
+    return <AccessUnauthorized />;
+  }
   return (
     <div className="w-full p-4">
       <h1 className="text-2xl font-bold mb-4">Artist Dashboard</h1>
@@ -39,7 +50,7 @@ export default function Page({
           <div id="artist-details" className="mb-4">
             <h2 className="text-xl font-semibold">{artistData.name}</h2>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-col gap-4 md:flex-row">
             <Button
               label="Go to Artist Page"
               onClick={() => router.push(`/artists/${artistData.slug}`)}
@@ -49,6 +60,41 @@ export default function Page({
                 label="Edit Artist Details"
                 onClick={() => setEditArtistData(true)}
               />
+            )}
+            <Button
+              label="Delete Artist Profile"
+              onClick={() => setPrepareDeleteArtist(true)}
+            />
+          </div>
+          <div id="delete-artist-confirmation" className="my-4">
+            {prepareDeleteArtist && (
+              <div className="border border-red-600 p-4 rounded-md bg-red-50">
+                <p className="text-red-700 mb-2">
+                  Are you sure you want to delete this artist profile? This
+                  action cannot be undone.
+                </p>
+                <div className="flex gap-4">
+                  <Button
+                    label="Confirm Delete"
+                    onClick={async () => {
+                      // Call delete artist action
+                      const response = await axiosInstance.delete(
+                        `artists/${artistId}`,
+                      );
+                      if (response.status === 200) {
+                        toast.success("Artist profile deleted successfully");
+                        router.push("/artist/dashboard");
+                      } else {
+                        toast.error("Error deleting artist profile");
+                      }
+                    }}
+                  />
+                  <Button
+                    label="Cancel"
+                    onClick={() => setPrepareDeleteArtist(false)}
+                  />
+                </div>
+              </div>
             )}
           </div>
           {editArtistData && (

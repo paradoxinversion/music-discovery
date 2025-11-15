@@ -9,6 +9,9 @@ import useSWR from "swr";
 import deleteTrack from "../../../../../../actions/deleteTrack";
 import toast from "react-hot-toast";
 import { musicPlatformLinks, MusicPlatformLinks } from "@common/json-data";
+import useAuth from "../../../../../../swrHooks/useAuth";
+import AccessUnauthorized from "../../../../../../commonComponents/AccessUnauthorized";
+import useGenres from "../../../../../../swrHooks/useGenres";
 
 interface TrackFormValues {
   title: string;
@@ -30,17 +33,34 @@ export default function EditTrackPage({
   const trackId = use(params).trackId;
   const artistId = use(params).artistId;
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const {
+    authenticatedUser,
+    isLoading: isAuthLoading,
+    error: isAuthError,
+  } = useAuth();
+  const { genres, genresLoading, genreLoadError } = useGenres();
   const { data, error, isLoading } = useSWR(
     `tracks/${trackId}?withLinks=true`,
     fetcher,
   );
   const router = useRouter();
-  if (isLoading) {
+  if (isLoading || isAuthLoading || genresLoading) {
     return <div>Loading...</div>;
   }
 
   if (error) {
     return <div>Error loading track data.</div>;
+  }
+  if (isAuthError) {
+    return <AccessUnauthorized />;
+  }
+  if (genreLoadError) {
+    return (
+      <div>
+        There was an error loading genre data for this form. Please try again
+        later or contact support.
+      </div>
+    );
   }
 
   const initialValues: TrackFormValues = {
@@ -100,7 +120,20 @@ export default function EditTrackPage({
               <ErrorText message={errors.title} />
             ) : null}
             <label>Genre</label>
-            <Field id="genre" type="text" name="genre" />
+            <Field
+              id="genre"
+              as="select"
+              name="genre"
+              className="bg-gray-500 rounded py-2 px-3"
+            >
+              <option value="">Select a genre</option>
+              {genres &&
+                genres.genres.map((genre: string) => (
+                  <option key={genre} value={genre}>
+                    {genre}
+                  </option>
+                ))}
+            </Field>
             {errors.genre && touched.genre ? (
               <ErrorText message={errors.genre} />
             ) : null}

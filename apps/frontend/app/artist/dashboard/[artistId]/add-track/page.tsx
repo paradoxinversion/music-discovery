@@ -9,6 +9,9 @@ import toast from "react-hot-toast";
 import useSWR from "swr";
 import axiosInstance from "../../../../../util/axiosInstance";
 import { musicPlatformLinks, MusicPlatformLinks } from "@common/json-data";
+import useAuth from "../../../../../swrHooks/useAuth";
+import AccessUnauthorized from "../../../../../commonComponents/AccessUnauthorized";
+import useGenres from "../../../../../swrHooks/useGenres";
 
 const fetcher = (url: string) => axiosInstance.get(url).then((res) => res.data);
 interface TrackFormValues {
@@ -33,13 +36,26 @@ export default function AddTrackPage({
 }) {
   const artistId = use(params).artistId;
   const router = useRouter();
+  const {
+    authenticatedUser,
+    isLoading: isAuthLoading,
+    error: isAuthError,
+  } = useAuth();
+  const { genres, genresLoading, genreLoadError } = useGenres();
+  if (genres) {
+    console.log(genres);
+  }
   const { data: genreData, error, isLoading } = useSWR(`genre`, fetcher);
-  if (isLoading) {
+  if (isLoading || isAuthLoading) {
     return <div>Loading...</div>;
   }
 
   if (error) {
     return <div>Error loading genre data.</div>;
+  }
+
+  if (isAuthError) {
+    return <AccessUnauthorized />;
   }
 
   const initialValues: TrackFormValues = {
