@@ -58,8 +58,11 @@ app.use(
     credentials: true,
   }),
 );
-
-app.use(morgan("combined"));
+if (process.env.NODE_ENV === "production") {
+  app.use(morgan("combined"));
+} else {
+  app.use(morgan("dev"));
+}
 app.use(limiter);
 app.use(express.json());
 app.use(cookieParser(process.env.SESSION_SECRET));
