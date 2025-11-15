@@ -8,11 +8,14 @@ import { useEffect } from "react";
 import { setUser, unsetUser } from "../../lib/features/users/userSlice";
 import logOut from "../../actions/logout";
 import { boldonse } from "@/fonts";
+import useAuth from "../../swrHooks/useAuth";
 
 const Header = () => {
   const name = useAppSelector((state) => state.user.username);
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const { authenticatedUser } = useAuth();
+
   const checkAuth = async () => {
     try {
       const response = await axios.get(

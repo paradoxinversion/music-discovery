@@ -8,6 +8,7 @@ import { Formik, Field } from "formik";
 import * as Yup from "yup";
 import axiosInstance from "../../util/axiosInstance";
 import { ErrorText } from "@mda/components";
+import toast from "react-hot-toast";
 
 interface LoginFormValues {
   username: string;
@@ -50,9 +51,11 @@ export default function Page() {
           try {
             const res = await axiosInstance.post("/auth/log-in", values);
             dispatch(setUser(res.data.user));
+            toast.success("Login successful!");
             router.push("/discover");
           } catch (error) {
             console.error("Login error:", error.response.data);
+            toast.error("Login failed. Please check your credentials.");
           }
         }}
       >
