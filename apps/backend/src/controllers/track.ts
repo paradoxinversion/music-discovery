@@ -143,10 +143,11 @@ const getTracksByArtistId = async (req: Request, res: Response) => {
       .json({ status: "ERROR", message: "artistId is required" });
   }
   const tracks = await getTracksByArtistIdAction(artistId);
-  if (!tracks || tracks.length === 0) {
-    return res
-      .status(404)
-      .json({ status: "ERROR", message: "No tracks found for this artist" });
+  if (!tracks) {
+    return res.status(404).json({
+      status: "ERROR",
+      message: "Error finding tracks for this artist",
+    });
   }
   return res.status(200).json({ status: "OK", data: tracks });
 };
