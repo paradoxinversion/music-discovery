@@ -4,9 +4,15 @@ import { use } from "react";
 import { useAppSelector } from "../../../../lib/hooks";
 import { useDispatch } from "react-redux";
 import { setFavoriteTracks } from "../../../../lib/features/users/userSlice";
-import { ExternalLinkList, ImgContainer } from "@mda/components";
+import {
+  Button,
+  ExternalLinkList,
+  ImgContainer,
+  SidebarButton,
+} from "@mda/components";
 import axiosInstance from "../../../../util/axiosInstance";
 import useSWR from "swr";
+import { useRouter } from "next/navigation";
 const fetcher = (url) => axiosInstance.get(url).then((res) => res.data.data);
 export default function TrackPage({
   params,
@@ -14,6 +20,7 @@ export default function TrackPage({
   params: Promise<{ artistSlug: string; trackId: string }>;
 }) {
   const { artistSlug, trackId } = use(params);
+  const router = useRouter();
   const { data: trackData } = useSWR(
     `/track/slug/${trackId}/artist/${artistSlug}?includeArt=true`,
     fetcher,
@@ -73,7 +80,7 @@ export default function TrackPage({
 
   return (
     <div id="track-page" className="flex flex-col p-4 md:flex-row grow h-full">
-      <div id="track-details" className="mr-8 md:w-1/2">
+      <div id="track-details" className="mr-8 md:w-8/12 md:overflow-y-auto">
         <h1 className="text-2xl font-bold">{trackData.title}</h1>
         {trackData.artistId?.name && (
           <a href={`/artists/${trackData.artistId.slug}`}>
@@ -117,18 +124,26 @@ export default function TrackPage({
         </div>
       </div>
 
-      <div id="track-suggestions" className=" md:w-1/2">
-        <h2 className="text-xl font-semibold">You might also like:</h2>
+      <div
+        id="track-suggestions"
+        className="grow md:border-l md:border-gray-300 md:pl-8 overflow-y-auto"
+      >
+        <h2 className="text-xl font-semibold md:text-center">
+          You might also like
+        </h2>
         {similarTracks && similarTracks.length > 0 ? (
-          <ul className="list-disc list-inside">
+          <div>
             {similarTracks.map((track) => (
-              <li key={track._id}>
-                <a href={`/track/${track.artistSlug}/${track.slug}`}>
-                  {track.title} by {track?.artistName}
-                </a>
-              </li>
+              <SidebarButton
+                textAlign="left"
+                label={`${track.title} by ${track?.artistName}`}
+                key={track._id}
+                onClick={() => {
+                  router.push(`/track/${track.artistSlug}/${track.slug}`);
+                }}
+              />
             ))}
-          </ul>
+          </div>
         ) : (
           <p>No similar tracks found.</p>
         )}

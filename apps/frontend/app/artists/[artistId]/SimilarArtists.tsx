@@ -1,6 +1,7 @@
 import { IArtist } from "@common/types/src/types";
+import { SidebarButton } from "@mda/components";
 import Link from "next/link";
-
+import { useRouter } from "next/navigation";
 interface SimilarArtistsProps {
   similarArtistsData?: IArtist[];
   similarArtistsError?: any;
@@ -12,6 +13,7 @@ export default function SimilarArtists({
   similarArtistsError,
   isSimilarArtistsLoading,
 }: SimilarArtistsProps) {
+  const router = useRouter();
   if (isSimilarArtistsLoading) {
     return <div>Loading...</div>;
   }
@@ -20,15 +22,18 @@ export default function SimilarArtists({
   }
   return (
     <div id="suggestions">
-      <h2 className="text-xl font-semibold mt-4">You might also like:</h2>
+      <h2 className="text-xl font-semibold mt-4">You might also like</h2>
       {similarArtistsData.length > 0 ? (
-        <ul className="list-disc list-inside">
+        <div className="list-disc list-inside">
           {similarArtistsData.map((artist) => (
-            <li key={`similar-artist-${artist.slug}`}>
-              <Link href={`/artists/${artist.slug}`}>{artist.name}</Link>
-            </li>
+            <SidebarButton
+              label={artist.name}
+              key={artist.slug}
+              textAlign="left"
+              onClick={() => router.push(`/artists/${artist.slug}`)}
+            />
           ))}
-        </ul>
+        </div>
       ) : (
         <p>No similar artists found (yet)</p>
       )}

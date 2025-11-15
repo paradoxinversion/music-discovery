@@ -19,7 +19,7 @@ export default function Page() {
     return <AccessUnauthorized />;
   }
   return (
-    <div className="p-4">
+    <div className="p-4 overflow-y-auto w-full">
       <h1 className="text-2xl font-bold mb-4">User Settings</h1>
       <div className="flex space-x-4 mb-4">
         <Button

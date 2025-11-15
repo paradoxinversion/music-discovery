@@ -19,10 +19,10 @@ export default function UserVitalSettings({
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   return (
-    <div>
-      <h1 className="text-2xl font-bold">User Settings</h1>
-      <div id="user-settings-form">
-        <form className="flex flex-col space-y-4 w-64 mt-4">
+    <div className="w-full">
+      <h1 className="text-2xl font-bold ">User Settings</h1>
+      <div id="user-settings-form" className="w-full">
+        <form className="flex flex-col space-y-4 w-full mt-4">
           <label>Username</label>
           <input
             type="text"
@@ -50,13 +50,18 @@ export default function UserVitalSettings({
           <Button label="Update Settings" onClick={() => {}} />
           <Button
             label="Back to Settings"
+            category="secondary"
             onClick={() => setCurrentPage && setCurrentPage("favorites")}
           />
         </form>
       </div>
       <div className="mt-8 border-t pt-4">
         <p className="text-red-500 font-bold">***Danger Zone***</p>
-        <Button label="Delete Account" onClick={() => setPreDelete(true)} />
+        <Button
+          label="Delete Account"
+          category="warning"
+          onClick={() => setPreDelete(true)}
+        />
         <p className="text-sm text-gray-500 mt-2">
           Once you delete your account, there is no going back. <br /> You will
           lose all of your data and there will be no way to get it back. <br />{" "}
@@ -71,6 +76,7 @@ export default function UserVitalSettings({
             <div className="grid grid-cols-2 gap-4 mt-2">
               <Button
                 label="Yes, Delete My Account"
+                category="danger"
                 onClick={async () => {
                   const deletionSuccess = await deleteUser(user.userId);
                   if (deletionSuccess) {

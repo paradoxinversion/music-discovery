@@ -80,7 +80,7 @@ export default function EditTrackPage({
   };
 
   return (
-    <div className="w-full p-4">
+    <div className="w-full p-4 overflow-y-auto">
       <Formik
         initialValues={initialValues}
         onSubmit={async (values) => {

@@ -20,10 +20,12 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="flex h-full flex-grow">
-      <div className="flex-grow md:px-4 py-2">
+    <div className="flex flex-col md:flex-row grow py-2 px-4">
+      <div className="flex-grow md:px-4 py-2 md:overflow-y-auto">
         <header className="px-4">
-          <h1 className={`text-3xl font-bold mb-2 ${unbounded.className}`}>
+          <h1
+            className={`text-xl font-bold md:text-3xl mb-2 text-center ${unbounded.className}`}
+          >
             Discover something you'll love
           </h1>
         </header>

@@ -73,7 +73,7 @@ export default function AddTrackPage({
   };
 
   return (
-    <div className="w-full p-4">
+    <div className="w-full p-4 overflow-y-auto">
       <Formik
         initialValues={initialValues}
         validationSchema={trackSchema}

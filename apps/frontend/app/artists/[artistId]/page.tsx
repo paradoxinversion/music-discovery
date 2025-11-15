@@ -6,14 +6,14 @@ import setFavoriteArtist from "../../../actions/setFavoriteArtist";
 import { useAppSelector } from "../../../lib/hooks";
 import { useDispatch } from "react-redux";
 import { setFavoriteArtists } from "../../../lib/features/users/userSlice";
-import { ImgContainer } from "@mda/components";
+import { ImgContainer, SidebarButton } from "@mda/components";
 import useSWR from "swr";
 import SimilarArtists from "./SimilarArtists";
 import getRandomArtists from "../../../actions/getRandomArtists";
 import axiosInstance from "../../../util/axiosInstance";
 import OtherArtists from "./OtherArtists";
 import { ExternalLinkList } from "@mda/components";
-
+import { useRouter } from "next/navigation";
 const artistFetcher = (url: string) =>
   axiosInstance.get(url).then((res) => res.data.data);
 const similarArtistsFetcher = (url: string) =>
@@ -27,7 +27,7 @@ export default function ArtistPage({
   params: Promise<{ artistId: string }>;
 }) {
   const artistId = use(params).artistId;
-
+  const router = useRouter();
   const {
     data: mainArtistData,
     error: mainArtistDataError,
@@ -99,8 +99,8 @@ export default function ArtistPage({
   }
 
   return (
-    <div className="flex flex-col md:flex-row grow py-2 px-4">
-      <div id="artist-details" className="mr-8 md:w-1/2">
+    <div className="flex flex-col lg:flex-row grow py-2 px-4">
+      <div id="artist-details" className="mr-8 lg:w-8/12 lg:overflow-y-auto">
         <h1 className="text-2xl font-bold">{mainArtistData.name}</h1>
         <ImgContainer
           src={
@@ -135,19 +135,24 @@ export default function ArtistPage({
           title="Find me on"
         />
       </div>
-      <div className="md:w-1/3">
+      <div className="grow lg:border-l lg:border-gray-300 lg:pl-8 lgoverflow-y-auto">
         <div id="artist-tracks">
-          <h2 className="text-xl font-semibold">Tracks</h2>
+          <h2 className="text-xl font-semibold">
+            Tracks by {mainArtistData.name}
+          </h2>
           {mainArtistData.tracks && mainArtistData.tracks.length > 0 ? (
-            <ul className="list-disc list-inside">
+            <div className="list-disc list-inside">
               {mainArtistData.tracks.map((track) => (
-                <li key={track._id}>
-                  <Link href={`/track/${mainArtistData.slug}/${track.slug}`}>
-                    {track.title}
-                  </Link>
-                </li>
+                <SidebarButton
+                  label={track.title}
+                  key={track._id}
+                  textAlign="left"
+                  onClick={() =>
+                    router.push(`/track/${mainArtistData.slug}/${track.slug}`)
+                  }
+                />
               ))}
-            </ul>
+            </div>
           ) : (
             <p>No tracks available.</p>
           )}
