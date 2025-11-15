@@ -5,6 +5,7 @@ import { Button, ErrorText } from "@mda/components";
 import axiosInstance from "../../util/axiosInstance";
 import * as Yup from "yup";
 import toast from "react-hot-toast";
+import Link from "next/link";
 interface SignUpFormValues {
   email: string;
   username: string;
@@ -32,8 +33,11 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="flex flex-col items-center min-h-screen justify-center py-2 w-full">
+    <div className="flex flex-col items-center justify-center py-2 w-full">
       <h1 className="text-3xl font-bold mb-4">Sign Up</h1>
+      <Link href="/login" className="mb-4 text-blue-500 underline">
+        Already have an account? Login
+      </Link>
       <Formik
         initialValues={initialValues}
         validationSchema={signUpSchema}
@@ -51,7 +55,7 @@ export default function SignUpPage() {
       >
         {({ handleSubmit, errors, touched }) => (
           <form
-            className="flex flex-col gap-4 mt-4"
+            className="flex flex-col space-y-4 w-80"
             onSubmit={(e) => {
               e.preventDefault();
               handleSubmit(e);
@@ -74,18 +78,34 @@ export default function SignUpPage() {
             ) : null}
             <p>
               By submitting this form, you agree to our{" "}
-              <a target="blank" href="/tos">
+              <a target="blank" href="/tos" className="text-blue-500 underline">
                 Terms of Service
-              </a>{" "}
-              and{" "}
-              <a target="blank" href="/privacy">
+              </a>
+              ,{" "}
+              <a
+                target="blank"
+                href="/privacy"
+                className="text-blue-500 underline"
+              >
                 Privacy Policy
+              </a>
+              , and{" "}
+              <a
+                target="blank"
+                href="/community-standards"
+                className="text-blue-500 underline"
+              >
+                Community Guidelines
               </a>
               .
             </p>
             <p>
               Don't forget to review our{" "}
-              <a target="blank" href="/community-standards">
+              <a
+                target="blank"
+                href="/community-standards"
+                className="text-blue-500 underline"
+              >
                 Community Guidelines
               </a>
               !

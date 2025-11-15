@@ -9,6 +9,7 @@ import * as Yup from "yup";
 import axiosInstance from "../../util/axiosInstance";
 import { Button, ErrorText } from "@mda/components";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
 interface LoginFormValues {
   username: string;
@@ -42,8 +43,11 @@ export default function Page() {
     });
   }, []);
   return (
-    <div className="flex flex-col items-center min-h-screen justify-center py-2 w-full">
+    <div className="flex flex-col items-center justify-center py-2 w-full">
       <h1 className="text-3xl font-bold mb-4">Login</h1>
+      <Link href="/signup" className="mb-4 text-blue-500 underline">
+        Don't have an account? Sign Up
+      </Link>
       <Formik
         initialValues={initialValues}
         validationSchema={loginSchema}
