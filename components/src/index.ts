@@ -6,7 +6,9 @@ import ResourceTile from "./ResourceTile/ResourceTile";
 import ResourceTileList from "./ResourceTileList/ResourceTileList";
 import useWindowDimensions from "./hooks/useWindowDimensions";
 import ExternalLinkList from "./ExternalLinkList/ExternalLinkList";
-
+import Sidebar from "./Sidebar/Sidebar/Sidebar";
+import SidebarSection from "./Sidebar/SidebarSection/SidebarSection";
+import SidebarButton from "./Sidebar/SidebarButton/SidebarButton";
 export {
   Button,
   Scrobbler,
@@ -16,4 +18,7 @@ export {
   ResourceTileList,
   useWindowDimensions,
   ExternalLinkList,
+  Sidebar,
+  SidebarSection,
+  SidebarButton,
 };

@@ -12,7 +12,7 @@ export default function RootLayout({
   return (
     <StoreProvider>
       <html lang="en">
-        <body>
+        <body className="bg-stone-950 text-white">
           <div className="@container mx-auto flex flex-col h-screen">
             <Toaster />
             <Header />

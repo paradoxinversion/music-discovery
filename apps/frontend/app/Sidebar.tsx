@@ -3,7 +3,7 @@ import axios from "axios";
 import { useAppSelector } from "../lib/hooks";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-
+import { Sidebar as SidebarComponent } from "@mda/components";
 export default function Sidebar() {
   const pathname = usePathname();
   const [favoriteArtists, setFavoriteArtists] = useState([]);
@@ -33,41 +33,26 @@ export default function Sidebar() {
   ) {
     return null;
   }
+
+  const goToArtist = (slug: string) => {
+    router.push(`/artists/${slug}`);
+  };
+
+  const goToTrack = (artistSlug: string, trackSlug: string) => {
+    router.push(`/track/${artistSlug}/${trackSlug}`);
+  };
   return (
-    <div className="hidden min-w-64 w-64 border-r md:block p-4 space-y-6">
-      <div id="sidebar-favorite-artists">
-        <p>Favorite Artists</p>
-        {favoriteArtists.map((artist) => (
-          <div
-            key={artist._id}
-            className="mt-2 hover:bg-gray-600 cursor-pointer"
-          >
-            <p
-              className="no-underline pl-2"
-              onClick={() => router.push(`/artists/${artist.slug}`)}
-            >
-              {artist.name}
-            </p>
-          </div>
-        ))}
+    <div className=" border-r border-gray-800 md:sticky md:top-0 overflow-y-auto">
+      <div className="">
+        <p>Bar</p>
       </div>
-      <div id="sidebar-favorite-tracks">
-        <p>Favorite Tracks</p>
-        {favoriteTracks.map((track) => (
-          <div
-            key={track._id}
-            className="mt-2 hover:bg-gray-600 cursor-pointer"
-          >
-            <p
-              className="no-underline pl-2"
-              onClick={() =>
-                router.push(`/track/${track.artistSlug}/${track.slug}`)
-              }
-            >
-              {track.title}
-            </p>
-          </div>
-        ))}
+      <div className="hidden md:block">
+        <SidebarComponent
+          favoriteArtists={favoriteArtists}
+          favoriteTracks={favoriteTracks}
+          onArtistClick={goToArtist}
+          onTrackClick={goToTrack}
+        />
       </div>
     </div>
   );
