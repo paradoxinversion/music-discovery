@@ -6,11 +6,15 @@ import axiosInstance from "../../../util/axiosInstance";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import useGenres from "../../../swrHooks/useGenres";
+import { SocialPlatformLinks, socialPlatformLinks } from "@common/json-data";
 interface ArtistSignupFormValues {
   artistName: string;
   genre: string;
   biography: string;
   artistArt?: File | string;
+  links?: {
+    [key in SocialPlatformLinks]?: string;
+  };
 }
 
 const artistSignupSchema = Yup.object().shape({
@@ -35,6 +39,13 @@ export default function ArtistSignup() {
     genre: "",
     biography: "",
     artistArt: "",
+    links: Object.keys(socialPlatformLinks).reduce(
+      (acc, key) => {
+        acc[key as SocialPlatformLinks] = "";
+        return acc;
+      },
+      {} as { [key in SocialPlatformLinks]?: string },
+    ),
   };
   if (genresLoading) {
     return <div>Loading...</div>;
@@ -43,7 +54,7 @@ export default function ArtistSignup() {
     return <div>Error loading genres</div>;
   }
   return (
-    <div className="mt-4">
+    <div className="mt-4 overflow-y-auto">
       <h1 className="text-2xl font-bold">Artist Setup</h1>
       <p>By adding an artist, you assert that:</p>
       <ul className="list-disc list-inside">
@@ -64,10 +75,24 @@ export default function ArtistSignup() {
               name: values.artistName,
               genre: values.genre,
               biography: values.biography,
+              links: Object.keys(socialPlatformLinks).reduce(
+                (acc, key) => {
+                  const v = values.links[key as SocialPlatformLinks];
+                  if (v) {
+                    acc[key as SocialPlatformLinks] = socialPlatformLinks[
+                      key as SocialPlatformLinks
+                    ].urlPattern.replace(
+                      "{url}",
+                      values.links[key as SocialPlatformLinks],
+                    );
+                  }
+                  return acc;
+                },
+                {} as { [key in SocialPlatformLinks]?: string },
+              ),
               artistArt:
                 values.artistArt instanceof File ? values.artistArt : undefined,
             };
-
             await axiosInstance.post(`/artists`, artistSubmissionData, {
               withCredentials: true,
               headers: {
@@ -111,6 +136,21 @@ export default function ArtistSignup() {
             {errors.biography && touched.biography ? (
               <ErrorText message={errors.biography} />
             ) : null}
+            {Object.values(socialPlatformLinks)
+              .filter((platform) => platform.name !== "Bandcamp")
+              .map((platform) => (
+                <div key={platform.name} className="flex flex-col">
+                  <label htmlFor={`links.${platform.name}`}>
+                    {platform.name}
+                  </label>
+                  <Field
+                    type="text"
+                    name={`links.${platform.name}`}
+                    id={`links.${platform.name}`}
+                    placeholder={`Enter your ${platform.name} link`}
+                  />
+                </div>
+              ))}
 
             <label htmlFor="artistArt">Track Art</label>
             <input
