@@ -15,7 +15,7 @@ export default function TrackPage({
 }) {
   const { artistSlug, trackId } = use(params);
   const { data: trackData } = useSWR(
-    `/track/slug/${trackId}/artist/${artistSlug}`,
+    `/track/slug/${trackId}/artist/${artistSlug}?includeArt=true`,
     fetcher,
     {
       revalidateOnFocus: false,

@@ -2,13 +2,16 @@
 import { Button } from "@mda/components";
 import { useAppSelector } from "../../../lib/hooks";
 import { useState } from "react";
-
+import deleteUser from "../../../actions/deleteUser";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 interface UserVitalSettingsProps {
   setCurrentPage?: (page: string) => void;
 }
 export default function UserVitalSettings({
   setCurrentPage,
 }: UserVitalSettingsProps) {
+  const router = useRouter();
   const user = useAppSelector((state) => state.user);
   const [preDelete, setPreDelete] = useState(false);
   const [username, setUsername] = useState(user.username);
@@ -66,7 +69,19 @@ export default function UserVitalSettings({
               action cannot be undone.
             </p>
             <div className="grid grid-cols-2 gap-4 mt-2">
-              <Button label="Yes, Delete My Account" onClick={() => {}} />
+              <Button
+                label="Yes, Delete My Account"
+                onClick={async () => {
+                  const deletionSuccess = await deleteUser(user.userId);
+                  if (deletionSuccess) {
+                    toast.success("Account deleted successfully.");
+                    router.push("/");
+                  } else {
+                    toast.error("There was an error deleting your account.");
+                    setPreDelete(false);
+                  }
+                }}
+              />
               <Button label="Cancel" onClick={() => setPreDelete(false)} />
             </div>
           </div>

@@ -5,6 +5,7 @@ import { ErrorText } from "@mda/components";
 import axiosInstance from "../../../util/axiosInstance";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import useGenres from "../../../swrHooks/useGenres";
 interface ArtistSignupFormValues {
   artistName: string;
   genre: string;
@@ -27,6 +28,7 @@ const artistSignupSchema = Yup.object().shape({
 });
 
 export default function ArtistSignup() {
+  const { genres, genresLoading, genreLoadError } = useGenres();
   const router = useRouter();
   const initialValues: ArtistSignupFormValues = {
     artistName: "",
@@ -34,10 +36,25 @@ export default function ArtistSignup() {
     biography: "",
     artistArt: "",
   };
-
+  if (genresLoading) {
+    return <div>Loading...</div>;
+  }
+  if (genreLoadError) {
+    return <div>Error loading genres</div>;
+  }
   return (
     <div className="mt-4">
       <h1 className="text-2xl font-bold">Artist Setup</h1>
+      <p>By adding an artist, you assert that:</p>
+      <ul className="list-disc list-inside">
+        <li>
+          You are the rightful owner or have the necessary rights to manage the
+          artist profile.
+        </li>
+        <li>You have released music under the artist's name.</li>
+        <li>You agree to our terms of service and privacy policy.</li>
+        <li>You will provide accurate and truthful information.</li>
+      </ul>
       <Formik
         initialValues={initialValues}
         validationSchema={artistSignupSchema}
@@ -77,7 +94,14 @@ export default function ArtistSignup() {
             ) : null}
 
             <label htmlFor="genre">Genre*</label>
-            <Field id="genre" type="text" name="genre" />
+            <Field id="genre" as="select" name="genre">
+              <option value="">Select a genre</option>
+              {genres.genres.map((genre) => (
+                <option key={genre} value={genre}>
+                  {genre}
+                </option>
+              ))}
+            </Field>
             {errors.genre && touched.genre ? (
               <ErrorText message={errors.genre} />
             ) : null}
