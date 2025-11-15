@@ -14,5 +14,5 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Primary: Story = {
-  args: { label: "Sidebar Button" },
+  args: { label: "Sidebar Button", textAlign: "center" },
 };

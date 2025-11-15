@@ -15,7 +15,7 @@ const Sidebar = ({
   onTrackClick,
 }: SidebarProps) => {
   return (
-    <div className="min-w-64 w-64 md:block p-4 space-y-6">
+    <div className="w-full md:min-w-64 md:w-64 md:block space-y-6 overflow-y-auto">
       <SidebarSection title="Favorite Artists">
         {favoriteArtists.map((artist) => (
           <SidebarButton
