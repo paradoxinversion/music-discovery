@@ -1,4 +1,8 @@
 import { ApiError, Storage } from "@google-cloud/storage";
+import {
+  createImageUploadedEvent,
+  logServerEvent,
+} from "../serverEvents/serverEvents";
 let storage: Storage;
 const imgBucketName = "mda-img-store";
 if (process.env.NODE_ENV === "production") {
@@ -43,13 +47,13 @@ async function getImageContents(filePath: string) {
 async function upload(destFileName: string, contents: Express.Multer.File) {
   try {
     const { buffer, mimetype } = contents;
-    console.log("Storage url", storage.baseUrl);
     await storage
       .bucket(imgBucketName)
       .file(destFileName)
       .save(buffer, { contentType: mimetype });
 
     console.log(`${destFileName} uploaded to ${imgBucketName}.`);
+    logServerEvent(createImageUploadedEvent(destFileName));
     return destFileName;
   } catch (error) {
     console.error("Error uploading file to storage:", error);
@@ -73,7 +77,6 @@ async function emptyBucket() {
     const [files] = await bucket.getFiles();
     const deletePromises = files.map((file) => file.delete());
     await Promise.all(deletePromises);
-    // console.log(`Emptied bucket ${imgBucketName}.`);
   } catch (error) {
     console.error("Error emptying bucket:", error);
     throw error;

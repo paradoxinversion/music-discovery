@@ -20,7 +20,7 @@ export const createArtist = async (
   userId: string,
   artistData: Omit<IArtist, "managingUserId" | "slug">,
   artistArt?: Express.Multer.File,
-): Promise<IArtist> => {
+) => {
   try {
     const managingUser = await User.findById(userId);
     if (!managingUser) {
@@ -34,7 +34,11 @@ export const createArtist = async (
       );
       artistData.artistArt = artistArtDestination;
     }
-    const newArtist = new Artist({ ...artistData, managingUserId: userId });
+    const newArtist = new Artist({
+      ...artistData,
+      links: { ...(artistData.links || {}) },
+      managingUserId: userId,
+    });
     await newArtist.save();
     return newArtist.toJSON({ flattenMaps: true });
   } catch (error) {
@@ -181,6 +185,7 @@ export const deleteArtist = async (userId: string, artistId: string) => {
       _id: artistId,
       managingUserId: userId,
     });
+
     if (!deletedArtist) {
       throw new Error(
         `Artist with ID ${artistId} not found or user not authorized`,
@@ -195,7 +200,10 @@ export const deleteArtist = async (userId: string, artistId: string) => {
       { favoriteArtists: artistId },
       { $pull: { favoriteArtists: artistId } },
     );
-    return true;
+    return {
+      success: true,
+      artist: deletedArtist.toJSON({ flattenMaps: true }),
+    };
   } catch (error) {
     throw new Error(`Error deleting artist: ${error}`);
   }

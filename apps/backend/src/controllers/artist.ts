@@ -13,22 +13,58 @@ import {
 import { IArtist } from "@common/types/src/types";
 import Joi from "joi";
 import { addFavoriteArtist, removeFavoriteArtist } from "../db/actions/User";
-import { createImagePath } from "../utils/imageUtilities";
 import { getImageAtPath } from "../db/actions/Storage";
+import {
+  createArtistProfileCreatedEvent,
+  createArtistProfileDeletedEvent,
+  logServerEvent,
+} from "../serverEvents/serverEvents";
+import { socialPlatformLinks } from "@common/json-data";
 
 export const createNewArtist = async (req: Request, res: Response) => {
+  const MAX_BIO = 1500;
+  const MAX_NAME = 100;
+  const MAX_GENRE = 50;
+  const MAX_FILE_BYTES = 2 * 1024 * 1024; // 2MB
+
+  function escapeRegex(s: string) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  /**
+   * Build per-platform regex from urlPattern like "https://twitter.com/{url}"
+   * result becomes ^https:\/\/twitter\.com\/(.+)$
+   */
+  const linkSchemas: Record<string, Joi.StringSchema> = Object.keys(
+    socialPlatformLinks,
+  ).reduce(
+    (acc, key) => {
+      const pattern = socialPlatformLinks[key].urlPattern || "{url}";
+      const rxSource = escapeRegex(pattern).replace(
+        escapeRegex("{url}"),
+        "(.+)",
+      );
+      const rx = new RegExp(`^${rxSource}$`);
+      acc[key] = Joi.string()
+        .uri()
+        .pattern(rx)
+        .messages({
+          "string.uri": `${key} link must be a valid URI`,
+          "string.pattern.base": `${key} link must match platform pattern`,
+        });
+      return acc;
+    },
+    {} as Record<string, Joi.StringSchema>,
+  );
   const artistSchema = Joi.object({
-    name: Joi.string().min(2).max(100).required(),
-    genre: Joi.string().min(2).max(100).required(),
-    biography: Joi.string().min(10).max(1000).required(),
-    links: Joi.object({
-      website: Joi.string().uri().optional(),
-      facebook: Joi.string().uri().optional(),
-      twitter: Joi.string().uri().optional(),
-      instagram: Joi.string().uri().optional(),
-    }).optional(),
-  });
-  const { error } = artistSchema.validate(req.body);
+    name: Joi.string().min(2).max(MAX_NAME).required(),
+    genre: Joi.string().max(MAX_GENRE).required(),
+    biography: Joi.string().allow("", null).max(MAX_BIO),
+    // links is an object whose keys are the known platform names and values are validated strings
+    links: Joi.object().keys(linkSchemas).optional(),
+    // artistArt is multipart file; validate separately in middleware
+  }).required();
+  const { value, error } = artistSchema.validate(req.body);
   if (error) {
     res.status(400).json({ status: "ERROR", message: error.message });
     return;
@@ -36,12 +72,15 @@ export const createNewArtist = async (req: Request, res: Response) => {
   try {
     const user = req.user;
     const artistData: Omit<IArtist, "managingUserId" | "slug"> = {
-      name: req.body.name,
-      genre: req.body.genre,
-      biography: req.body.biography,
-      links: req.body.links,
+      name: value.name,
+      genre: value.genre,
+      biography: value.biography,
+      links: value.links,
     };
     const artist = await createArtist(user._id, artistData, req.file);
+    logServerEvent(
+      createArtistProfileCreatedEvent(artist._id.toString(), artist.name),
+    );
     res.status(200).json({ status: "OK", data: artist });
   } catch (error) {
     if (error instanceof Error) {
@@ -218,7 +257,10 @@ export const deleteArtist = async (req: Request, res: Response) => {
     res.status(400).json({ status: "ERROR", message: "Artist ID is required" });
     return;
   }
-  await deleteArtistAction(req.user._id, req.params.id);
+  const result = await deleteArtistAction(req.user._id, req.params.id);
+  logServerEvent(
+    createArtistProfileDeletedEvent(req.params.id, result.artist.name),
+  );
   res
     .status(200)
     .json({ status: "OK", message: "Artist deleted successfully" });
