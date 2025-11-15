@@ -99,7 +99,7 @@ export default function ArtistPage({
   }
 
   return (
-    <div className="flex flex-col lg:flex-row grow py-2 px-4">
+    <div id="artist-page" className="flex flex-col lg:flex-row grow py-2 px-4">
       <div id="artist-details" className="mr-8 lg:w-8/12 lg:overflow-y-auto">
         <h1 className="text-2xl font-bold">{mainArtistData.name}</h1>
         <ImgContainer
@@ -135,7 +135,7 @@ export default function ArtistPage({
           title="Find me on"
         />
       </div>
-      <div className="grow lg:border-l lg:border-gray-300 lg:pl-8 lgoverflow-y-auto">
+      <div className="grow lg:border-l lg:border-gray-300 lg:pl-8 lg:overflow-y-auto">
         <div id="artist-tracks">
           <h2 className="text-xl font-semibold">
             Tracks by {mainArtistData.name}
