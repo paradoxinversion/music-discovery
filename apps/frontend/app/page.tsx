@@ -6,7 +6,13 @@ import Link from "next/link";
 export default function Page() {
   const router = useRouter();
   return (
-    <div className="flex flex-col flex-grow items-center py-2">
+    <div className="flex flex-col grow items-center py-2">
+      <div id="beta-banner" className="bg-yellow-800 w-full p-2 mb-4">
+        <p className="text-center text-sm">
+          🚧 This site is currently in beta. Some features may not work as
+          expected. Please report any bugs or issues you encounter. 🚧
+        </p>
+      </div>
       <div className="container relative h-96">
         <img
           src="/img/marcela-laskoski-YrtFlrLo2DQ-unsplash.jpg"

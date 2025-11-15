@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Button, ErrorText } from "@mda/components";
 import axiosInstance from "../../util/axiosInstance";
 import * as Yup from "yup";
-
+import toast from "react-hot-toast";
 interface SignUpFormValues {
   email: string;
   username: string;
@@ -41,9 +41,11 @@ export default function SignUpPage() {
           try {
             // TODO: Automatically log in the user after signup
             await axiosInstance.post("/auth/sign-up", values);
+            toast.success("Sign up successful");
             router.push("/login");
           } catch (error) {
             console.error("Signup error:", error.response.data);
+            toast.error("Sign up failed. Please review the form andtry again.");
           }
         }}
       >
