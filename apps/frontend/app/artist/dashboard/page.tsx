@@ -68,6 +68,7 @@ export default function Page() {
               <Button
                 key={artist._id}
                 label={artist.name}
+                category="secondary"
                 onClick={() => router.push(`/artist/dashboard/${artist._id}`)}
               />
             ))}

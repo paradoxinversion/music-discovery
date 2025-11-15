@@ -177,6 +177,7 @@ export default function EditArtistForm({
             <Button label="Save Changes" type="submit" />
             <Button
               label="Cancel"
+              category="secondary"
               onClick={() => setEditArtistDataAction?.(false)}
             />
           </div>

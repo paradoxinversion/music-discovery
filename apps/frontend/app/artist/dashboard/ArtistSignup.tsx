@@ -1,7 +1,7 @@
 "use client";
 import { Formik, Field } from "formik";
 import * as Yup from "yup";
-import { ErrorText } from "@mda/components";
+import { Button, ErrorText } from "@mda/components";
 import axiosInstance from "../../../util/axiosInstance";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -121,13 +121,7 @@ export default function ArtistSignup() {
                 setFieldValue("artistArt", event.currentTarget.files[0])
               }
             />
-
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded"
-            >
-              Save Artist Profile
-            </button>
+            <Button label="Save Artist Profile" type="submit" />
           </form>
         )}
       </Formik>

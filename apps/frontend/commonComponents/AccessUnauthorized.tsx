@@ -1,3 +1,4 @@
+import { Button } from "@mda/components";
 import Link from "next/link";
 
 export default function AccessUnauthorized() {
@@ -13,16 +14,14 @@ export default function AccessUnauthorized() {
         redirected to the Discover page, you may already be logged in and this
         screen may be an error.)
       </p>
-      <Link href="/login">
-        <button className="mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-          Go to Login Page
-        </button>
-      </Link>
-      <Link href="/discover">
-        <button className="mt-4 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
-          Go to Discover Page
-        </button>
-      </Link>
+      <div className="flex gap-4">
+        <Link href="/login">
+          <Button label="Go to Login Page" />
+        </Link>
+        <Link href="/discover">
+          <Button label="Go to Discover Page" />
+        </Link>
+      </div>
     </div>
   );
 }

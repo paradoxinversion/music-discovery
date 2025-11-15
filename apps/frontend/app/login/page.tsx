@@ -7,7 +7,7 @@ import { setUser } from "../../lib/features/users/userSlice";
 import { Formik, Field } from "formik";
 import * as Yup from "yup";
 import axiosInstance from "../../util/axiosInstance";
-import { ErrorText } from "@mda/components";
+import { Button, ErrorText } from "@mda/components";
 import toast from "react-hot-toast";
 
 interface LoginFormValues {
@@ -85,12 +85,7 @@ export default function Page() {
             {errors.password && touched.password ? (
               <ErrorText message={errors.password} />
             ) : null}
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-              Login
-            </button>
+            <Button label="Login" type="submit" />
           </form>
         )}
       </Formik>

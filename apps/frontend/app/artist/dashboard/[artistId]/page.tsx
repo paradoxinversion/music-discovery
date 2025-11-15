@@ -53,22 +53,25 @@ export default function Page({
           <div className="flex flex-col gap-4 md:flex-row">
             <Button
               label="Go to Artist Page"
+              category="secondary"
               onClick={() => router.push(`/artists/${artistData.slug}`)}
             />
             {!editArtistData && (
               <Button
                 label="Edit Artist Details"
+                category="secondary"
                 onClick={() => setEditArtistData(true)}
               />
             )}
             <Button
               label="Delete Artist Profile"
+              category="warning"
               onClick={() => setPrepareDeleteArtist(true)}
             />
           </div>
           <div id="delete-artist-confirmation" className="my-4">
             {prepareDeleteArtist && (
-              <div className="border border-red-600 p-4 rounded-md bg-red-50">
+              <div className="border border-red-600 p-4 rounded-md ">
                 <p className="text-red-700 mb-2">
                   Are you sure you want to delete this artist profile? This
                   action cannot be undone.
@@ -76,6 +79,7 @@ export default function Page({
                 <div className="flex gap-4">
                   <Button
                     label="Confirm Delete"
+                    category="danger"
                     onClick={async () => {
                       // Call delete artist action
                       const response = await axiosInstance.delete(
@@ -91,6 +95,7 @@ export default function Page({
                   />
                   <Button
                     label="Cancel"
+                    category="secondary"
                     onClick={() => setPrepareDeleteArtist(false)}
                   />
                 </div>
@@ -114,17 +119,18 @@ export default function Page({
               }
             />
             {artistTracks.length > 0 ? (
-              <div className="flex flex-col w-full mt-4 border border-gray-700 rounded-md p-2">
+              <div className="flex flex-col w-full mt-4 rounded-md">
                 {artistTracks.map((track) => (
                   <div
                     key={track._id}
-                    className="flex p-2 my-2 w-full items-center  hover:bg-gray-800 rounded-md"
+                    className="flex p-2 my-2 w-full items-center border border-gray-500 hover:bg-gray-900 rounded-md transition-colors"
                   >
                     {track.title}
-                    <div className="flex-grow" />
+                    <div className="grow" />
                     <div className="space-x-4">
                       <Button
                         label="Edit"
+                        category="secondary"
                         onClick={() =>
                           router.push(
                             `/artist/dashboard/${artistId}/edit-track/${track._id}`,

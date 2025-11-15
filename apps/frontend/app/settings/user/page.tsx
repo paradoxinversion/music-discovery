@@ -24,9 +24,14 @@ export default function Page() {
       <div className="flex space-x-4 mb-4">
         <Button
           label="Artist Settings"
+          category="secondary"
           onClick={() => router.push("/artist/dashboard")}
         />
-        <Button label="User Data" onClick={() => setCurrentPage("data")} />
+        <Button
+          label="User Data"
+          category="secondary"
+          onClick={() => setCurrentPage("data")}
+        />
       </div>
       <div>
         {currentPage === "favorites" && <div>User Favorites Content</div>}

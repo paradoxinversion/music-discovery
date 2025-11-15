@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { use, useState } from "react";
 import submitEditTrack from "../../../../../../actions/submitEditTrack";
 import { Formik, Field } from "formik";
-import { ErrorText } from "@mda/components";
+import { Button, ErrorText } from "@mda/components";
 import axiosInstance from "../../../../../../util/axiosInstance";
 import useSWR from "swr";
 import deleteTrack from "../../../../../../actions/deleteTrack";
@@ -158,26 +158,17 @@ export default function EditTrackPage({
               }
             />
             <div className="flex gap-4">
-              <button
-                type="submit"
-                className="bg-blue-500 text-white p-2 mt-4 rounded"
-              >
-                Submit
-              </button>
-              <button
-                type="button"
-                className="bg-red-500 text-white p-2 mt-4 rounded"
+              <Button label="Submit" type="submit" />
+              <Button
+                label="Delete Track"
+                category="secondary"
                 onClick={() => setConfirmDelete(true)}
-              >
-                Delete Track
-              </button>
-              <button
-                type="button"
-                className="bg-blue-500 text-white p-2 mt-4 rounded"
+              />
+              <Button
+                label="Cancel"
+                category="secondary"
                 onClick={() => router.push(`/artist/dashboard/${artistId}`)}
-              >
-                Cancel
-              </button>
+              />
             </div>
             {confirmDelete && (
               <div className="mt-4">
