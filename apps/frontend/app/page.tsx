@@ -3,23 +3,23 @@ import { useRouter } from "next/navigation";
 import { unbounded } from "@/fonts";
 import Link from "next/link";
 
-export default function Page() {
+export default function HomePage() {
   const router = useRouter();
   return (
-    <div className="flex flex-col grow items-center py-2">
-      <div id="beta-banner" className="bg-yellow-800 w-full p-2 mb-4">
+    <div className="flex flex-col grow items-center py-2 overflow-y-scroll">
+      <section id="beta-banner" className="bg-yellow-800 w-full p-2 mb-4">
         <p className="text-center text-sm">
           🚧 This site is currently in beta. Some features may not work as
           expected. Please report any bugs or issues you encounter. 🚧
         </p>
-      </div>
-      <div className="container relative h-96">
+      </section>
+      <section className="container relative h-96">
         <img
           src="/img/marcela-laskoski-YrtFlrLo2DQ-unsplash.jpg"
           alt=""
           className="relative rounded-lg object-none object-bottom-left w-full"
         />
-        <div className="px-4 py-8 absolute top-0 left-0 text-white bg-black bg-opacity-50 rounded-lg m-4 md:w-1/2">
+        <div className="px-4 py-8 absolute top-0 left-0 text-white bg-black bg-opacity-50 rounded-lg m-4 md:w-2/3">
           <p
             className={`text-4xl font-bold opacity-100 ${unbounded.className}`}
           >
@@ -46,14 +46,14 @@ export default function Page() {
             </a>
           </p>
         </div>
-      </div>
-      <div className="container relative h-96 overflow-hidden">
+      </section>
+      <section className="container relative h-96 overflow-hidden">
         <img
           src="/img/eric-nopanen-8e0EHPUx3Mo-unsplash.jpg"
           alt=""
           className="relative rounded-lg object-none object-bottom-left w-full"
         />
-        <div className="p-4 absolute top-0 right-0 text-white bg-black bg-opacity-50 rounded-lg m-4 md:w-1/2">
+        <div className="p-4 absolute top-0 right-0 text-white bg-black bg-opacity-50 rounded-lg m-4 md:w-2/3">
           <p className={`mt-4 text-4xl font-bold ${unbounded.className}`}>
             For Artists. For Fans. <br /> For Everyone. <br />
             For free.
@@ -80,14 +80,14 @@ export default function Page() {
             </a>
           </p>
         </div>
-      </div>
-      <div className="container relative h-96 overflow-hidden">
+      </section>
+      <section className="container relative h-96 overflow-hidden">
         <img
           src="/img/norman-hermle-MMqbhMWpqg8-unsplash.jpg"
           alt=""
           className="relative rounded-lg object-contain object-bottom-left w-full"
         />
-        <div className="px-4 py-8  absolute top-0 left-0 text-white bg-black bg-opacity-50 rounded-lg m-4 md:w-1/2">
+        <div className="px-4 py-8  absolute top-0 left-0 text-white bg-black bg-opacity-50 rounded-lg m-4 md:w-2/3">
           <p className={`mt-4 text-3xl font-bold ${unbounded.className}`}>
             The Algorithm Hates You (but we don't)
           </p>
@@ -114,7 +114,7 @@ export default function Page() {
             </a>
           </p>
         </div>
-      </div>
+      </section>
       {/* <Button
         label="Discover New Music. Now."
         onClick={() => router.push(`/discover`)}
