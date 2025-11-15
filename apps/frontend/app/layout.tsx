@@ -16,7 +16,7 @@ export default function RootLayout({
           <div className="@container mx-auto flex flex-col h-screen">
             <Toaster />
             <Header />
-            <div className="flex flex-col md:flex-row grow">
+            <div className="flex flex-col md:flex-row grow overflow-y-scroll">
               <Sidebar />
               {children}
             </div>
