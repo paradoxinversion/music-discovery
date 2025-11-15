@@ -19,7 +19,7 @@ const submitTrack = async (req: Request, res: Response) => {
     title: Joi.string().required(),
     artistId: Joi.string().required(),
     genre: Joi.string().required(),
-    isrc: Joi.string().optional(),
+    isrc: Joi.string().allow("").optional(),
     trackArt: Joi.any().optional(),
     links: Joi.object()
       // .pattern(

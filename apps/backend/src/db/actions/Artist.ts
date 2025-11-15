@@ -3,7 +3,7 @@ import Artist from "../models/Artist";
 import User from "../models/User";
 import Album from "../models/Album";
 import Track from "../models/Track";
-import { upload } from "../../cloud/storage";
+import { deleteFile, upload } from "../../cloud/storage";
 import { createImagePath } from "../../utils/imageUtilities";
 
 // NOTE: Return values from mongoose documents with Map fields need to be converted to JSON with
@@ -27,7 +27,7 @@ export const createArtist = async (
       throw new Error(`User with ID ${userId} not found`);
     }
     let artistArtDestination = null;
-    if (process.env.NODE_ENV === "production" && artistArt) {
+    if (artistArt) {
       artistArtDestination = await upload(
         createImagePath(managingUser, artistArt, artistData.name),
         artistArt,
@@ -185,6 +185,9 @@ export const deleteArtist = async (userId: string, artistId: string) => {
       throw new Error(
         `Artist with ID ${artistId} not found or user not authorized`,
       );
+    }
+    if (deletedArtist.artistArt) {
+      await deleteFile(deletedArtist.artistArt);
     }
     await Album.deleteMany({ artistId: artistId });
     await Track.deleteMany({ artistId: artistId });

@@ -26,6 +26,9 @@ export default async function proxy(request: NextRequest) {
   }
 }
 
+// export const config = {
+//   matcher: ["/artist/:path*", "/settings/:path*"],
+// };
 export const config = {
-  matcher: ["/artist/:path*", "/settings/:path*"],
+  matcher: ["/experimental/:path*"],
 };

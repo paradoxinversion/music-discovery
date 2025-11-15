@@ -4,6 +4,7 @@ import {
   getFavoriteTracks as getFavoriteTracksAction,
   getFavorites as getFavoritesAction,
   getManagedArtists as getManagedArtistsAction,
+  deleteUser as deleteUserAction,
 } from "../db/actions/User";
 
 export const getManagedArtists = async (req: Request, res: Response) => {
@@ -53,6 +54,32 @@ export const getFavorites = async (req: Request, res: Response) => {
     const userId = req.user._id;
     const favorites = await getFavoritesAction(userId);
     res.status(200).json({ status: "OK", favorites });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({ status: "ERROR", message: error.message });
+    }
+  }
+};
+
+export const deleteUser = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.userId;
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ status: "ERROR", message: "User ID is required" });
+    }
+    // Ensure the user is deleting their own account
+    if (req.user._id.toString() !== userId) {
+      return res
+        .status(403)
+        .json({ status: "ERROR", message: "Unauthorized to delete this user" });
+    }
+
+    await deleteUserAction(userId);
+    res
+      .status(200)
+      .json({ status: "OK", message: "User deleted successfully" });
   } catch (error) {
     if (error instanceof Error) {
       res.status(500).json({ status: "ERROR", message: error.message });

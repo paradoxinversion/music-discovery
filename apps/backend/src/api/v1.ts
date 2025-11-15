@@ -34,7 +34,11 @@ import {
   submitTrack,
   updateTrack,
 } from "../controllers/track";
-import { getFavorites, getManagedArtists } from "../controllers/user";
+import {
+  getFavorites,
+  getManagedArtists,
+  deleteUser,
+} from "../controllers/user";
 import isLoggedIn from "../middleware/isLoggedIn";
 import Multer from "multer";
 import { getGenres } from "../controllers/genre";
@@ -106,6 +110,7 @@ router.route("/tracks/artist/:artistId").get(getTracksByArtistId);
 
 // User Endpoints
 router.route("/user/favorites").get(isLoggedIn, getFavorites);
+router.route("/user/:userId").delete(isLoggedIn, deleteUser);
 router
   .route("/users/:userId/managed-artists")
   .get(isLoggedIn, getManagedArtists);

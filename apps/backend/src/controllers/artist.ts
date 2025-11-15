@@ -41,12 +41,7 @@ export const createNewArtist = async (req: Request, res: Response) => {
       biography: req.body.biography,
       links: req.body.links,
     };
-    const artist = await createArtist(user._id, artistData);
-    if (req.file) {
-      console.info(
-        `createNewArtist created image path: ${createImagePath(req.user, req.file, req.file?.fieldname)}`,
-      );
-    }
+    const artist = await createArtist(user._id, artistData, req.file);
     res.status(200).json({ status: "OK", data: artist });
   } catch (error) {
     if (error instanceof Error) {
