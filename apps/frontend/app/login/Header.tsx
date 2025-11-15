@@ -71,10 +71,10 @@ const Header = () => {
       ) : (
         <div className="flex items-center space-x-4">
           <Link href="/login">
-            <Button label="Login" />
+            <Button category="secondary" label="Login" />
           </Link>
           <Link href="/signup">
-            <Button label="Sign Up" />
+            <Button category="secondary" label="Sign Up" />
           </Link>
         </div>
       )}
