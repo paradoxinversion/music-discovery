@@ -2,6 +2,10 @@ import { Request, Response } from "express";
 import { createUser } from "../db/actions/User";
 import joi from "joi";
 import { IUserSignup } from "@common/types/src/types";
+import {
+  createUserCreatedEvent,
+  logServerEvent,
+} from "../serverEvents/serverEvents";
 
 const signUpSchema = joi.object<IUserSignup>({
   username: joi.string().min(3).max(30).required(),
@@ -23,6 +27,7 @@ export const signUp = async (req: Request, res: Response) => {
     }
 
     await createUser({ username, password, email });
+    logServerEvent(createUserCreatedEvent(username));
     return res.status(200).json({ message: "Sign up successful" });
   } catch (error) {
     console.error("Error during sign up:", error);

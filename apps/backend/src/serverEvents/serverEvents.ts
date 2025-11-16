@@ -5,54 +5,60 @@ type ServerEventTypes =
   | "TRACK_PROFILE_CREATED"
   | "TRACK_PROFILE_DELETED"
   | "TRACK_PROFILE_UPDATED"
+  | "USER_CREATED"
+  | "USER_DELETED"
+  | "USER_UPDATED"
   | "IMAGE_UPLOADED";
 
 interface BaseEventPayload {
   eventType: ServerEventTypes;
 }
 
-export interface ArtistProfileCreatedEventPayload extends BaseEventPayload {
+interface CreationEventPayload extends BaseEventPayload {
+  createdBy: string;
+  createdAt: string;
+}
+
+interface DeletionEventPayload extends BaseEventPayload {
+  deletedBy: string;
+  deletedAt: string;
+}
+
+interface UpdateEventPayload extends BaseEventPayload {
+  updatedBy: string;
+  updatedAt: string;
+}
+
+export interface ArtistProfileCreatedEventPayload extends CreationEventPayload {
   eventType: "ARTIST_PROFILE_CREATED";
   artistId: string;
   artistName: string;
-  createdBy: string;
-  createdAt: string;
 }
 
-export interface ArtistProfileDeletedEventPayload extends BaseEventPayload {
+export interface ArtistProfileDeletedEventPayload extends DeletionEventPayload {
   eventType: "ARTIST_PROFILE_DELETED";
   artistId: string;
-  deletedBy: string;
-  deletedAt: string;
 }
 
-export interface ArtistProfileUpdatedEventPayload extends BaseEventPayload {
+export interface ArtistProfileUpdatedEventPayload extends UpdateEventPayload {
   eventType: "ARTIST_PROFILE_UPDATED";
   artistId: string;
-  updatedBy: string;
-  updatedAt: string;
 }
 
-export interface TrackProfileCreatedEventPayload extends BaseEventPayload {
+export interface TrackProfileCreatedEventPayload extends CreationEventPayload {
   eventType: "TRACK_PROFILE_CREATED";
   trackId: string;
   trackTitle: string;
-  createdBy: string;
-  createdAt: string;
 }
 
-export interface TrackProfileDeletedEventPayload extends BaseEventPayload {
+export interface TrackProfileDeletedEventPayload extends DeletionEventPayload {
   eventType: "TRACK_PROFILE_DELETED";
   trackId: string;
-  deletedBy: string;
-  deletedAt: string;
 }
 
-export interface TrackProfileUpdatedEventPayload extends BaseEventPayload {
+export interface TrackProfileUpdatedEventPayload extends UpdateEventPayload {
   eventType: "TRACK_PROFILE_UPDATED";
   trackId: string;
-  updatedBy: string;
-  updatedAt: string;
 }
 
 export interface ImageUploadedEventPayload extends BaseEventPayload {
@@ -62,6 +68,22 @@ export interface ImageUploadedEventPayload extends BaseEventPayload {
   uploadedBy: string;
 }
 
+export interface UserCreatedEventPayload extends BaseEventPayload {
+  eventType: "USER_CREATED";
+  username: string;
+  createdAt: string;
+}
+
+export interface UserDeletedEventPayload extends DeletionEventPayload {
+  eventType: "USER_DELETED";
+  userId: string;
+}
+
+export interface UserUpdatedEventPayload extends UpdateEventPayload {
+  eventType: "USER_UPDATED";
+  userId: string;
+}
+
 export type ServerEventPayload =
   | ArtistProfileCreatedEventPayload
   | ArtistProfileDeletedEventPayload
@@ -69,6 +91,9 @@ export type ServerEventPayload =
   | TrackProfileCreatedEventPayload
   | TrackProfileDeletedEventPayload
   | TrackProfileUpdatedEventPayload
+  | UserCreatedEventPayload
+  | UserDeletedEventPayload
+  | UserUpdatedEventPayload
   | ImageUploadedEventPayload;
 
 export const createArtistProfileCreatedEvent = (
@@ -154,6 +179,40 @@ export const createTrackProfileUpdatedEvent = (
   return {
     eventType: "TRACK_PROFILE_UPDATED",
     trackId,
+    updatedBy,
+    updatedAt: new Date().toISOString(),
+  };
+};
+
+export const createUserCreatedEvent = (
+  username: string,
+): UserCreatedEventPayload => {
+  return {
+    eventType: "USER_CREATED",
+    username,
+    createdAt: new Date().toISOString(),
+  };
+};
+
+export const createUserDeletedEvent = (
+  userId: string,
+  deletedBy: string,
+): UserDeletedEventPayload => {
+  return {
+    eventType: "USER_DELETED",
+    userId,
+    deletedBy,
+    deletedAt: new Date().toISOString(),
+  };
+};
+
+export const createUserUpdatedEvent = (
+  userId: string,
+  updatedBy: string,
+): UserUpdatedEventPayload => {
+  return {
+    eventType: "USER_UPDATED",
+    userId,
     updatedBy,
     updatedAt: new Date().toISOString(),
   };

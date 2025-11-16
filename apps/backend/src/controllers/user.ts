@@ -6,6 +6,10 @@ import {
   getManagedArtists as getManagedArtistsAction,
   deleteUser as deleteUserAction,
 } from "../db/actions/User";
+import {
+  createUserDeletedEvent,
+  logServerEvent,
+} from "../serverEvents/serverEvents";
 
 export const getManagedArtists = async (req: Request, res: Response) => {
   if (!req.user) {
@@ -77,6 +81,7 @@ export const deleteUser = async (req: Request, res: Response) => {
     }
 
     await deleteUserAction(userId);
+    logServerEvent(createUserDeletedEvent(userId, req.user.username));
     res
       .status(200)
       .json({ status: "OK", message: "User deleted successfully" });
