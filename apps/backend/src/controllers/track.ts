@@ -14,6 +14,12 @@ import { addFavoriteTrack, removeFavoriteTrack } from "../db/actions/User";
 import { ITrack, TrackSubmissionData } from "@common/types/src/types";
 import { getImageAtPath } from "../db/actions/Storage";
 import { musicPlatformLinks } from "@common/json-data";
+import {
+  createTrackProfileCreatedEvent,
+  createTrackProfileDeletedEvent,
+  createTrackProfileUpdatedEvent,
+  logServerEvent,
+} from "../serverEvents/serverEvents";
 const submitTrack = async (req: Request, res: Response) => {
   const trackSchema = Joi.object<TrackSubmissionData>({
     title: Joi.string().required(),
@@ -40,6 +46,13 @@ const submitTrack = async (req: Request, res: Response) => {
     };
     // Save the track to the database
     const track = await createTrack(req.user, trackData, req.file);
+    logServerEvent(
+      createTrackProfileCreatedEvent(
+        track._id.toString(),
+        track.title,
+        req.user._id,
+      ),
+    );
     return res.status(201).json({ status: "OK", data: track });
   } catch (error) {
     if (error instanceof Error) {
@@ -181,6 +194,9 @@ const deleteTrack = async (req: Request, res: Response) => {
       .json({ status: "ERROR", message: "trackId is required" });
   }
   const result = await deleteTrackAction(req.user._id, req.params.trackId);
+  logServerEvent(
+    createTrackProfileDeletedEvent(req.params.trackId, req.user._id),
+  );
   res.status(200).json({ status: "OK", data: result });
 };
 
@@ -217,6 +233,7 @@ const updateTrack = async (req: Request, res: Response) => {
       value,
       req.file,
     );
+    logServerEvent(createTrackProfileUpdatedEvent(trackId, req.user._id));
     return res.status(200).json({ status: "OK", data: updatedTrack });
   } catch (error) {
     if (error instanceof Error) {

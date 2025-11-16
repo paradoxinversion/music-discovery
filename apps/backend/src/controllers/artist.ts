@@ -17,6 +17,7 @@ import { getImageAtPath } from "../db/actions/Storage";
 import {
   createArtistProfileCreatedEvent,
   createArtistProfileDeletedEvent,
+  createArtistProfileUpdatedEvent,
   logServerEvent,
 } from "../serverEvents/serverEvents";
 import { socialPlatformLinks } from "@common/json-data";
@@ -60,7 +61,6 @@ export const createNewArtist = async (req: Request, res: Response) => {
     name: Joi.string().min(2).max(MAX_NAME).required(),
     genre: Joi.string().max(MAX_GENRE).required(),
     biography: Joi.string().allow("", null).max(MAX_BIO),
-    // links is an object whose keys are the known platform names and values are validated strings
     links: Joi.object().keys(linkSchemas).optional(),
     // artistArt is multipart file; validate separately in middleware
   }).required();
@@ -79,7 +79,11 @@ export const createNewArtist = async (req: Request, res: Response) => {
     };
     const artist = await createArtist(user._id, artistData, req.file);
     logServerEvent(
-      createArtistProfileCreatedEvent(artist._id.toString(), artist.name),
+      createArtistProfileCreatedEvent(
+        artist._id.toString(),
+        artist.name,
+        user._id,
+      ),
     );
     res.status(200).json({ status: "OK", data: artist });
   } catch (error) {
@@ -241,6 +245,7 @@ export const updateArtist = async (req: Request, res: Response) => {
   }
 
   await updateArtistAction(req.user._id, req.params.id, req.body, req.file);
+  logServerEvent(createArtistProfileUpdatedEvent(req.params.id, req.user._id));
   res
     .status(200)
     .json({ status: "OK", message: "Artist updated successfully" });
@@ -258,9 +263,7 @@ export const deleteArtist = async (req: Request, res: Response) => {
     return;
   }
   const result = await deleteArtistAction(req.user._id, req.params.id);
-  logServerEvent(
-    createArtistProfileDeletedEvent(req.params.id, result.artist.name),
-  );
+  logServerEvent(createArtistProfileDeletedEvent(req.params.id, req.user._id));
   res
     .status(200)
     .json({ status: "OK", message: "Artist deleted successfully" });
