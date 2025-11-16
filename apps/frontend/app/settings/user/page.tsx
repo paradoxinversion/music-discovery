@@ -2,14 +2,14 @@
 import { Button } from "@mda/components";
 import { useState } from "react";
 import UserVitalSettings from "./UserVitalSettings";
-import { useRouter } from "next/navigation";
 import useAuth from "../../../swrHooks/useAuth";
 import AccessUnauthorized from "../../../commonComponents/AccessUnauthorized";
+import { UserFavorites } from "./UserFavorites";
+import Link from "next/link";
 
 export default function Page() {
   const { authenticatedUser, isLoading, error } = useAuth();
 
-  const router = useRouter();
   const [currentPage, setCurrentPage] = useState("favorites");
 
   if (isLoading) {
@@ -23,10 +23,13 @@ export default function Page() {
       <h1 className="text-2xl font-bold mb-4">User Settings</h1>
       <div className="flex space-x-4 mb-4">
         <Button
-          label="Artist Settings"
+          label="User Favorites"
           category="secondary"
-          onClick={() => router.push("/artist/dashboard")}
+          onClick={() => setCurrentPage("favorites")}
         />
+        <Link href="/artist/dashboard">
+          <Button label="Artist Settings" category="secondary" />
+        </Link>
         <Button
           label="User Data"
           category="secondary"
@@ -34,7 +37,7 @@ export default function Page() {
         />
       </div>
       <div>
-        {currentPage === "favorites" && <div>User Favorites Content</div>}
+        {currentPage === "favorites" && <UserFavorites />}
         {currentPage === "data" && (
           <UserVitalSettings setCurrentPage={setCurrentPage} />
         )}

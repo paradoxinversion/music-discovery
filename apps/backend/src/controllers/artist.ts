@@ -82,7 +82,7 @@ export const createNewArtist = async (req: Request, res: Response) => {
       createArtistProfileCreatedEvent(
         artist._id.toString(),
         artist.name,
-        user._id,
+        user._id.toString(),
       ),
     );
     res.status(200).json({ status: "OK", data: artist });
@@ -245,7 +245,9 @@ export const updateArtist = async (req: Request, res: Response) => {
   }
 
   await updateArtistAction(req.user._id, req.params.id, req.body, req.file);
-  logServerEvent(createArtistProfileUpdatedEvent(req.params.id, req.user._id));
+  logServerEvent(
+    createArtistProfileUpdatedEvent(req.params.id, req.user._id.toString),
+  );
   res
     .status(200)
     .json({ status: "OK", message: "Artist updated successfully" });
@@ -263,7 +265,9 @@ export const deleteArtist = async (req: Request, res: Response) => {
     return;
   }
   const result = await deleteArtistAction(req.user._id, req.params.id);
-  logServerEvent(createArtistProfileDeletedEvent(req.params.id, req.user._id));
+  logServerEvent(
+    createArtistProfileDeletedEvent(req.params.id, req.user._id.toString()),
+  );
   res
     .status(200)
     .json({ status: "OK", message: "Artist deleted successfully" });

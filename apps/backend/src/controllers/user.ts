@@ -54,9 +54,11 @@ export const getFavoriteTracks = async (req: Request, res: Response) => {
 };
 
 export const getFavorites = async (req: Request, res: Response) => {
+  // include track artist info
+  const includeTrackArtistData = req.query.includeTrackArtistData === "true";
   try {
     const userId = req.user._id;
-    const favorites = await getFavoritesAction(userId);
+    const favorites = await getFavoritesAction(userId, includeTrackArtistData);
     res.status(200).json({ status: "OK", favorites });
   } catch (error) {
     if (error instanceof Error) {

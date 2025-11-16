@@ -14,6 +14,7 @@ import axiosInstance from "../../../util/axiosInstance";
 import OtherArtists from "./OtherArtists";
 import { ExternalLinkList } from "@mda/components";
 import { useRouter } from "next/navigation";
+
 const artistFetcher = (url: string) =>
   axiosInstance.get(url).then((res) => res.data.data);
 const similarArtistsFetcher = (url: string) =>

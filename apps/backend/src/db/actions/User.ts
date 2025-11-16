@@ -251,7 +251,10 @@ export const getFavoriteArtists = async (userId: string) => {
  * @returns An object containing arrays of favorite tracks, artists, and albums
  * @throws Error if user is not found or if there's a database error
  */
-export const getFavorites = async (userId: string) => {
+export const getFavorites = async (
+  userId: string,
+  includeTrackArtistData: boolean = false,
+) => {
   try {
     const user = await User.aggregate([
       { $match: { _id: userId } },
@@ -276,7 +279,7 @@ export const getFavorites = async (userId: string) => {
                       },
                     },
                   },
-                  { $project: { slug: 1 } },
+                  { $project: { slug: 1, name: 1 } },
                 ],
                 as: "artist",
               },
@@ -289,6 +292,7 @@ export const getFavorites = async (userId: string) => {
                 trackArt: 1,
                 slug: 1,
                 artistSlug: "$artist.slug",
+                artistName: includeTrackArtistData ? "$artist.name" : undefined,
               },
             },
           ],

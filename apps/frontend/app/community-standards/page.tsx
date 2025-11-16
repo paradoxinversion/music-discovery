@@ -1,3 +1,9 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "OffBeat - Community Standards",
+  description: "Community standards for OffBeat app",
+};
 export default function CommunityStandardsPage() {
   return (
     <div className="max-w-3xl mx-auto p-4">

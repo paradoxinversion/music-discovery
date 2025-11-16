@@ -44,13 +44,16 @@ const submitTrack = async (req: Request, res: Response) => {
       ...value,
       managingUserId,
     };
+    if (trackData.isrc === "") {
+      trackData.isrc = undefined;
+    }
     // Save the track to the database
     const track = await createTrack(req.user, trackData, req.file);
     logServerEvent(
       createTrackProfileCreatedEvent(
         track._id.toString(),
         track.title,
-        req.user._id,
+        req.user._id.toString(),
       ),
     );
     return res.status(201).json({ status: "OK", data: track });
@@ -195,7 +198,7 @@ const deleteTrack = async (req: Request, res: Response) => {
   }
   const result = await deleteTrackAction(req.user._id, req.params.trackId);
   logServerEvent(
-    createTrackProfileDeletedEvent(req.params.trackId, req.user._id),
+    createTrackProfileDeletedEvent(req.params.trackId, req.user._id.toString()),
   );
   res.status(200).json({ status: "OK", data: result });
 };
@@ -223,17 +226,22 @@ const updateTrack = async (req: Request, res: Response) => {
         .json({ status: "ERROR", message: "trackId is required" });
     }
     const { error, value } = updateSchema.validate(req.body);
+
     if (error) {
       throw new Error(error.message);
     }
-
+    if (value.isrc === "") {
+      value.isrc = undefined;
+    }
     const updatedTrack = await updateTrackAction(
       userId,
       trackId,
       value,
       req.file,
     );
-    logServerEvent(createTrackProfileUpdatedEvent(trackId, req.user._id));
+    logServerEvent(
+      createTrackProfileUpdatedEvent(trackId, req.user._id.toString()),
+    );
     return res.status(200).json({ status: "OK", data: updatedTrack });
   } catch (error) {
     if (error instanceof Error) {

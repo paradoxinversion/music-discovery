@@ -1,3 +1,9 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "OffBeat - Privacy Policy",
+  description: "Terms of service for OffBeat app",
+};
 export default function PrivacyPolicyPage() {
   return (
     <div className="max-w-3xl mx-auto p-4">
