@@ -21,6 +21,29 @@ services:
         "-backend",
         "memory",
       ]
+  fake-gcs-server-external:
+    attach: false
+    image: fsouza/fake-gcs-server:latest
+    ports:
+      - 5555:5555
+    networks:
+      - discovery-network
+    volumes:
+      - ../data:/data
+    command:
+      [
+        "-scheme",
+        "http",
+        "-port",
+        "5555",
+        "-external-url",
+        "http://localhost:5555",
+        "-public-host",
+        "localhost",
+        "-backend",
+        "memory",
+      ]
+
   mongo:
     image: mongo:latest
     attach: false

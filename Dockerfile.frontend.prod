@@ -63,6 +63,14 @@ COPY --from=frontend-dependencies \
 COPY apps/frontend/ \
 /app/apps/frontend/
 
+COPY --from=frontend-dependencies \
+/app/common/json-data \
+./common/json-data
+
+COPY \
+common/json-data/ \
+./common/json-data/
+
 # Copy component source files
 COPY --from=frontend-dependencies \
 /app/components \
@@ -80,19 +88,13 @@ COPY \
 common/types/ \
 ./common/types/
 
-COPY --from=frontend-dependencies \
-/app/common/json-data \
-./common/json-data
 
-COPY \
-common/json-data/ \
-./common/json-data/
 
 # Build frontend
 RUN corepack enable
 
-RUN yarn workspace @common/types build
 RUN yarn workspace @common/json-data build
+RUN yarn workspace @common/types build
 RUN yarn workspace @mda/components build
 RUN yarn workspace frontend build
 CMD ["tail", "-f", "/dev/null"]

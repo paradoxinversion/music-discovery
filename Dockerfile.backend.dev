@@ -20,8 +20,8 @@ RUN corepack enable && yarn install
 FROM backend-base AS backend-build
 WORKDIR /app
 
-RUN yarn workspace @common/types build
 RUN yarn workspace @common/json-data build
+RUN yarn workspace @common/types build
 
 FROM backend-build AS backend-test
 WORKDIR /app
