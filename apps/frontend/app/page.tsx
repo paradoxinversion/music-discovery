@@ -94,12 +94,11 @@ export default function HomePage() {
             </p>
             <p className="mb-4">
               We don't believe that only the most popular artists deserve to be
-              heard - that's why we focus on independent musicians. Our
-              algorithms are designed to surface hidden gems that you won't find
-              on mainstream platforms. Artists don't need to pay distribution
-              fees or compete for attention with major labels. Fans get to
-              explore a diverse range of music without being bombarded by ads or
-              algorithms that prioritize profit over quality.
+              heard - that's why we focus on independent musicians. Artists
+              don't need to pay distribution fees or compete for attention with
+              major labels. Fans get to explore a diverse range of music without
+              being bombarded by ads or algorithms that prioritize profit over
+              quality.
             </p>
             <Link href="/discover" className="underline">
               🎶 Have we mentioned YOU could discover NEW music NOW⁉️ 👀 🎶

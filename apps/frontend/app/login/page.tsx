@@ -10,7 +10,7 @@ import axiosInstance from "../../util/axiosInstance";
 import { Button, ErrorText } from "@mda/components";
 import toast from "react-hot-toast";
 import Link from "next/link";
-
+import { useState } from "react";
 interface LoginFormValues {
   username: string;
   password: string;
@@ -33,9 +33,15 @@ export default function Page() {
     username: "",
     password: "",
   };
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   useEffect(() => {
-    checkAuthentication().then((user) => {
+    checkAuthentication().then((response) => {
+      if (response?.status !== 200) {
+        setLoginError(response.data?.message || "Not authenticated");
+        return;
+      }
+      const user = response.data.user;
       if (user) {
         dispatch(setUser(user));
         router.push("/discover");
@@ -59,6 +65,7 @@ export default function Page() {
             router.push("/discover");
           } catch (error) {
             console.error("Login error:", error.response.data);
+            setLoginError(error.response.data?.message || "Not authenticated");
             toast.error("Login failed. Please check your credentials.");
           }
         }}
@@ -90,6 +97,7 @@ export default function Page() {
               <ErrorText message={errors.password} />
             ) : null}
             <Button label="Login" type="submit" />
+            {loginError && <ErrorText message={loginError} />}
           </form>
         )}
       </Formik>

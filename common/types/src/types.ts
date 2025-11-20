@@ -1,3 +1,4 @@
+import { SocialPlatformLinks } from "@common/json-data";
 /**
  * Common types for the music streaming service.
  */
@@ -84,7 +85,7 @@ interface IArtist {
   managingUserId: string;
   /** A map of social and music platform links. */
   links?: {
-    [key in CommonLinkKeySocial]?: string;
+    [key in SocialPlatformLinks]?: string;
   };
   /** List of album IDs associated with the artist. */
   albums?: string[];
@@ -93,8 +94,8 @@ interface IArtist {
   /** S3 location to the artist's artwork/image. */
   artistArt?: string | null;
 }
-
-type EditableArtist = Partial<Omit<IArtist, "managingUserId">>;
+type NewArtist = Omit<IArtist, "managingUserId" | "slug" | "albums" | "tracks">;
+type EditableArtist = Partial<Omit<IArtist, "managingUserId" | "slug">>;
 
 /**
  * A user of the service.
@@ -103,6 +104,7 @@ interface IUser {
   username: string;
   email: string;
   password: string;
+  accountStatus: "pending" | "active" | "inactive" | "banned";
   favoriteTracks: string[];
   favoriteAlbums: string[];
   favoriteArtists: string[];
@@ -129,4 +131,5 @@ export type {
   EditableAlbum,
   TrackSubmissionData,
   EditableTrack,
+  NewArtist,
 };

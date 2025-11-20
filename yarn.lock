@@ -242,6 +242,8 @@ __metadata:
 "@common/types@workspace:^, @common/types@workspace:common/types":
   version: 0.0.0-use.local
   resolution: "@common/types@workspace:common/types"
+  dependencies:
+    "@common/json-data": "workspace:^"
   languageName: unknown
   linkType: soft
 

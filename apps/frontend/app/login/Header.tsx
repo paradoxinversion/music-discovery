@@ -22,7 +22,9 @@ const Header = () => {
         `${process.env.NEXT_PUBLIC_API_URL}/auth/check-auth`,
         { withCredentials: true },
       );
-      if (response.data.result === 0) return;
+      if (response?.status !== 200) {
+        return;
+      }
       dispatch(setUser(response.data.user));
     } catch (error) {
       console.error("Error checking auth:", error);
