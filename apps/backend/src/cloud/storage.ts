@@ -10,7 +10,7 @@ if (process.env.NODE_ENV === "production") {
 } else {
   storage = new Storage({
     apiEndpoint: process.env.LOCAL_TEST
-      ? "http://localhost:8080"
+      ? "http://localhost:5555"
       : "http://fake-gcs-server:8080",
     projectId: "offbeat-test",
   });
@@ -44,7 +44,11 @@ async function getImageContents(filePath: string) {
   }
 }
 
-async function upload(destFileName: string, contents: Express.Multer.File) {
+async function upload(
+  user: string,
+  destFileName: string,
+  contents: Express.Multer.File,
+) {
   try {
     const { buffer, mimetype } = contents;
     await storage
@@ -53,7 +57,7 @@ async function upload(destFileName: string, contents: Express.Multer.File) {
       .save(buffer, { contentType: mimetype });
 
     console.log(`${destFileName} uploaded to ${imgBucketName}.`);
-    logServerEvent(createImageUploadedEvent(destFileName));
+    logServerEvent(createImageUploadedEvent(destFileName, user));
     return destFileName;
   } catch (error) {
     console.error("Error uploading file to storage:", error);
@@ -71,6 +75,19 @@ async function deleteFile(filePath: string) {
   }
 }
 
+async function deleteFolder(folderPath: string) {
+  try {
+    const bucket = storage.bucket(imgBucketName);
+    const [files] = await bucket.getFiles({ prefix: folderPath });
+    const deletePromises = files.map((file) => file.delete());
+    await Promise.all(deletePromises);
+    console.log(`Folder ${folderPath} and its contents deleted.`);
+  } catch (error) {
+    console.error("Error deleting folder from storage:", error);
+    throw error;
+  }
+}
+
 async function emptyBucket() {
   try {
     const bucket = storage.bucket(imgBucketName);
@@ -82,5 +99,5 @@ async function emptyBucket() {
     throw error;
   }
 }
-export { upload, getImageContents, deleteFile, emptyBucket };
+export { upload, getImageContents, deleteFile, emptyBucket, deleteFolder };
 export default storage;

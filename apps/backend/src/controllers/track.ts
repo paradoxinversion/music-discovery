@@ -170,24 +170,29 @@ const getTracksByArtistId = async (req: Request, res: Response) => {
 
 const getRandom = async (req: Request, res: Response) => {
   const count = 8;
-
-  const tracks = await getRandomTracks(count);
-  const trackReturn = await tracks.reduce(
-    async (acc, track: ITrack) => {
-      const resolvedAcc = await acc;
-      if (track.trackArt) {
-        await getImageAtPath(track.trackArt).then((art) => {
-          if (art) {
-            track.trackArt = Buffer.from(art).toString("base64");
-          }
-        });
-      }
-      resolvedAcc.push(track);
-      return resolvedAcc;
-    },
-    [] as typeof tracks,
-  );
-  res.status(200).json({ status: "OK", data: trackReturn });
+  try {
+    const tracks = await getRandomTracks(count);
+    const trackReturn = await tracks.reduce(
+      async (acc, track: ITrack) => {
+        const resolvedAcc = await acc;
+        if (track.trackArt) {
+          await getImageAtPath(track.trackArt).then((art) => {
+            if (art) {
+              track.trackArt = Buffer.from(art).toString("base64");
+            }
+          });
+        }
+        resolvedAcc.push(track);
+        return resolvedAcc;
+      },
+      [] as typeof tracks,
+    );
+    res.status(200).json({ status: "OK", data: trackReturn });
+  } catch (error) {
+    if (error instanceof Error) {
+      return res.status(400).json({ status: "ERROR", message: error.message });
+    }
+  }
 };
 
 const deleteTrack = async (req: Request, res: Response) => {

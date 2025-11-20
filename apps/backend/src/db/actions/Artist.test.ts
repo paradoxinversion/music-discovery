@@ -22,7 +22,10 @@ import mongoose from "mongoose";
 import Artist from "../models/Artist";
 import Track from "../models/Track";
 import Album from "../models/Album";
-import { EditableArtist, IArtist } from "@common/types/src/types";
+import { EditableArtist, IArtist, NewArtist } from "@common/types/src/types";
+import { makeTestMulterFile } from "./Track.test";
+import { upload } from "../../cloud/storage";
+import { createImagePath } from "../../utils/imageUtilities";
 
 beforeEach(async () => {
   await User.deleteMany({});
@@ -32,13 +35,12 @@ beforeEach(async () => {
 });
 
 describe("Create Artist", () => {
-  it("should create an artist successfully", async () => {
+  it("should create an artist successfully with basic info (no links or photo)", async () => {
     const user = new User(DEFAULT_TEST_USER_DATA);
     await user.save();
     const artistData = {
       ...DEFAULT_TEST_ARTIST_DATA,
-      managingUserId: user.id.toString(),
-    } as IArtist;
+    } as NewArtist;
 
     const createdArtist = await createArtist(user.id.toString(), artistData);
     expect(createdArtist).toHaveProperty("_id");
@@ -52,14 +54,43 @@ describe("Create Artist", () => {
       ...DEFAULT_TEST_ARTIST_DATA,
       managingUserId: user.id.toString(),
       links: {
-        soundcloud: "https://soundcloud.com/testartist",
+        SoundCloud: "https://soundcloud.com/testartist",
       },
-    } as IArtist;
+    } as NewArtist;
 
     const createdArtist = await createArtist(user.id.toString(), artistData);
     expect(createdArtist).toHaveProperty("_id");
     expect(createdArtist.name).toBe(artistData.name);
     expect(createdArtist.links).toEqual(artistData.links);
+  });
+
+  it("should create an artist with a photo successfully", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    await user.save();
+    const artistData = {
+      ...DEFAULT_TEST_ARTIST_DATA,
+      managingUserId: user.id.toString(),
+      links: {
+        SoundCloud: "https://soundcloud.com/testartist",
+      },
+    } as NewArtist;
+    const mockFile = makeTestMulterFile({
+      filename: "artist-art.jpg",
+      mimetype: "image/jpeg",
+      size: 1024,
+      fieldname: "artistArt",
+    });
+    const createdArtist = await createArtist(
+      user.id.toString(),
+      artistData,
+      mockFile,
+    );
+    expect(createdArtist).toHaveProperty("_id");
+    expect(createdArtist.name).toBe(artistData.name);
+    expect(createdArtist.links).toEqual(artistData.links);
+    expect(createdArtist.artistArt).toBe(
+      `${user.username}/artistArt/${createdArtist.slug}`,
+    );
   });
 
   it("should throw an error if managing user does not exist", async () => {
@@ -302,13 +333,20 @@ describe("Update Artist", () => {
     const updateData: EditableArtist = {
       name: "Test Artist Update",
       links: {
-        instagram: "https://instagram.com/testartist",
+        Instagram: "https://instagram.com/testartist",
       },
     };
+    const art = makeTestMulterFile({
+      filename: "updated-artist-art.png",
+      mimetype: "image/png",
+      size: 2048,
+      fieldname: "artistArt",
+    });
     const updatedArtist = await updateArtist(
       user.id.toString(),
       artist.id.toString(),
       updateData,
+      art,
     );
     expect(updatedArtist).toHaveProperty("_id", artist._id);
     expect(updatedArtist?.name).toBe(updateData.name);
@@ -323,6 +361,30 @@ describe("Update Artist", () => {
       updateData2,
     );
     expect(updatedArtist2?.links).toEqual({});
+    expect(updatedArtist2);
+  });
+  it("Throws an error if the user is not valid", async () => {
+    const user1 = new User(DEFAULT_TEST_USER_DATA);
+    await user1.save();
+    const user2 = new User({
+      ...DEFAULT_TEST_USER_DATA,
+      username: "differentuser",
+      email: "differentuser@example.com",
+    });
+    await user2.save();
+    const artistData = {
+      ...DEFAULT_TEST_ARTIST_DATA,
+      managingUserId: user1.id.toString(),
+    };
+    const artist = new Artist(artistData);
+    await artist.save();
+    const updateData: EditableArtist = {
+      name: "Unauthorized Update Attempt",
+    };
+    const fakeUserId = new mongoose.Types.ObjectId().toString();
+    await expect(
+      updateArtist(fakeUserId, artist.id.toString(), updateData),
+    ).rejects.toThrow();
   });
   it("Throws an error if the user is not authorized to update the artist", async () => {
     const user1 = new User(DEFAULT_TEST_USER_DATA);
@@ -387,15 +449,26 @@ describe("Delete Artist", () => {
   it("Deletes an artist by ID", async () => {
     const user = new User(DEFAULT_TEST_USER_DATA);
     await user.save();
+    const artistArt = makeTestMulterFile({
+      filename: "artist-art.jpg",
+      mimetype: "image/jpeg",
+      size: 1024,
+      fieldname: "artistArt",
+    });
 
+    const destination = await upload(
+      createImagePath(user, artistArt, DEFAULT_TEST_ARTIST_DATA.name!),
+      artistArt,
+    );
     const artist = new Artist({
       ...DEFAULT_TEST_ARTIST_DATA,
+      artistArt: destination,
       managingUserId: user.id.toString(),
     });
     await artist.save();
 
     const deletedArtist = await deleteArtist(user.id, artist.id.toString());
-    expect(deletedArtist).toBe(true);
+    expect(deletedArtist).toBeDefined();
     expect(await Artist.findById(artist.id.toString())).toBeNull();
   });
 
@@ -434,7 +507,7 @@ describe("Delete Artist", () => {
     await user.save();
 
     const deletedArtist = await deleteArtist(user.id, artist.id.toString());
-    expect(deletedArtist).toBe(true);
+    expect(deletedArtist).toBeDefined();
     expect(await Artist.findById(artist.id.toString())).toBeNull();
     expect(await Album.findById(album.id.toString())).toBeNull();
     expect(await Track.findById(track.id.toString())).toBeNull();

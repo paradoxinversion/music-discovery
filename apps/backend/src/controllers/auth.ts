@@ -48,7 +48,9 @@ export const checkAuth = (req: Request, res: Response) => {
   res.set("Expires", "0");
   if (req.isAuthenticated()) {
     const { password, __v, ...returnUser } = req.user.toObject();
-
+    if (returnUser.accountStatus !== "active") {
+      return res.status(401).json({ message: "User account is not active." });
+    }
     return res.status(200).json({ authenticated: true, user: returnUser });
   } else {
     return res.status(401).json({ authenticated: false });

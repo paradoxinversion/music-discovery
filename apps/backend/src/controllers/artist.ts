@@ -20,7 +20,7 @@ import {
   createArtistProfileUpdatedEvent,
   logServerEvent,
 } from "../serverEvents/serverEvents";
-import { socialPlatformLinks } from "@common/json-data";
+import { SocialPlatformLinks, socialPlatformLinks } from "@common/json-data";
 
 export const createNewArtist = async (req: Request, res: Response) => {
   const MAX_BIO = 1500;
@@ -40,7 +40,8 @@ export const createNewArtist = async (req: Request, res: Response) => {
     socialPlatformLinks,
   ).reduce(
     (acc, key) => {
-      const pattern = socialPlatformLinks[key].urlPattern || "{url}";
+      const platformKey = key as SocialPlatformLinks;
+      const pattern = socialPlatformLinks[platformKey].urlPattern || "{url}";
       const rxSource = escapeRegex(pattern).replace(
         escapeRegex("{url}"),
         "(.+)",
@@ -94,8 +95,14 @@ export const createNewArtist = async (req: Request, res: Response) => {
 };
 
 export const getArtists = async (req: Request, res: Response) => {
-  const allArtists = await getAllArtists();
-  res.status(200).json({ status: "OK", data: allArtists });
+  try {
+    const allArtists = await getAllArtists();
+    res.status(200).json({ status: "OK", data: allArtists });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({ status: "ERROR", message: error.message });
+    }
+  }
 };
 
 export const getById = async (req: Request, res: Response) => {
@@ -105,18 +112,24 @@ export const getById = async (req: Request, res: Response) => {
     res.status(400).json({ status: "ERROR", message: "Artist ID is required" });
     return;
   }
-  const artist = await getArtistById(artistId);
-  let artistArt = null;
-  if (artist && returnArtistArt && artist.artistArt) {
-    const art = await getImageAtPath(artist?.artistArt);
-    if (art) {
-      artistArt = Buffer.from(art).toString("base64");
+  try {
+    const artist = await getArtistById(artistId);
+    let artistArt = null;
+    if (artist && returnArtistArt && artist.artistArt) {
+      const art = await getImageAtPath(artist?.artistArt);
+      if (art) {
+        artistArt = Buffer.from(art).toString("base64");
+      }
     }
-  }
-  if (artist) {
-    res.status(200).json({ status: "OK", data: { ...artist, artistArt } });
-  } else {
-    res.status(404).json({ status: "ERROR", message: "Artist not found" });
+    if (artist) {
+      res.status(200).json({ status: "OK", data: { ...artist, artistArt } });
+    } else {
+      res.status(404).json({ status: "ERROR", message: "Artist not found" });
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({ status: "ERROR", message: error.message });
+    }
   }
 };
 
@@ -129,39 +142,50 @@ export const getByIds = async (req: Request, res: Response) => {
     res.status(400).json({ status: "ERROR", message: error.message });
     return;
   }
-  const artistIds: string[] = req.body.artistIds;
-  if (!artistIds || !Array.isArray(artistIds) || artistIds.length === 0) {
-    res
-      .status(400)
-      .json({ status: "ERROR", message: "Artist IDs are required" });
-    return;
+  try {
+    const artistIds: string[] = req.body.artistIds;
+    if (!artistIds || !Array.isArray(artistIds) || artistIds.length === 0) {
+      res
+        .status(400)
+        .json({ status: "ERROR", message: "Artist IDs are required" });
+      return;
+    }
+    const artists = await getArtistsByIds(artistIds);
+    res.status(200).json({ status: "OK", data: artists });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({ status: "ERROR", message: error.message });
+    }
   }
-  const artists = await getArtistsByIds(artistIds);
-  res.status(200).json({ status: "OK", data: artists });
 };
 
 export const getBySlug = async (req: Request, res: Response) => {
   const slug = req.params.slug;
   if (!slug) {
-    res
+    return res
       .status(400)
       .json({ status: "ERROR", message: "Artist slug is required" });
-    return;
   }
 
   const returnArtistArt = req.query.includeArt === "true";
-  const artist = await getArtistBySlug(slug);
-  let artistArt = null;
-  if (artist && returnArtistArt && artist.artistArt) {
-    const art = await getImageAtPath(artist?.artistArt);
-    if (art) {
-      artistArt = Buffer.from(art).toString("base64");
+  try {
+    const artist = await getArtistBySlug(slug);
+    let artistArt = null;
+    if (artist && returnArtistArt && artist.artistArt) {
+      const art = await getImageAtPath(artist?.artistArt);
+      if (art) {
+        artistArt = Buffer.from(art).toString("base64");
+      }
     }
-  }
-  if (artist) {
-    res.status(200).json({ status: "OK", data: { ...artist, artistArt } });
-  } else {
-    res.status(404).json({ status: "ERROR", message: "Artist not found" });
+    if (artist) {
+      res.status(200).json({ status: "OK", data: { ...artist, artistArt } });
+    } else {
+      res.status(404).json({ status: "ERROR", message: "Artist not found" });
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({ status: "ERROR", message: error.message });
+    }
   }
 };
 
@@ -172,8 +196,14 @@ export const getRandom = async (req: Request, res: Response) => {
         : [req.query.exclude]) as string[])
     : [];
   const count = 5;
-  const artists = await getRandomArtists(count, excludeArtists);
-  res.status(200).json({ status: "OK", data: artists });
+  try {
+    const artists = await getRandomArtists(count, excludeArtists);
+    res.status(200).json({ status: "OK", data: artists });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({ status: "ERROR", message: error.message });
+    }
+  }
 };
 
 export const getSimilarArtists = async (req: Request, res: Response) => {

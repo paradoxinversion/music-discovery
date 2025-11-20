@@ -28,6 +28,7 @@ export const usersDocumentData: IUser[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(
     favoriteArtists: [],
     favoriteAlbums: [],
     favoriteTracks: [],
+    accountStatus: "active",
   }),
 );
 
@@ -38,6 +39,7 @@ export const DEFAULT_TEST_USER_DATA: IUser = {
   favoriteArtists: [],
   favoriteAlbums: [],
   favoriteTracks: [],
+  accountStatus: "active",
 };
 
 export const DEFAULT_TEST_ARTIST_DATA: Partial<IArtist> = {

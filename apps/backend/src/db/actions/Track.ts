@@ -11,7 +11,7 @@ import Artist from "../models/Artist";
  * @returns The created track
  */
 export const createTrack = async (
-  managingUser: IUser,
+  managingUser: IUser & { id: string },
   trackData: TrackSubmissionData,
   trackArt?: Express.Multer.File,
 ) => {
@@ -28,6 +28,7 @@ export const createTrack = async (
   let trackArtDestination = null;
   if (trackArt) {
     trackArtDestination = await upload(
+      managingUser.id,
       createImagePath(managingUser, trackArt, trackData.title),
       trackArt,
     );
@@ -80,37 +81,33 @@ export const getTrackBySlugAndArtist = async (
  * @returns An array of random tracks
  */
 export const getRandomTracks = async (count: number) => {
-  try {
-    const tracks = await Track.aggregate([
-      { $sample: { size: count } },
-      { $addFields: { artistObjId: { $toObjectId: "$artistId" } } }, // convert artistId to ObjectId
-      {
-        $lookup: {
-          from: "artists",
-          localField: "artistObjId",
-          foreignField: "_id",
-          as: "artist",
-        },
+  const tracks = await Track.aggregate([
+    { $sample: { size: count } },
+    { $addFields: { artistObjId: { $toObjectId: "$artistId" } } }, // convert artistId to ObjectId
+    {
+      $lookup: {
+        from: "artists",
+        localField: "artistObjId",
+        foreignField: "_id",
+        as: "artist",
       },
-      { $unwind: "$artist" }, // flatten the artist array
-      {
-        $project: {
-          title: 1,
-          artistId: 1,
-          duration: 1,
-          isrc: 1,
-          genre: 1,
-          trackArt: 1,
-          slug: 1,
-          artistName: "$artist.name",
-          artistSlug: "$artist.slug",
-        },
+    },
+    { $unwind: "$artist" }, // flatten the artist array
+    {
+      $project: {
+        title: 1,
+        artistId: 1,
+        duration: 1,
+        isrc: 1,
+        genre: 1,
+        trackArt: 1,
+        slug: 1,
+        artistName: "$artist.name",
+        artistSlug: "$artist.slug",
       },
-    ]).exec();
-    return tracks;
-  } catch (error) {
-    throw new Error(`Error retrieving random tracks: ${error}`);
-  }
+    },
+  ]).exec();
+  return tracks;
 };
 
 /**
@@ -184,6 +181,7 @@ export const updateTrack = async (
 
   if (trackArt) {
     trackArtDestination = await upload(
+      user.id,
       createImagePath(user, trackArt, track.title),
       trackArt,
     );

@@ -324,26 +324,34 @@ describe("Update Track", () => {
     await track.save();
 
     const newTitle = "Updated Track Title";
+    const trackArt = makeTestMulterFile({ originalname: "new-track-art.jpg" });
     const updatedTrack = await updateTrack(
       user.id.toString(),
       track.id.toString(),
       {
         title: newTitle,
       },
+      trackArt,
     );
     expect(updatedTrack).toBeDefined();
     expect(updatedTrack.title).toBe(newTitle);
     expect(updatedTrack.genre).toBe(track.genre); // unchanged
+    expect(updatedTrack.trackArt).toBeDefined();
   });
-
-  it("Throws error when updating non-existent track", async () => {
-    const user = new User(DEFAULT_TEST_USER_DATA);
-    await user.save();
+  it("Throws error when using an invalid user", async () => {
     const nonExistentId = new mongoose.Types.ObjectId().toString();
     await expect(
-      updateTrack(user.id.toString(), nonExistentId, { title: "New Title" }),
+      updateTrack(nonExistentId, nonExistentId, { title: "New Title" }),
     ).rejects.toThrow();
   });
+});
+it("Throws error when updating non-existent track", async () => {
+  const user = new User(DEFAULT_TEST_USER_DATA);
+  await user.save();
+  const nonExistentId = new mongoose.Types.ObjectId().toString();
+  await expect(
+    updateTrack(user.id.toString(), nonExistentId, { title: "New Title" }),
+  ).rejects.toThrow();
 });
 
 describe("Get Tracks By Artist ID", () => {

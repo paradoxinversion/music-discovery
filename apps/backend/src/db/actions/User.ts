@@ -3,6 +3,7 @@ import User from "../models/User";
 import Artist from "../models/Artist";
 import Track from "../models/Track";
 import Album from "../models/Album";
+import { deleteFile, deleteFolder } from "../../cloud/storage";
 
 /**
  * Create a new user in the database. Duplicate usernames or emails will throw an error.
@@ -21,6 +22,31 @@ export const createUser = async (user: IUserSignup) => {
     return newUser;
   } catch (error) {
     throw new Error(`Error creating user: ${error}`);
+  }
+};
+
+/**
+ * Sets the user's status
+ * @param userId
+ * @param status
+ * @returns
+ */
+export const setUserStatus = async (
+  userId: string,
+  status: "pending" | "active" | "inactive" | "banned",
+) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { userStatus: status },
+      { new: true },
+    );
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    return user;
+  } catch (error) {
+    throw new Error(`Error setting user status: ${error}`);
   }
 };
 
@@ -343,11 +369,16 @@ export const removeFavoriteTrack = async (userId: string, trackId: string) => {
  * @throws Error if user is not found or if there's a database error
  */
 export const deleteUser = async (userId: string) => {
+  // const user = await User.findById(userId);
+  // if (!user) {
+  //   throw new Error(`User with ID ${userId} not found`);
+  // }
   const deletedUser = await User.findByIdAndDelete(userId);
   if (!deletedUser) {
     throw new Error(`User with ID ${userId} not found`);
   }
 
+  // deleteFolder(user.username);
   const artistsManaged = await Artist.find({ managingUserId: userId });
   if (artistsManaged.length > 0) {
     for (const artist of artistsManaged) {

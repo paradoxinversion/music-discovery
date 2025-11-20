@@ -1,4 +1,4 @@
-import { IArtist } from "@common/types/src/types";
+import { EditableArtist, IArtist, NewArtist } from "@common/types/src/types";
 import Artist from "../models/Artist";
 import User from "../models/User";
 import Album from "../models/Album";
@@ -18,7 +18,7 @@ import { createImagePath } from "../../utils/imageUtilities";
  */
 export const createArtist = async (
   userId: string,
-  artistData: Omit<IArtist, "managingUserId" | "slug">,
+  artistData: NewArtist,
   artistArt?: Express.Multer.File,
 ) => {
   try {
@@ -29,6 +29,7 @@ export const createArtist = async (
     let artistArtDestination = null;
     if (artistArt) {
       artistArtDestination = await upload(
+        managingUser.id,
         createImagePath(managingUser, artistArt, artistData.name),
         artistArt,
       );
@@ -47,14 +48,10 @@ export const createArtist = async (
 };
 
 export const getAllArtists = async (): Promise<IArtist[]> => {
-  try {
-    const artists = await Artist.find();
-    return artists.map((artist) =>
-      artist.toJSON({ flattenMaps: true }),
-    ) as IArtist[];
-  } catch (error) {
-    throw new Error(`Error retrieving artists: ${error}`);
-  }
+  const artists = await Artist.find();
+  return artists.map((artist) =>
+    artist.toJSON({ flattenMaps: true }),
+  ) as IArtist[];
 };
 
 /**
@@ -63,47 +60,31 @@ export const getAllArtists = async (): Promise<IArtist[]> => {
  * @returns The artist document or null if not found
  */
 export const getArtistById = async (artistId: string) => {
-  try {
-    const artist = await Artist.findById(artistId).populate("tracks");
-    return artist?.toJSON({ flattenMaps: true }) || null;
-  } catch (error) {
-    throw new Error(`Error retrieving artist: ${error}`);
-  }
+  const artist = await Artist.findById(artistId).populate("tracks");
+  return artist?.toJSON({ flattenMaps: true }) || null;
 };
 
 export const getArtistBySlug = async (slug: string) => {
-  try {
-    const artist = await Artist.findOne({ slug }).populate("tracks");
-    return artist?.toJSON({ flattenMaps: true }) || null;
-  } catch (error) {
-    throw new Error(`Error retrieving artist: ${error}`);
-  }
+  const artist = await Artist.findOne({ slug }).populate("tracks");
+  return artist?.toJSON({ flattenMaps: true }) || null;
 };
 
 export const getArtistsByIds = async (artistIds: string[]) => {
-  try {
-    const artists = await Artist.find({ _id: { $in: artistIds } });
-    return artists.map((artist) =>
-      artist.toJSON({ flattenMaps: true }),
-    ) as IArtist[];
-  } catch (error) {
-    throw new Error(`Error retrieving artists: ${error}`);
-  }
+  const artists = await Artist.find({ _id: { $in: artistIds } });
+  return artists.map((artist) =>
+    artist.toJSON({ flattenMaps: true }),
+  ) as IArtist[];
 };
 
 export const getRandomArtists = async (
   count: number,
   excludeArtists?: string[],
 ) => {
-  try {
-    const artists = await Artist.aggregate([
-      { $match: { _id: { $nin: excludeArtists || [] } } },
-      { $sample: { size: count } },
-    ]);
-    return artists;
-  } catch (error) {
-    throw new Error(`Error retrieving random artists: ${error}`);
-  }
+  const artists = await Artist.aggregate([
+    { $match: { _id: { $nin: excludeArtists || [] } } },
+    { $sample: { size: count } },
+  ]);
+  return artists;
 };
 
 export const getSimilarArtists = async (artistId: string, count: number) => {
@@ -157,6 +138,7 @@ export const updateArtist = async (
     let artistArtDestination = null;
     if (artistArt) {
       artistArtDestination = await upload(
+        user.id,
         createImagePath(user, artistArt, artist.name),
         artistArt,
       );
