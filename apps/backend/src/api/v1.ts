@@ -42,6 +42,7 @@ import {
 import isLoggedIn from "../middleware/isLoggedIn";
 import Multer from "multer";
 import { getGenres } from "../controllers/genre";
+import checkUserAccountStatus from "../middleware/checkUserAccountStatus";
 
 const upload = Multer({
   storage: Multer.memoryStorage(),
@@ -61,7 +62,11 @@ router.route("/auth/check-auth").get(checkAuth);
 router.route("/auth/sign-up").post(signUp);
 router
   .route("/auth/log-in")
-  .post(passport.authenticate("local", { session: true }), login);
+  .post(
+    passport.authenticate("local", { session: true }),
+    checkUserAccountStatus,
+    login,
+  );
 router.route("/auth/log-out").get(ensureLoggedIn(), logout);
 
 // Artist Endpoints
@@ -73,8 +78,13 @@ router.route("/artists/random").get(getRandom);
 router
   .route("/artists/:id")
   .get(getById)
-  .put(isLoggedIn, upload.single("artistArt"), updateArtist)
-  .delete(isLoggedIn, deleteArtist);
+  .put(
+    isLoggedIn,
+    checkUserAccountStatus,
+    upload.single("artistArt"),
+    updateArtist,
+  )
+  .delete(isLoggedIn, checkUserAccountStatus, deleteArtist);
 router.route("/artist/:id/favorite").post(isLoggedIn, setFavoriteArtist);
 router.route("/artist/:id/similar").get(getSimilarArtists);
 router.route("/artist/slug/:slug").get(getBySlug);

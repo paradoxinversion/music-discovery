@@ -12,6 +12,11 @@ const UserSchema: Schema<IUserDoc, Model<IUserDoc>> = new Schema(
       required: true,
       unique: true,
     },
+    accountStatus: {
+      type: String,
+      enum: ["pending", "active", "inactive", "banned"],
+      default: "pending",
+    },
     password: {
       type: String,
       set: (ptPassword: string) => bcrypt.hashSync(ptPassword, 10),
