@@ -1,3 +1,4 @@
+import { SocialPlatformLinks } from "@common/json-data";
 /**
  * Common types for the music streaming service.
  */
@@ -24,12 +25,18 @@ type CommonLinkKeySocial =
  */
 interface ITrack {
   title: string;
+  /**
+   * A URL-friendly version of the track's title.
+   * Does not need to be unique, but care should be taken when querying.
+   * */
+  slug: string;
   artistId: string;
   albumId: string;
   duration?: number;
   isrc?: string;
   genre: string;
   managingUserId: string;
+  trackArt?: string;
   links?: {
     [key in CommonLinkKeyMusic]?: string;
   };
@@ -37,11 +44,11 @@ interface ITrack {
 
 type TrackSubmissionData = Pick<
   ITrack,
-  "title" | "genre" | "artistId" | "isrc"
+  "title" | "genre" | "artistId" | "isrc" | "trackArt" | "links"
 >;
 
 type EditableTrack = Partial<
-  Pick<ITrack, "title" | "genre" | "isrc" | "links">
+  Pick<ITrack, "title" | "genre" | "isrc" | "links" | "trackArt">
 >;
 
 /**
@@ -64,21 +71,31 @@ type EditableAlbum = Partial<Omit<IAlbum, "artistId">>;
  * A music artist/band.
  */
 interface IArtist {
+  /** The artist's name. Must be unique. */
   name: string;
+  /** A URL-friendly version of the artist's name. Must be unique. */
+  slug: string;
+  /** The artist's primary genre. */
   genre: string;
+  /** A brief biography of the artist. */
   biography: string;
   /**
    * ID of the user managing this artist's profile.
    */
   managingUserId: string;
+  /** A map of social and music platform links. */
   links?: {
-    [key in CommonLinkKeySocial]?: string;
+    [key in SocialPlatformLinks]?: string;
   };
+  /** List of album IDs associated with the artist. */
   albums?: string[];
+  /** List of track IDs associated with the artist. */
   tracks?: string[];
+  /** S3 location to the artist's artwork/image. */
+  artistArt?: string | null;
 }
-
-type EditableArtist = Partial<Omit<IArtist, "managingUserId">>;
+type NewArtist = Omit<IArtist, "managingUserId" | "slug" | "albums" | "tracks">;
+type EditableArtist = Partial<Omit<IArtist, "managingUserId" | "slug">>;
 
 /**
  * A user of the service.
@@ -87,6 +104,7 @@ interface IUser {
   username: string;
   email: string;
   password: string;
+  accountStatus: "pending" | "active" | "inactive" | "banned";
   favoriteTracks: string[];
   favoriteAlbums: string[];
   favoriteArtists: string[];
@@ -113,4 +131,5 @@ export type {
   EditableAlbum,
   TrackSubmissionData,
   EditableTrack,
+  NewArtist,
 };

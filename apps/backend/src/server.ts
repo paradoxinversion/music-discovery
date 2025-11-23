@@ -3,7 +3,6 @@ import express from "express";
 import passport from "passport";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
-import bodyParser from "body-parser";
 import expressSession, { MemoryStore } from "express-session";
 import { connectToDatabase } from "./db";
 import { Strategy as LocalStrategy } from "passport-local";
@@ -19,16 +18,31 @@ let redisStore;
 
 if (process.env.NODE_ENV === "production") {
   redisClient = createClient({
-    url: "redis://redis:6379",
+    username:
+      process.env.REDIS_USERNAME ||
+      readFileSync("/run/secrets/REDIS_USERNAME", "utf-8").trim(),
+    password:
+      process.env.REDIS_PASSWORD ||
+      readFileSync("/run/secrets/REDIS_PASSWORD", "utf-8").trim(),
+    socket: {
+      host: process.env.REDIS_HOST,
+      port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
+    },
   });
   redisClient.connect().catch(console.error);
+  redisClient.on("connect", () => {
+    console.log("Connected to redis");
+  });
+  redisClient.on("ready", () => {
+    console.log("Redis connection is ready");
+  });
   redisStore = new RedisStore({
     client: redisClient,
     prefix: "mda:",
   });
 }
 
-const appName = "Music Discovery App";
+const appName = "OffBeat";
 const limiter = rateLimit({
   windowMs: 10000, // 10 seconds
   limit: 30, // each IP can make up to 30 requests per `windowsMs` (10 seconds)
@@ -40,27 +54,37 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: process.env.CLIENT_URL || "http://localhost:3000",
     credentials: true,
   }),
 );
-
-app.use(morgan("dev"));
+if (process.env.NODE_ENV === "production") {
+  app.use(morgan("combined"));
+} else {
+  app.use(morgan("dev"));
+}
 app.use(limiter);
 app.use(express.json());
-app.use(cookieParser());
+app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(express.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+if (app.get("env") === "production") {
+  app.set("trust proxy", 1); // trust first proxy
+}
 app.use(
   expressSession({
     store:
       process.env.NODE_ENV === "production" ? redisStore : new MemoryStore({}),
-    secret: readFileSync("/run/secrets/SESSION_SECRET"),
+    secret:
+      process.env.SESSION_SECRET || readFileSync("/run/secrets/SESSION_SECRET"),
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false },
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    },
   }),
 );
+
 connectToDatabase();
 passport.use(
   new LocalStrategy(async function (username, password, done) {

@@ -1,0 +1,9 @@
+{
+  "Spotify": "https://open.spotify.com/track/{url}",
+  "Apple Music": "https://music.apple.com/track/{url}",
+  "YouTube Music": "https://music.youtube.com/watch?v={url}",
+  "SoundCloud": "https://soundcloud.com/{url}",
+  "Bandcamp": "https://{url}.bandcamp.com/track/{url}",
+  "Amazon Music": "https://music.amazon.com/albums/{url}?trackAsin={url}",
+  "YouTube": "https://www.youtube.com/watch?v={url}"
+}

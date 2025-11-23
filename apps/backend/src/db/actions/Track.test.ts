@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import User from "../models/User";
 import mongoose from "mongoose";
 import Artist from "../models/Artist";
@@ -20,14 +20,37 @@ import {
   getRandomTracks,
   getTracksByGenre,
   getTracksByArtistId,
+  getTrackBySlugAndArtist,
 } from "./Track";
-import { getRandom } from "../../controllers/track";
+import { emptyBucket } from "../../cloud/storage";
+import { Readable } from "stream";
+
+export function makeTestMulterFile(
+  opts: Partial<Express.Multer.File> = {},
+): Express.Multer.File {
+  const buffer = Buffer.isBuffer(opts.buffer)
+    ? (opts.buffer as Buffer)
+    : Buffer.from(String(opts.buffer ?? "fake-image-data"));
+  return {
+    fieldname: opts.fieldname ?? "trackArt",
+    originalname: opts.originalname ?? "track-art.jpg",
+    encoding: opts.encoding ?? "7bit",
+    mimetype: opts.mimetype ?? "image/jpeg",
+    size: opts.size ?? buffer.length,
+    destination: opts.destination ?? "",
+    filename: opts.filename ?? "track-art.jpg",
+    path: opts.path ?? "",
+    buffer,
+    stream: opts.stream ?? Readable.from(buffer),
+  } as Express.Multer.File;
+}
 
 beforeEach(async () => {
   await User.deleteMany({});
   await Artist.deleteMany({});
   await Album.deleteMany({});
   await Track.deleteMany({});
+  await emptyBucket();
 });
 
 describe("Create Track", () => {
@@ -53,7 +76,8 @@ describe("Create Track", () => {
       artistId: artist.id.toString(),
       managingUserId: user.id.toString(),
     } as ITrack;
-    const createdTrack = await createTrack(trackData);
+    const art = makeTestMulterFile();
+    const createdTrack = await createTrack(user, trackData, art);
     expect(createdTrack).toBeDefined();
     expect(createdTrack.title).toBe(trackData.title);
     expect(createdTrack.albumId.toString()).toBe(album.id.toString());
@@ -82,11 +106,11 @@ describe("Create Track", () => {
       artistId: artist.id.toString(),
       managingUserId: user.id.toString(),
     } as ITrack;
-    const createdTrack = await createTrack(trackData);
+    const createdTrack = await createTrack(user.id.toString(), trackData);
     expect(createdTrack).toBeDefined();
 
     // Attempt to create the same track again
-    await expect(createTrack(trackData)).rejects.toThrow();
+    await expect(createTrack(user.id.toString(), trackData)).rejects.toThrow();
   });
 });
 
@@ -122,6 +146,38 @@ describe("Get Track By ID", () => {
   it("Returns null for non-existent track ID", async () => {
     const nonExistentId = new mongoose.Types.ObjectId().toString();
     const fetchedTrack = await getTrackById(nonExistentId);
+    expect(fetchedTrack).toBeNull();
+  });
+});
+
+describe("Get Track By Slug and Artist", () => {
+  it("Retrieves a track by its slug and artist slug", async () => {
+    const user = new User(DEFAULT_TEST_USER_DATA);
+    await user.save();
+    const artist = new Artist({
+      ...DEFAULT_TEST_ARTIST_DATA,
+      managingUserId: user.id.toString(),
+    });
+    await artist.save();
+
+    const track = new Track({
+      ...DEFAULT_TEST_TRACK_DATA,
+      artistId: artist.id.toString(),
+      managingUserId: user.id.toString(),
+    });
+    await track.save();
+
+    const fetchedTrack = await getTrackBySlugAndArtist(track.slug, artist.slug);
+    expect(fetchedTrack).toBeDefined();
+    expect(fetchedTrack?.slug).toBe(track.slug);
+    expect((fetchedTrack as ITrack).artistId.slug).toBe(artist.slug);
+  });
+
+  it("Returns null for non-existent track slug and artist slug", async () => {
+    const fetchedTrack = await getTrackBySlugAndArtist(
+      "non-existent-track-slug",
+      "non-existent-artist-slug",
+    );
     expect(fetchedTrack).toBeNull();
   });
 });
@@ -268,26 +324,34 @@ describe("Update Track", () => {
     await track.save();
 
     const newTitle = "Updated Track Title";
+    const trackArt = makeTestMulterFile({ originalname: "new-track-art.jpg" });
     const updatedTrack = await updateTrack(
       user.id.toString(),
       track.id.toString(),
       {
         title: newTitle,
       },
+      trackArt,
     );
     expect(updatedTrack).toBeDefined();
     expect(updatedTrack.title).toBe(newTitle);
     expect(updatedTrack.genre).toBe(track.genre); // unchanged
+    expect(updatedTrack.trackArt).toBeDefined();
   });
-
-  it("Throws error when updating non-existent track", async () => {
-    const user = new User(DEFAULT_TEST_USER_DATA);
-    await user.save();
+  it("Throws error when using an invalid user", async () => {
     const nonExistentId = new mongoose.Types.ObjectId().toString();
     await expect(
-      updateTrack(user.id.toString(), nonExistentId, { title: "New Title" }),
+      updateTrack(nonExistentId, nonExistentId, { title: "New Title" }),
     ).rejects.toThrow();
   });
+});
+it("Throws error when updating non-existent track", async () => {
+  const user = new User(DEFAULT_TEST_USER_DATA);
+  await user.save();
+  const nonExistentId = new mongoose.Types.ObjectId().toString();
+  await expect(
+    updateTrack(user.id.toString(), nonExistentId, { title: "New Title" }),
+  ).rejects.toThrow();
 });
 
 describe("Get Tracks By Artist ID", () => {

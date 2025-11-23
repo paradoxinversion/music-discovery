@@ -2,6 +2,10 @@ import { Request, Response } from "express";
 import { createUser } from "../db/actions/User";
 import joi from "joi";
 import { IUserSignup } from "@common/types/src/types";
+import {
+  createUserCreatedEvent,
+  logServerEvent,
+} from "../serverEvents/serverEvents";
 
 const signUpSchema = joi.object<IUserSignup>({
   username: joi.string().min(3).max(30).required(),
@@ -23,6 +27,7 @@ export const signUp = async (req: Request, res: Response) => {
     }
 
     await createUser({ username, password, email });
+    logServerEvent(createUserCreatedEvent(username));
     return res.status(200).json({ message: "Sign up successful" });
   } catch (error) {
     console.error("Error during sign up:", error);
@@ -38,11 +43,17 @@ export const login = (req: Request, res: Response) => {
 };
 
 export const checkAuth = (req: Request, res: Response) => {
+  res.set("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
   if (req.isAuthenticated()) {
     const { password, __v, ...returnUser } = req.user.toObject();
+    if (returnUser.accountStatus !== "active") {
+      return res.status(401).json({ message: "User account is not active." });
+    }
     return res.status(200).json({ authenticated: true, user: returnUser });
   } else {
-    return res.status(200).json({ authenticated: false });
+    return res.status(401).json({ authenticated: false });
   }
 };
 

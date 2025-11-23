@@ -47,3 +47,7 @@ The password to authenticate against MongDB
 #### `SESSION_SECRET`
 
 The secret used to sign session ID cookies
+
+#### `REDIS_USERNAME` (PROD)
+
+#### `REDIS_PASSWORD` (PROD)

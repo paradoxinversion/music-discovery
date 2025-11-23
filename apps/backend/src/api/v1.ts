@@ -12,6 +12,7 @@ import {
   getSimilarArtists,
   updateArtist,
   setFavorite as setFavoriteArtist,
+  getBySlug,
 } from "../controllers/artist";
 import {
   createAlbum,
@@ -23,6 +24,7 @@ import {
 
 import {
   deleteTrack,
+  getBySlugAndArtist,
   getRandom as getRandomTracks,
   getSimilarTracks,
   getTrack,
@@ -32,59 +34,95 @@ import {
   submitTrack,
   updateTrack,
 } from "../controllers/track";
-import { getFavorites, getManagedArtists } from "../controllers/user";
+import {
+  getFavorites,
+  getManagedArtists,
+  deleteUser,
+} from "../controllers/user";
 import isLoggedIn from "../middleware/isLoggedIn";
+import Multer from "multer";
+import { getGenres } from "../controllers/genre";
+import checkUserAccountStatus from "../middleware/checkUserAccountStatus";
+
+const upload = Multer({
+  storage: Multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // no larger than 5mb, you can change as needed.
+  },
+});
 
 const router = express.Router();
 
+// Health Check Endpoint
 router.route("/health").get(healthCheck);
+router.route("/genre").get(getGenres);
 
+// Authentication Endpoints
+router.route("/auth/check-auth").get(checkAuth);
 router.route("/auth/sign-up").post(signUp);
-
 router
   .route("/auth/log-in")
-  .post(passport.authenticate("local", { session: true }), login);
-
-router.route("/auth/check-auth").get(isLoggedIn, checkAuth);
-
+  .post(
+    passport.authenticate("local", { session: true }),
+    checkUserAccountStatus,
+    login,
+  );
 router.route("/auth/log-out").get(ensureLoggedIn(), logout);
 
-router.route("/artists").get(getArtists).post(isLoggedIn, createNewArtist);
-
+// Artist Endpoints
+router
+  .route("/artists")
+  .get(getArtists)
+  .post(isLoggedIn, upload.single("artistArt"), createNewArtist);
 router.route("/artists/random").get(getRandom);
-
 router
   .route("/artists/:id")
   .get(getById)
-  .put(isLoggedIn, updateArtist)
-  .delete(isLoggedIn, deleteArtist);
-
+  .put(
+    isLoggedIn,
+    checkUserAccountStatus,
+    upload.single("artistArt"),
+    updateArtist,
+  )
+  .delete(isLoggedIn, checkUserAccountStatus, deleteArtist);
 router.route("/artist/:id/favorite").post(isLoggedIn, setFavoriteArtist);
-
 router.route("/artist/:id/similar").get(getSimilarArtists);
-
+router.route("/artist/slug/:slug").get(getBySlug);
+// Album Endpoints
+router
+  .route("/albums")
+  .get(getAlbums)
+  .post(isLoggedIn, upload.single("albumArt"), createAlbum);
 router
   .route("/albums/:id")
   .get(getAlbumById)
-  .put(ensureLoggedIn(), updateAlbum)
+  .put(ensureLoggedIn(), upload.single("albumArt"), updateAlbum)
   .delete(ensureLoggedIn(), deleteAlbum);
 
-router.route("/albums").get(getAlbums).post(isLoggedIn, createAlbum);
-
-router.route("/tracks").post(isLoggedIn, submitTrack);
+// Track Endpoints
+router
+  .route("/tracks")
+  .post(isLoggedIn, upload.single("trackArt"), submitTrack);
 router.route("/tracks/random").get(getRandomTracks);
+router
+  .route("/track/slug/:trackSlug/artist/:artistSlug")
+  .get(getBySlugAndArtist);
+
 router
   .route("/tracks/:trackId")
   .get(getTrack)
-  .put(isLoggedIn, updateTrack)
+  .put(isLoggedIn, upload.single("trackArt"), updateTrack)
   .delete(isLoggedIn, deleteTrack);
 router.route("/tracks/:trackId/favorite").post(isLoggedIn, setFavorite);
 router.route("/tracks/:trackId/similar").get(getSimilarTracks);
 router.route("/tracks/genre/:genre").get(getTracks);
-router.route("/tracks/artist/:artistId").get(getTracksByArtistId); // Added route to get tracks by artistId
+router.route("/tracks/artist/:artistId").get(getTracksByArtistId);
 
+// User Endpoints
 router.route("/user/favorites").get(isLoggedIn, getFavorites);
+router.route("/user/:userId").delete(isLoggedIn, deleteUser);
 router
   .route("/users/:userId/managed-artists")
   .get(isLoggedIn, getManagedArtists);
+
 export default router;

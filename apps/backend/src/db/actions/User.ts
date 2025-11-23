@@ -3,6 +3,7 @@ import User from "../models/User";
 import Artist from "../models/Artist";
 import Track from "../models/Track";
 import Album from "../models/Album";
+import { deleteFile, deleteFolder } from "../../cloud/storage";
 
 /**
  * Create a new user in the database. Duplicate usernames or emails will throw an error.
@@ -21,6 +22,31 @@ export const createUser = async (user: IUserSignup) => {
     return newUser;
   } catch (error) {
     throw new Error(`Error creating user: ${error}`);
+  }
+};
+
+/**
+ * Sets the user's status
+ * @param userId
+ * @param status
+ * @returns
+ */
+export const setUserStatus = async (
+  userId: string,
+  status: "pending" | "active" | "inactive" | "banned",
+) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { userStatus: status },
+      { new: true },
+    );
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    return user;
+  } catch (error) {
+    throw new Error(`Error setting user status: ${error}`);
   }
 };
 
@@ -251,16 +277,66 @@ export const getFavoriteArtists = async (userId: string) => {
  * @returns An object containing arrays of favorite tracks, artists, and albums
  * @throws Error if user is not found or if there's a database error
  */
-export const getFavorites = async (userId: string) => {
+export const getFavorites = async (
+  userId: string,
+  includeTrackArtistData: boolean = false,
+) => {
   try {
-    const user = await User.findById(userId)
-      .populate("favoriteTracks")
-      .populate("favoriteArtists")
-      .populate("favoriteAlbums");
+    const user = await User.aggregate([
+      { $match: { _id: userId } },
+      {
+        $lookup: {
+          from: "tracks",
+          localField: "favoriteTracks",
+          foreignField: "_id",
+          as: "favoriteTracks",
+          pipeline: [
+            // lookup the track's artist and project artist.slug as artistSlug
+            {
+              $lookup: {
+                from: "artists",
+                let: { artistId: "$artistId" },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        // convert the track.artistId (string) to ObjectId for matching
+                        $eq: ["$_id", { $toObjectId: "$$artistId" }],
+                      },
+                    },
+                  },
+                  { $project: { slug: 1, name: 1 } },
+                ],
+                as: "artist",
+              },
+            },
+            { $unwind: { path: "$artist", preserveNullAndEmptyArrays: true } },
+            {
+              $project: {
+                title: 1,
+                genre: 1,
+                trackArt: 1,
+                slug: 1,
+                artistSlug: "$artist.slug",
+                artistName: includeTrackArtistData ? "$artist.name" : undefined,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "artists",
+          localField: "favoriteArtists",
+          foreignField: "_id",
+          as: "favoriteArtists",
+          pipeline: [{ $project: { name: 1, artistArt: 1, slug: 1 } }],
+        },
+      },
+    ]);
     return {
-      favoriteTracks: user?.favoriteTracks || [],
-      favoriteArtists: user?.favoriteArtists || [],
-      favoriteAlbums: user?.favoriteAlbums || [],
+      favoriteTracks: user[0]?.favoriteTracks || [],
+      favoriteArtists: user[0]?.favoriteArtists || [],
     };
   } catch (error) {
     throw new Error(`Error retrieving favorites: ${error}`);
@@ -293,11 +369,16 @@ export const removeFavoriteTrack = async (userId: string, trackId: string) => {
  * @throws Error if user is not found or if there's a database error
  */
 export const deleteUser = async (userId: string) => {
+  // const user = await User.findById(userId);
+  // if (!user) {
+  //   throw new Error(`User with ID ${userId} not found`);
+  // }
   const deletedUser = await User.findByIdAndDelete(userId);
   if (!deletedUser) {
     throw new Error(`User with ID ${userId} not found`);
   }
 
+  // deleteFolder(user.username);
   const artistsManaged = await Artist.find({ managingUserId: userId });
   if (artistsManaged.length > 0) {
     for (const artist of artistsManaged) {

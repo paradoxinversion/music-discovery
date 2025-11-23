@@ -4,6 +4,21 @@ import User from "./models/User";
 import { readFileSync } from "fs";
 
 export const connectToDatabase = async () => {
+  if (process.env.NODE_ENV === "test") {
+    try {
+      const host = process.env.LOCAL_TEST ? "localhost" : "mongo";
+      console.log(host);
+      await mongoose.connect(
+        `mongodb://${host}:27017/music-discovery-app-test`,
+      );
+      await mongoose.connection.db?.admin().command({ ping: 1 });
+    } catch (error) {
+      console.error("Error connecting to the test database:", error);
+      throw error; // Re-throw the error after logging it
+    }
+
+    return;
+  }
   if (process.env.NODE_ENV === "development") {
     try {
       await mongoose.connect(
@@ -21,20 +36,19 @@ export const connectToDatabase = async () => {
     } catch (error) {
       console.error("Error connecting to the database:", error);
       throw error; // Re-throw the error after logging it
-    } finally {
-      await mongoose.disconnect();
     }
   }
 
   if (process.env.NODE_ENV === "production") {
     try {
-      const dbUser = readFileSync("/run/secrets/DB_USER", "utf-8").trim();
-      const dbpassword = readFileSync(
-        "/run/secrets/DB_PASSWORD",
-        "utf-8",
-      ).trim();
+      const dbUser =
+        process.env.DB_USER ||
+        readFileSync("/run/secrets/DB_USER", "utf-8").trim();
+      const dbpassword =
+        process.env.DB_PASSWORD ||
+        readFileSync("/run/secrets/DB_PASSWORD", "utf-8").trim();
       await mongoose.connect(
-        `mongodb://${dbUser}:${dbpassword}@${process.env.DB_HOST}/?retryWrites=true&w=majority&appName=mda-alpha`,
+        `mongodb+srv://${dbUser}:${dbpassword}@${process.env.DB_HOST}/?retryWrites=true&w=majority&appName=mda-alpha`,
         {
           serverApi: {
             version: "1",
@@ -44,8 +58,9 @@ export const connectToDatabase = async () => {
         },
       );
       await mongoose.connection.db?.admin().command({ ping: 1 });
-    } finally {
-      await mongoose.disconnect();
+    } catch (error) {
+      console.error("Error connecting to the database:", error);
+      throw error; // Re-throw the error after logging it
     }
   }
 };

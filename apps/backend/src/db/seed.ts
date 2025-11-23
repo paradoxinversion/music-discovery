@@ -3,23 +3,11 @@
 import User from "./models/User";
 import Artist from "./models/Artist";
 import Track from "./models/Track";
+import { genres } from "../jsonData/genres.json";
 const userCount = 50;
 
-const genres = [
-  "Pop",
-  "Rock",
-  "Hip Hop",
-  "Jazz",
-  "Classical",
-  "Electronic",
-  "Country",
-  "Reggae",
-  "Blues",
-  "Metal",
-];
-
 const pickRandomGenre = () => {
-  return genres[Math.floor(Math.random() * genres.length)];
+  return genres[Math.floor(Math.random() * genres.length)]; // eslint-disable-line sonarjs/pseudo-random
 };
 
 export const seedDatabase = async () => {
@@ -31,7 +19,7 @@ export const seedDatabase = async () => {
     const user = new User({
       username: chance.word(),
       email: chance.email(),
-      password: "testpassword",
+      password: "testpassword", // eslint-disable-line sonarjs/no-hardcoded-passwords
     });
     usersData.push(user);
   }
@@ -40,7 +28,7 @@ export const seedDatabase = async () => {
   const artistsData = [];
   for (const user of users) {
     const artist = new Artist({
-      name: chance.name(),
+      name: chance.name({ full: true }),
       genre: pickRandomGenre()?.toLowerCase(),
       managingUserId: user._id,
       biography: chance.paragraph(),
@@ -57,7 +45,7 @@ export const seedDatabase = async () => {
   const tracksData = [];
   for (const artist of artists) {
     const track = new Track({
-      title: chance.sentence({ words: 3 }),
+      title: chance.sentence({ words: 3, punctuation: false }),
       duration: chance.integer({ min: 60, max: 300 }),
       artistId: artist._id,
       managingUserId: artist.managingUserId,

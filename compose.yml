@@ -1,4 +1,27 @@
 services:
+  fake-gcs-server:
+    image: fsouza/fake-gcs-server:latest
+    ports:
+      - 8080:8080
+    networks:
+      - discovery-network
+    volumes:
+      - ../data:/data
+    command:
+      [
+        "-scheme",
+        "http",
+        "-port",
+        "8080",
+        "-external-url",
+        "http://fake-gcs-server:8080",
+        "-public-host",
+        "fake-gcs-server",
+        "-backend",
+        "filesystem",
+        "-filesystem-root",
+        "/storage",
+      ]
   mongo:
     attach: false
     image: mongo:latest
@@ -12,7 +35,8 @@ services:
   backend:
     build:
       context: .
-      dockerfile: ./apps/backend/Dockerfile.dev
+      dockerfile: ./Dockerfile.backend.dev
+      target: backend-dev
     volumes:
       - type: bind
         source: ./apps/backend
@@ -23,6 +47,7 @@ services:
       DB_PORT: 27017
       DB_NAME: music-discovery-app-dev
       PORT: 3001
+      CLIENT_URL: http://localhost:3000
     ports:
       - 3001:3001
     networks:
@@ -41,11 +66,17 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: ./apps/frontend/Dockerfile.dev
+      dockerfile: Dockerfile.frontend.dev
+    develop:
+      watch:
+        - path: ./components
+          action: rebuild
+          include: "./components/dist/**"
     volumes:
       - type: bind
         source: ./apps/frontend
         target: /app/apps/frontend
+
     environment:
       NODE_ENV: development
     ports:

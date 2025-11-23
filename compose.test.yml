@@ -1,11 +1,52 @@
 services:
-  base:
-    build:
-      context: .
-      dockerfile: ./Dockerfile.base
+  fake-gcs-server:
+    attach: false
+    image: fsouza/fake-gcs-server:latest
+    ports:
+      - 8080:8080
+    networks:
+      - discovery-network
+    volumes:
+      - ../data:/data
+    command:
+      [
+        "-scheme",
+        "http",
+        "-port",
+        "8080",
+        "-external-url",
+        "http://fake-gcs-server:8080",
+        "-public-host",
+        "fake-gcs-server",
+        "-backend",
+        "memory",
+      ]
+  fake-gcs-server-external:
+    attach: false
+    image: fsouza/fake-gcs-server:latest
+    ports:
+      - 5555:5555
+    networks:
+      - discovery-network
+    volumes:
+      - ../data:/data
+    command:
+      [
+        "-scheme",
+        "http",
+        "-port",
+        "5555",
+        "-external-url",
+        "http://localhost:5555",
+        "-public-host",
+        "localhost",
+        "-backend",
+        "memory",
+      ]
 
   mongo:
     image: mongo:latest
+    attach: false
     ports:
       - 27017:27017
     networks:
@@ -17,7 +58,7 @@ services:
         [
           "CMD",
           "echo",
-          '''db.runCommand("ping").ok'' | mongosh localhost:27017/music-discovery-app-test --quiet',
+          '''db.runCommand("ping").ok'' | mongosh mongo:27017/music-discovery-app-test --quiet',
         ]
       interval: 10s
       timeout: 30s
@@ -27,9 +68,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: ./apps/backend/Dockerfile
-      additional_contexts:
-        base: service:base
+      dockerfile: ./Dockerfile.backend.dev
       target: backend-test
     links:
       - mongo
@@ -58,8 +97,6 @@ services:
   #   build:
   #     context: .
   #     dockerfile: ./apps/frontend/Dockerfile
-  #     additional_contexts:
-  #       base: service:base
   #   volumes:
   #     - type: bind
   #       source: ./apps/frontend

@@ -1,17 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { fn } from "storybook/test";
-
-import { PlayIcon } from "./Icons";
+import { Icon } from "./Icons";
 
 const meta = {
   title: "Atoms/Icons",
-  component: PlayIcon,
+  component: Icon,
   parameters: {
     layout: "centered",
   },
   tags: ["autodocs"],
   args: {},
-} satisfies Meta<typeof PlayIcon>;
+} satisfies Meta<typeof Icon>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
@@ -19,5 +17,6 @@ type Story = StoryObj<typeof meta>;
 export const Primary: Story = {
   args: {
     size: "medium",
+    icon: "Apple Music",
   },
 };

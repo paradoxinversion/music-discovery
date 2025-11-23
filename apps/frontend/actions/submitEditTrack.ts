@@ -9,7 +9,7 @@ import axios from "axios";
  */
 export default async function submitEditTrack(
   trackId: string,
-  data: EditableTrack,
+  data: Omit<EditableTrack, "trackArt"> & { trackArt?: File },
 ) {
   try {
     const response = await axios.put(
@@ -17,6 +17,9 @@ export default async function submitEditTrack(
       data,
       {
         withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       },
     );
     return response;

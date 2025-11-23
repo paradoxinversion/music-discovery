@@ -6,7 +6,7 @@ export default async function checkAuthentication() {
       `${process.env.NEXT_PUBLIC_API_URL}/auth/check-auth`,
       { withCredentials: true },
     );
-    return response.data.user;
+    return response;
   } catch (error) {
     console.error("Error checking auth:", error);
   }

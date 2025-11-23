@@ -7,7 +7,9 @@ import axios from "axios";
  * @returns The submitted track data or an error message.
  */
 export default async function submitTrack(
-  trackSubmissionData: TrackSubmissionData,
+  trackSubmissionData: Omit<TrackSubmissionData, "trackArt"> & {
+    trackArt?: File;
+  },
 ) {
   try {
     const response = await axios.post(
@@ -15,6 +17,9 @@ export default async function submitTrack(
       trackSubmissionData,
       {
         withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       },
     );
     return response;

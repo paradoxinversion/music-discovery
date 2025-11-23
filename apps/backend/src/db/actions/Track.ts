@@ -1,13 +1,20 @@
-import { ITrack, TrackSubmissionData } from "@common/types/src/types";
+import { ITrack, IUser, TrackSubmissionData } from "@common/types/src/types";
 import Track from "../models/Track";
 import User from "../models/User";
+import { createImagePath } from "../../utils/imageUtilities";
+import { deleteFile, upload } from "../../cloud/storage";
+import Artist from "../models/Artist";
 
 /**
  * Creates a new track in the database.
  * @param trackData Data for the track to create
  * @returns The created track
  */
-export const createTrack = async (trackData: TrackSubmissionData) => {
+export const createTrack = async (
+  managingUser: IUser & { id: string },
+  trackData: TrackSubmissionData,
+  trackArt?: Express.Multer.File,
+) => {
   if (
     await Track.findOne({
       title: trackData.title,
@@ -18,7 +25,19 @@ export const createTrack = async (trackData: TrackSubmissionData) => {
       `Track with title ${trackData.title} by artist ${trackData.artistId} already exists`,
     );
   }
-  const track = new Track(trackData);
+  let trackArtDestination = null;
+  if (trackArt) {
+    trackArtDestination = await upload(
+      managingUser.id,
+      createImagePath(managingUser, trackArt, trackData.title),
+      trackArt,
+    );
+    trackData.trackArt = trackArtDestination;
+  }
+  const track = new Track({
+    ...trackData,
+    links: { ...(trackData.links || {}) },
+  });
   await track.save();
   return track;
 };
@@ -32,7 +51,23 @@ export const getAllTracks = async (): Promise<ITrack[]> => {
 };
 
 export const getTrackById = async (trackId: string) => {
-  const track = await Track.findById(trackId).populate("artistId", "name");
+  const track = await Track.findById(trackId).populate("artistId", "name slug");
+  if (!track) {
+    return null;
+  }
+
+  return track?.toJSON({ flattenMaps: true }) as ITrack | null;
+};
+
+export const getTrackBySlugAndArtist = async (
+  trackSlug: string,
+  artistSlug: string,
+) => {
+  const artist = await Artist.findOne({ slug: artistSlug }).select("_id");
+  const track = await Track.findOne({
+    slug: trackSlug,
+    artistId: artist?._id,
+  }).populate("artistId", "name slug");
   if (!track) {
     return null;
   }
@@ -46,34 +81,33 @@ export const getTrackById = async (trackId: string) => {
  * @returns An array of random tracks
  */
 export const getRandomTracks = async (count: number) => {
-  try {
-    const tracks = await Track.aggregate([
-      { $sample: { size: count } },
-      { $addFields: { artistObjId: { $toObjectId: "$artistId" } } }, // convert artistId to ObjectId
-      {
-        $lookup: {
-          from: "artists",
-          localField: "artistObjId",
-          foreignField: "_id",
-          as: "artist",
-        },
+  const tracks = await Track.aggregate([
+    { $sample: { size: count } },
+    { $addFields: { artistObjId: { $toObjectId: "$artistId" } } }, // convert artistId to ObjectId
+    {
+      $lookup: {
+        from: "artists",
+        localField: "artistObjId",
+        foreignField: "_id",
+        as: "artist",
       },
-      { $unwind: "$artist" }, // flatten the artist array
-      {
-        $project: {
-          title: 1,
-          artistId: 1,
-          duration: 1,
-          isrc: 1,
-          genre: 1,
-          artistName: "$artist.name", // include artist name
-        },
+    },
+    { $unwind: "$artist" }, // flatten the artist array
+    {
+      $project: {
+        title: 1,
+        artistId: 1,
+        duration: 1,
+        isrc: 1,
+        genre: 1,
+        trackArt: 1,
+        slug: 1,
+        artistName: "$artist.name",
+        artistSlug: "$artist.slug",
       },
-    ]).exec();
-    return tracks;
-  } catch (error) {
-    throw new Error(`Error retrieving random tracks: ${error}`);
-  }
+    },
+  ]).exec();
+  return tracks;
 };
 
 /**
@@ -99,7 +133,9 @@ export const getTracksByGenre = async (genre: string, limit: number) => {
     {
       $project: {
         title: 1,
+        slug: 1,
         artistName: "$artist.name",
+        artistSlug: "$artist.slug",
       },
     },
   ]).exec();
@@ -128,6 +164,7 @@ export const updateTrack = async (
   userId: string,
   trackId: string,
   updateData: Partial<ITrack>,
+  trackArt?: Express.Multer.File,
 ) => {
   const user = await User.findById(userId);
   const track = await Track.findById(trackId);
@@ -139,6 +176,16 @@ export const updateTrack = async (
     throw new Error(
       `User with ID ${userId} is not authorized to update this track`,
     );
+  }
+  let trackArtDestination = null;
+
+  if (trackArt) {
+    trackArtDestination = await upload(
+      user.id,
+      createImagePath(user, trackArt, track.title),
+      trackArt,
+    );
+    updateData.trackArt = trackArtDestination;
   }
   const updatedTrack = await Track.findByIdAndUpdate(trackId, updateData, {
     new: true,
@@ -168,6 +215,12 @@ export const deleteTrack = async (userId: string, trackId: string) => {
     );
   }
   const deletedTrack = await Track.findByIdAndDelete(trackId);
+  await Artist.findByIdAndUpdate(track?.artistId, {
+    $pull: { tracks: trackId },
+  });
+  if (track?.trackArt) {
+    await deleteFile(track?.trackArt);
+  }
   if (!deletedTrack) {
     throw new Error(`Track with ID ${trackId} not found`);
   }

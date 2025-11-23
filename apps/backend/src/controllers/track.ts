@@ -7,30 +7,55 @@ import {
   createTrack,
   updateTrack as updateTrackAction,
   deleteTrack as deleteTrackAction,
+  getTrackBySlugAndArtist,
 } from "../db/actions/Track";
 import Joi from "joi";
 import { addFavoriteTrack, removeFavoriteTrack } from "../db/actions/User";
-import { TrackSubmissionData } from "@common/types/src/types";
-
+import { ITrack, TrackSubmissionData } from "@common/types/src/types";
+import { getImageAtPath } from "../db/actions/Storage";
+import { musicPlatformLinks } from "@common/json-data";
+import {
+  createTrackProfileCreatedEvent,
+  createTrackProfileDeletedEvent,
+  createTrackProfileUpdatedEvent,
+  logServerEvent,
+} from "../serverEvents/serverEvents";
 const submitTrack = async (req: Request, res: Response) => {
   const trackSchema = Joi.object<TrackSubmissionData>({
     title: Joi.string().required(),
     artistId: Joi.string().required(),
     genre: Joi.string().required(),
-    isrc: Joi.string().optional(),
+    isrc: Joi.string().allow("").optional(),
+    trackArt: Joi.any().optional(),
+    links: Joi.object()
+      // .pattern(
+      //   Joi.string().valid("spotify", "appleMusic", "youtube", "soundcloud"),
+      //   Joi.string().uri(),
+      // )
+      .optional(),
   });
   const managingUserId = req.user._id;
   try {
     const { error, value } = trackSchema.validate(req.body);
     if (error) {
-      throw new Error(error.message);
+      throw new Error("Invalid track data: " + error.message);
     }
     const trackData: TrackSubmissionData & { managingUserId: string } = {
       ...value,
       managingUserId,
     };
+    if (trackData.isrc === "") {
+      trackData.isrc = undefined;
+    }
     // Save the track to the database
-    const track = await createTrack(trackData);
+    const track = await createTrack(req.user, trackData, req.file);
+    logServerEvent(
+      createTrackProfileCreatedEvent(
+        track._id.toString(),
+        track.title,
+        req.user._id.toString(),
+      ),
+    );
     return res.status(201).json({ status: "OK", data: track });
   } catch (error) {
     if (error instanceof Error) {
@@ -46,13 +71,45 @@ const getTrack = async (req: Request, res: Response) => {
       .status(400)
       .json({ status: "ERROR", message: "trackId is required" });
   }
+
   const track = await getTrackById(trackId);
   if (!track) {
     return res
       .status(404)
       .json({ status: "ERROR", message: "Track not found" });
   }
-  return res.status(200).json({ status: "OK", data: track });
+  let trackArt = null;
+  if (track && track.trackArt) {
+    const art = await getImageAtPath(track?.trackArt);
+    if (art) {
+      trackArt = Buffer.from(art).toString("base64");
+    }
+  }
+  return res.status(200).json({ status: "OK", data: { ...track, trackArt } });
+};
+
+const getBySlugAndArtist = async (req: Request, res: Response) => {
+  const { trackSlug, artistSlug } = req.params;
+  if (!trackSlug || !artistSlug) {
+    return res
+      .status(400)
+      .json({ status: "ERROR", message: "slug and artistId are required" });
+  }
+
+  const track = await getTrackBySlugAndArtist(trackSlug, artistSlug);
+  if (!track) {
+    return res
+      .status(404)
+      .json({ status: "ERROR", message: "Track not found" });
+  }
+  let trackArt = null;
+  if (track && track.trackArt) {
+    const art = await getImageAtPath(track?.trackArt);
+    if (art) {
+      trackArt = Buffer.from(art).toString("base64");
+    }
+  }
+  return res.status(200).json({ status: "OK", data: { ...track, trackArt } });
 };
 
 const getTracks = async (req: Request, res: Response) => {
@@ -102,19 +159,40 @@ const getTracksByArtistId = async (req: Request, res: Response) => {
       .json({ status: "ERROR", message: "artistId is required" });
   }
   const tracks = await getTracksByArtistIdAction(artistId);
-  if (!tracks || tracks.length === 0) {
-    return res
-      .status(404)
-      .json({ status: "ERROR", message: "No tracks found for this artist" });
+  if (!tracks) {
+    return res.status(404).json({
+      status: "ERROR",
+      message: "Error finding tracks for this artist",
+    });
   }
   return res.status(200).json({ status: "OK", data: tracks });
 };
 
 const getRandom = async (req: Request, res: Response) => {
   const count = 8;
-
-  const tracks = await getRandomTracks(count);
-  res.status(200).json({ status: "OK", data: tracks });
+  try {
+    const tracks = await getRandomTracks(count);
+    const trackReturn = await tracks.reduce(
+      async (acc, track: ITrack) => {
+        const resolvedAcc = await acc;
+        if (track.trackArt) {
+          await getImageAtPath(track.trackArt).then((art) => {
+            if (art) {
+              track.trackArt = Buffer.from(art).toString("base64");
+            }
+          });
+        }
+        resolvedAcc.push(track);
+        return resolvedAcc;
+      },
+      [] as typeof tracks,
+    );
+    res.status(200).json({ status: "OK", data: trackReturn });
+  } catch (error) {
+    if (error instanceof Error) {
+      return res.status(400).json({ status: "ERROR", message: error.message });
+    }
+  }
 };
 
 const deleteTrack = async (req: Request, res: Response) => {
@@ -124,16 +202,22 @@ const deleteTrack = async (req: Request, res: Response) => {
       .json({ status: "ERROR", message: "trackId is required" });
   }
   const result = await deleteTrackAction(req.user._id, req.params.trackId);
+  logServerEvent(
+    createTrackProfileDeletedEvent(req.params.trackId, req.user._id.toString()),
+  );
   res.status(200).json({ status: "OK", data: result });
 };
 
 const updateTrack = async (req: Request, res: Response) => {
   const updateSchema = Joi.object({
+    artistId: Joi.string().optional(),
     title: Joi.string().optional(),
     genre: Joi.string().optional(),
+    // trackArt: Joi.any().optional(),
+    isrc: Joi.string().optional(),
     links: Joi.object()
       .pattern(
-        Joi.string().valid("spotify", "appleMusic", "youtube", "soundcloud"),
+        Joi.string().valid(...Object.keys(musicPlatformLinks)),
         Joi.string().uri(),
       )
       .optional(),
@@ -147,10 +231,22 @@ const updateTrack = async (req: Request, res: Response) => {
         .json({ status: "ERROR", message: "trackId is required" });
     }
     const { error, value } = updateSchema.validate(req.body);
+
     if (error) {
       throw new Error(error.message);
     }
-    const updatedTrack = await updateTrackAction(userId, trackId, value);
+    if (value.isrc === "") {
+      value.isrc = undefined;
+    }
+    const updatedTrack = await updateTrackAction(
+      userId,
+      trackId,
+      value,
+      req.file,
+    );
+    logServerEvent(
+      createTrackProfileUpdatedEvent(trackId, req.user._id.toString()),
+    );
     return res.status(200).json({ status: "OK", data: updatedTrack });
   } catch (error) {
     if (error instanceof Error) {
@@ -193,4 +289,5 @@ export {
   getSimilarTracks,
   setFavorite,
   getTracksByArtistId,
+  getBySlugAndArtist,
 };

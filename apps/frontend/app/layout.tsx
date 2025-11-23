@@ -2,6 +2,7 @@ import "./globals.css";
 import StoreProvider from "./StoreProvider";
 import Header from "./login/Header";
 import Sidebar from "./Sidebar";
+import { Toaster } from "react-hot-toast";
 
 export default function RootLayout({
   children,
@@ -11,11 +12,11 @@ export default function RootLayout({
   return (
     <StoreProvider>
       <html lang="en">
-        <body>
+        <body className="bg-stone-950 text-white">
           <div className="@container mx-auto flex flex-col h-screen">
+            <Toaster />
             <Header />
-
-            <div className="flex flex-grow">
+            <div className="flex flex-col md:flex-row grow overflow-y-scroll">
               <Sidebar />
               {children}
             </div>

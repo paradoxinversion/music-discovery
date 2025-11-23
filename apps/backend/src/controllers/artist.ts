@@ -8,36 +8,84 @@ import {
   getRandomArtists,
   getSimilarArtists as getSimilarArtistsAction,
   getArtistsByIds,
+  getArtistBySlug,
 } from "../db/actions/Artist";
 import { IArtist } from "@common/types/src/types";
 import Joi from "joi";
 import { addFavoriteArtist, removeFavoriteArtist } from "../db/actions/User";
+import { getImageAtPath } from "../db/actions/Storage";
+import {
+  createArtistProfileCreatedEvent,
+  createArtistProfileDeletedEvent,
+  createArtistProfileUpdatedEvent,
+  logServerEvent,
+} from "../serverEvents/serverEvents";
+import { SocialPlatformLinks, socialPlatformLinks } from "@common/json-data";
+
 export const createNewArtist = async (req: Request, res: Response) => {
+  const MAX_BIO = 1500;
+  const MAX_NAME = 100;
+  const MAX_GENRE = 50;
+  const MAX_FILE_BYTES = 2 * 1024 * 1024; // 2MB
+
+  function escapeRegex(s: string) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  /**
+   * Build per-platform regex from urlPattern like "https://twitter.com/{url}"
+   * result becomes ^https:\/\/twitter\.com\/(.+)$
+   */
+  const linkSchemas: Record<string, Joi.StringSchema> = Object.keys(
+    socialPlatformLinks,
+  ).reduce(
+    (acc, key) => {
+      const platformKey = key as SocialPlatformLinks;
+      const pattern = socialPlatformLinks[platformKey].urlPattern || "{url}";
+      const rxSource = escapeRegex(pattern).replace(
+        escapeRegex("{url}"),
+        "(.+)",
+      );
+      const rx = new RegExp(`^${rxSource}$`);
+      acc[key] = Joi.string()
+        .uri()
+        .pattern(rx)
+        .messages({
+          "string.uri": `${key} link must be a valid URI`,
+          "string.pattern.base": `${key} link must match platform pattern`,
+        });
+      return acc;
+    },
+    {} as Record<string, Joi.StringSchema>,
+  );
   const artistSchema = Joi.object({
-    name: Joi.string().min(2).max(100).required(),
-    genre: Joi.string().min(2).max(100).required(),
-    biography: Joi.string().min(10).max(1000).required(),
-    links: Joi.object({
-      website: Joi.string().uri().optional(),
-      facebook: Joi.string().uri().optional(),
-      twitter: Joi.string().uri().optional(),
-      instagram: Joi.string().uri().optional(),
-    }).optional(),
-  });
-  const { error } = artistSchema.validate(req.body);
+    name: Joi.string().min(2).max(MAX_NAME).required(),
+    genre: Joi.string().max(MAX_GENRE).required(),
+    biography: Joi.string().allow("", null).max(MAX_BIO),
+    links: Joi.object().keys(linkSchemas).optional(),
+    // artistArt is multipart file; validate separately in middleware
+  }).required();
+  const { value, error } = artistSchema.validate(req.body);
   if (error) {
     res.status(400).json({ status: "ERROR", message: error.message });
     return;
   }
   try {
     const user = req.user;
-    const artistData: Omit<IArtist, "managingUserId"> = {
-      name: req.body.name,
-      genre: req.body.genre,
-      biography: req.body.biography,
-      links: req.body.links,
+    const artistData: Omit<IArtist, "managingUserId" | "slug"> = {
+      name: value.name,
+      genre: value.genre,
+      biography: value.biography,
+      links: value.links,
     };
-    const artist = await createArtist(user._id, artistData);
+    const artist = await createArtist(user._id, artistData, req.file);
+    logServerEvent(
+      createArtistProfileCreatedEvent(
+        artist._id.toString(),
+        artist.name,
+        user._id.toString(),
+      ),
+    );
     res.status(200).json({ status: "OK", data: artist });
   } catch (error) {
     if (error instanceof Error) {
@@ -47,21 +95,41 @@ export const createNewArtist = async (req: Request, res: Response) => {
 };
 
 export const getArtists = async (req: Request, res: Response) => {
-  const allArtists = await getAllArtists();
-  res.status(200).json({ status: "OK", data: allArtists });
+  try {
+    const allArtists = await getAllArtists();
+    res.status(200).json({ status: "OK", data: allArtists });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({ status: "ERROR", message: error.message });
+    }
+  }
 };
 
 export const getById = async (req: Request, res: Response) => {
   const artistId = req.params.id;
+  const returnArtistArt = req.query.includeArt === "true";
   if (!artistId) {
     res.status(400).json({ status: "ERROR", message: "Artist ID is required" });
     return;
   }
-  const artist = await getArtistById(artistId);
-  if (artist) {
-    res.status(200).json({ status: "OK", data: artist });
-  } else {
-    res.status(404).json({ status: "ERROR", message: "Artist not found" });
+  try {
+    const artist = await getArtistById(artistId);
+    let artistArt = null;
+    if (artist && returnArtistArt && artist.artistArt) {
+      const art = await getImageAtPath(artist?.artistArt);
+      if (art) {
+        artistArt = Buffer.from(art).toString("base64");
+      }
+    }
+    if (artist) {
+      res.status(200).json({ status: "OK", data: { ...artist, artistArt } });
+    } else {
+      res.status(404).json({ status: "ERROR", message: "Artist not found" });
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({ status: "ERROR", message: error.message });
+    }
   }
 };
 
@@ -74,15 +142,51 @@ export const getByIds = async (req: Request, res: Response) => {
     res.status(400).json({ status: "ERROR", message: error.message });
     return;
   }
-  const artistIds: string[] = req.body.artistIds;
-  if (!artistIds || !Array.isArray(artistIds) || artistIds.length === 0) {
-    res
-      .status(400)
-      .json({ status: "ERROR", message: "Artist IDs are required" });
-    return;
+  try {
+    const artistIds: string[] = req.body.artistIds;
+    if (!artistIds || !Array.isArray(artistIds) || artistIds.length === 0) {
+      res
+        .status(400)
+        .json({ status: "ERROR", message: "Artist IDs are required" });
+      return;
+    }
+    const artists = await getArtistsByIds(artistIds);
+    res.status(200).json({ status: "OK", data: artists });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({ status: "ERROR", message: error.message });
+    }
   }
-  const artists = await getArtistsByIds(artistIds);
-  res.status(200).json({ status: "OK", data: artists });
+};
+
+export const getBySlug = async (req: Request, res: Response) => {
+  const slug = req.params.slug;
+  if (!slug) {
+    return res
+      .status(400)
+      .json({ status: "ERROR", message: "Artist slug is required" });
+  }
+
+  const returnArtistArt = req.query.includeArt === "true";
+  try {
+    const artist = await getArtistBySlug(slug);
+    let artistArt = null;
+    if (artist && returnArtistArt && artist.artistArt) {
+      const art = await getImageAtPath(artist?.artistArt);
+      if (art) {
+        artistArt = Buffer.from(art).toString("base64");
+      }
+    }
+    if (artist) {
+      res.status(200).json({ status: "OK", data: { ...artist, artistArt } });
+    } else {
+      res.status(404).json({ status: "ERROR", message: "Artist not found" });
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({ status: "ERROR", message: error.message });
+    }
+  }
 };
 
 export const getRandom = async (req: Request, res: Response) => {
@@ -92,8 +196,14 @@ export const getRandom = async (req: Request, res: Response) => {
         : [req.query.exclude]) as string[])
     : [];
   const count = 5;
-  const artists = await getRandomArtists(count, excludeArtists);
-  res.status(200).json({ status: "OK", data: artists });
+  try {
+    const artists = await getRandomArtists(count, excludeArtists);
+    res.status(200).json({ status: "OK", data: artists });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({ status: "ERROR", message: error.message });
+    }
+  }
 };
 
 export const getSimilarArtists = async (req: Request, res: Response) => {
@@ -163,7 +273,11 @@ export const updateArtist = async (req: Request, res: Response) => {
       .json({ status: "ERROR", message: "Update data is required" });
     return;
   }
-  await updateArtistAction(req.user._id, req.params.id, req.body);
+
+  await updateArtistAction(req.user._id, req.params.id, req.body, req.file);
+  logServerEvent(
+    createArtistProfileUpdatedEvent(req.params.id, req.user._id.toString),
+  );
   res
     .status(200)
     .json({ status: "OK", message: "Artist updated successfully" });
@@ -180,7 +294,10 @@ export const deleteArtist = async (req: Request, res: Response) => {
     res.status(400).json({ status: "ERROR", message: "Artist ID is required" });
     return;
   }
-  await deleteArtistAction(req.user._id, req.params.id);
+  const result = await deleteArtistAction(req.user._id, req.params.id);
+  logServerEvent(
+    createArtistProfileDeletedEvent(req.params.id, req.user._id.toString()),
+  );
   res
     .status(200)
     .json({ status: "OK", message: "Artist deleted successfully" });

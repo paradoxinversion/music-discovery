@@ -1,24 +1,18 @@
 "use client";
 import { useRouter } from "next/navigation";
-
-import ArtistSignup from "./ArtistSignup";
 import { useEffect, useState } from "react";
-import checkAuthentication from "../../../actions/checkAuthentication";
 import { useAppSelector } from "../../../lib/hooks";
 import getManagedArtists from "../../../actions/getManagedArtists";
 import { Button } from "@mda/components";
+import useAuth from "../../../swrHooks/useAuth";
+import AccessUnauthorized from "../../../commonComponents/AccessUnauthorized";
+import Link from "next/link";
 
 export default function Page() {
+  const { isLoading, error } = useAuth();
   const [managedArtists, setManagedArtists] = useState([]);
   const router = useRouter();
   const user = useAppSelector((state) => state.user);
-  useEffect(() => {
-    checkAuthentication().then((user) => {
-      if (!user) {
-        router.push("/login");
-      }
-    });
-  }, []);
 
   useEffect(() => {
     if (user.userId) {
@@ -27,6 +21,15 @@ export default function Page() {
       });
     }
   }, [user]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <AccessUnauthorized />;
+  }
+
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold">Artist Dashboard</h1>
@@ -49,19 +52,27 @@ export default function Page() {
             <li>You agree to our terms of service and privacy policy.</li>
             <li>You will provide accurate and truthful information.</li>
           </ul>
-          <ArtistSignup />
+          <Link href="/artist/dashboard/create-artist">
+            <Button label="Create Artist Profile" />
+          </Link>
         </div>
       )}
       {managedArtists.length > 0 && (
         <div>
+          <Link href="/artist/dashboard/create-artist">
+            <Button label="Create new Artist Profile" />
+          </Link>
           <h2 className="text-xl font-bold mt-4 mb-4">Your Managed Artists</h2>
-          {managedArtists.map((artist) => (
-            <Button
-              key={artist._id}
-              label={artist.name}
-              onClick={() => router.push(`/artist/dashboard/${artist._id}`)}
-            />
-          ))}
+          <div className="flex gap-4">
+            {managedArtists.map((artist) => (
+              <Button
+                key={artist._id}
+                label={artist.name}
+                category="secondary"
+                onClick={() => router.push(`/artist/dashboard/${artist._id}`)}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>
