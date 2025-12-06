@@ -1,33 +1,20 @@
 import { Request, Response } from "express";
-import { createUser } from "../db/actions/User";
-import joi from "joi";
-import { IUserSignup } from "@common/types/src/types";
+import { createUser, setUserStatus } from "../db/actions/User";
 import {
   createUserCreatedEvent,
   logServerEvent,
 } from "../serverEvents/serverEvents";
-
-const signUpSchema = joi.object<IUserSignup>({
-  username: joi.string().min(3).max(30).required(),
-  email: joi.string().email().required(),
-  password: joi.string().min(6).required(),
-});
+import { userFormValidators } from "@common/validation";
 
 export const signUp = async (req: Request, res: Response) => {
   try {
-    const { error, value } = signUpSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ message: error.details[0]?.message });
-    }
-    const { username, password, email } = value;
-    if (!username || !password || !email) {
-      return res
-        .status(400)
-        .json({ message: "Username, password, and email are required" });
-    }
+    const values = await userFormValidators.signUpSchema.validate(req.body);
+    const user = await createUser(values);
 
-    await createUser({ username, password, email });
-    logServerEvent(createUserCreatedEvent(username));
+    // Automatically activate the user upon signup
+    // TODO: Switch to email verification flow later
+    await setUserStatus(user.id, "active");
+    logServerEvent(createUserCreatedEvent(user.username));
     return res.status(200).json({ message: "Sign up successful" });
   } catch (error) {
     console.error("Error during sign up:", error);
