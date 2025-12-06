@@ -1,4 +1,8 @@
-import { EditableArtist, IArtist, NewArtist } from "@common/types/src/types";
+import {
+  IArtist,
+  NewArtist,
+  ServerEditableArtist,
+} from "@common/types/src/types";
 import Artist from "../models/Artist";
 import User from "../models/User";
 import Album from "../models/Album";
@@ -121,32 +125,45 @@ export const getSimilarArtists = async (artistId: string, count: number) => {
 export const updateArtist = async (
   userId: string,
   artistId: string,
-  updateData: Partial<Omit<IArtist, "managingUserId">>,
+  updateData: ServerEditableArtist,
   artistArt?: Express.Multer.File,
 ) => {
   try {
     const user = await User.findById(userId);
     const artist = await Artist.findById(artistId);
+
     if (!user) {
       throw new Error(`User with ID ${userId} not found`);
     }
+
     if (artist?.managingUserId.toString() !== userId.toString()) {
       throw new Error(
         `User with ID ${userId} is not authorized to update this artist (${artist?.managingUserId})`,
       );
     }
+
     let artistArtDestination = null;
+
     if (artistArt) {
       artistArtDestination = await upload(
         user.id,
         createImagePath(user, artistArt, artist.name),
         artistArt,
       );
-      updateData.artistArt = artistArtDestination;
     }
-    const updatedArtist = await Artist.findByIdAndUpdate(artistId, updateData, {
-      new: true,
-    });
+
+    const updatePayload = {
+      ...updateData,
+      artistArt: artistArtDestination,
+    };
+
+    const updatedArtist = await Artist.findByIdAndUpdate(
+      artistId,
+      updatePayload,
+      {
+        new: true,
+      },
+    );
 
     return updatedArtist?.toJSON({ flattenMaps: true });
   } catch (error) {
