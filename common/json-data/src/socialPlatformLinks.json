@@ -1,50 +1,14 @@
 {
-  "Facebook": {
-    "name": "Facebook",
-    "urlPattern": "https://www.facebook.com/{url}"
-  },
-  "YouTube": {
-    "name": "YouTube",
-    "urlPattern": "https://www.youtube.com/{url}"
-  },
-  "Twitter": {
-    "name": "Twitter",
-    "urlPattern": "https://twitter.com/{url}"
-  },
-  "Instagram": {
-    "name": "Instagram",
-    "urlPattern": "https://www.instagram.com/{url}"
-  },
-  "TikTok": {
-    "name": "TikTok",
-    "urlPattern": "https://www.tiktok.com/@{url}"
-  },
-  "SoundCloud": {
-    "name": "SoundCloud",
-    "urlPattern": "https://soundcloud.com/{url}"
-  },
-  "Spotify": {
-    "name": "Spotify",
-    "urlPattern": "https://open.spotify.com/artist/{url}"
-  },
-  "Bluesky": {
-    "name": "Bluesky",
-    "urlPattern": "https://bsky.app/profile/{url}"
-  },
-  "Twitch": {
-    "name": "Twitch",
-    "urlPattern": "https://www.twitch.tv/{url}"
-  },
-  "Bandcamp": {
-    "name": "Bandcamp",
-    "urlPattern": "https://{url}.bandcamp.com/"
-  },
-  "Official Website": {
-    "name": "Official Website",
-    "urlPattern": "https://{url}"
-  },
-  "Apple Music": {
-    "name": "Apple Music",
-    "urlPattern": "https://music.apple.com/artist/{url}"
-  }
+  "Facebook": "^https:\/\/(www\\.)?facebook.com\/[a-zA-Z0-9._-]+$",
+  "YouTube": "^https:\/\/(www\\.)?youtube.com\/[@a-zA-Z0-9._-]+$",
+  "Twitter": "^https:\/\/(www\\.)?x.com\/[a-zA-Z0-9._-]+$",
+  "Instagram": "^https:\/\/(www\\.)?instagram.com\/[a-zA-Z0-9._-]+$",
+  "TikTok": "^https:\/\/(www\\.)?tiktok.com\/[@a-zA-Z0-9._-]+$",
+  "SoundCloud": "^https:\/\/(www\\.)?soundcloud.com\/[a-zA-Z0-9._-]+$",
+  "Spotify": "^https:\/\/open.spotify.com\/artist\/[a-zA-Z0-9._-]+$",
+  "Bluesky": "^https:\/\/bsky.app\/profile\/[a-zA-Z0-9._-]+$",
+  "Twitch": "^https:\/\/(www\\.)?twitch.tv\/[a-zA-Z0-9._-]+$",
+  "Bandcamp": "^https:\/\/[a-zA-Z0-9._-]+\\.bandcamp.com\/$",
+  "Official Website": "^https:\/\/(www\\.)?[a-zA-Z0-9._-]+$",
+  "Apple Music": "^https:\/\/music.apple.com\/\\S+\/artist\/[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$"
 }
