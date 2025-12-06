@@ -4,7 +4,6 @@ import submitTrack from "../../../../../actions/submitTrack";
 import { useRouter } from "next/navigation";
 import { Button, ErrorText } from "@mda/components";
 import { Formik, Field } from "formik";
-import * as Yup from "yup";
 import toast from "react-hot-toast";
 import useSWR from "swr";
 import axiosInstance from "../../../../../util/axiosInstance";
@@ -12,7 +11,7 @@ import { musicPlatformLinks, MusicPlatformLinks } from "@common/json-data";
 import useAuth from "../../../../../swrHooks/useAuth";
 import AccessUnauthorized from "../../../../../commonComponents/AccessUnauthorized";
 import useGenres from "../../../../../swrHooks/useGenres";
-
+import { trackFormValidators } from "@common/validation";
 const fetcher = (url: string) => axiosInstance.get(url).then((res) => res.data);
 interface TrackFormValues {
   title: string;
@@ -23,11 +22,6 @@ interface TrackFormValues {
     [key in MusicPlatformLinks]?: string;
   };
 }
-const trackSchema = Yup.object().shape({
-  title: Yup.string().required("Track title is required"),
-  genre: Yup.string().required("Genre is required"),
-  isrc: Yup.string(),
-});
 
 export default function AddTrackPage({
   params,
@@ -36,15 +30,8 @@ export default function AddTrackPage({
 }) {
   const artistId = use(params).artistId;
   const router = useRouter();
-  const {
-    authenticatedUser,
-    isLoading: isAuthLoading,
-    error: isAuthError,
-  } = useAuth();
-  const { genres, genresLoading, genreLoadError } = useGenres();
-  if (genres) {
-    console.log(genres);
-  }
+  const { isLoading: isAuthLoading, error: isAuthError } = useAuth();
+
   const { data: genreData, error, isLoading } = useSWR(`genre`, fetcher);
   if (isLoading || isAuthLoading) {
     return <div>Loading...</div>;
@@ -76,7 +63,7 @@ export default function AddTrackPage({
     <div className="w-full p-4 overflow-y-auto">
       <Formik
         initialValues={initialValues}
-        validationSchema={trackSchema}
+        validationSchema={trackFormValidators.clientCreateTrackSchema}
         onSubmit={async (values) => {
           try {
             const trackSubmissionData = {
@@ -86,21 +73,8 @@ export default function AddTrackPage({
               artistId: artistId,
               trackArt:
                 values.trackArt instanceof File ? values.trackArt : undefined,
-              links: Object.keys(musicPlatformLinks).reduce(
-                (acc, platform) => {
-                  if (values.links[platform]) {
-                    acc[platform] = musicPlatformLinks[platform].replace(
-                      "{url}",
-                      values.links[platform],
-                    );
-                  }
-                  return acc;
-                },
-                {} as { [key: string]: string },
-              ),
+              links: values.links,
             };
-            console.log(values);
-            console.log(trackSubmissionData);
             const response = await submitTrack(trackSubmissionData);
             if (response.status === 201) {
               toast.success("Track added successfully");
@@ -152,16 +126,20 @@ export default function AddTrackPage({
               <ErrorText message={errors.isrc} />
             ) : null}
             <p className="text-xl font-bold">Links</p>
-            {Object.keys(musicPlatformLinks)
-              .filter((platform) => platform !== "Bandcamp")
-              .map((platform) => (
-                <div key={platform} className="flex flex-col mb-2">
-                  <label htmlFor={`links.${platform}`} className="mb-2">
-                    {platform}
-                  </label>
-                  <Field id={platform} type="text" name={`links.${platform}`} />
-                </div>
-              ))}
+            {Object.keys(musicPlatformLinks).map((platform) => (
+              <div key={platform} className="flex flex-col mb-2">
+                <label htmlFor={`links.${platform}`} className="mb-2">
+                  {platform}
+                </label>
+                <Field id={platform} type="text" name={`links.${platform}`} />
+                {errors.links &&
+                touched.links &&
+                errors.links[platform] &&
+                touched.links[platform] ? (
+                  <ErrorText message={errors.links[platform]} />
+                ) : null}
+              </div>
+            ))}
 
             <div className="flex gap-4">
               <Button label="Add Track" type="submit" />

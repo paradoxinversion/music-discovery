@@ -5,31 +5,18 @@ import { useRouter } from "next/navigation";
 import { useAppDispatch } from "../../lib/hooks";
 import { setUser } from "../../lib/features/users/userSlice";
 import { Formik, Field } from "formik";
-import * as Yup from "yup";
 import axiosInstance from "../../util/axiosInstance";
 import { Button, ErrorText } from "@mda/components";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { useState } from "react";
-interface LoginFormValues {
-  username: string;
-  password: string;
-}
-const loginSchema = Yup.object().shape({
-  username: Yup.string()
-    .min(3, "Username must be at least 3 characters")
-    .max(30, "Username must be at most 30 characters")
-    .required("Username is required"),
-  password: Yup.string()
-    .min(6, "Password must be at least 6 characters")
-    .max(50, "Password must be at most 50 characters")
-    .required("Password is required"),
-});
+import { authValidators } from "@common/validation";
+import { IUserLogin } from "@common/types/src/types";
 
 export default function Page() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const initialValues: LoginFormValues = {
+  const initialValues: IUserLogin = {
     username: "",
     password: "",
   };
@@ -56,7 +43,7 @@ export default function Page() {
       </Link>
       <Formik
         initialValues={initialValues}
-        validationSchema={loginSchema}
+        validationSchema={authValidators.loginSchema}
         onSubmit={async (values) => {
           try {
             const res = await axiosInstance.post("/auth/log-in", values);

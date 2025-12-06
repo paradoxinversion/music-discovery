@@ -38,7 +38,7 @@ export const setUserStatus = async (
   try {
     const user = await User.findByIdAndUpdate(
       userId,
-      { userStatus: status },
+      { accountStatus: status },
       { new: true },
     );
     if (!user) {

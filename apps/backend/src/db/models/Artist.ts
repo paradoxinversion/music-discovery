@@ -18,7 +18,6 @@ const ArtistSchema: Schema<IArtist> = new Schema({
   },
   biography: {
     type: String,
-    required: true,
   },
   links: {
     type: Map,

@@ -1,12 +1,12 @@
 "use client";
 import { Formik, Field } from "formik";
-import * as Yup from "yup";
 import { Button, ErrorText } from "@mda/components";
 import axiosInstance from "../../../util/axiosInstance";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import useGenres from "../../../swrHooks/useGenres";
 import { SocialPlatformLinks, socialPlatformLinks } from "@common/json-data";
+import { artistFormValidators } from "@common/validation";
 interface ArtistSignupFormValues {
   artistName: string;
   genre: string;
@@ -16,20 +16,6 @@ interface ArtistSignupFormValues {
     [key in SocialPlatformLinks]?: string;
   };
 }
-
-const artistSignupSchema = Yup.object().shape({
-  artistName: Yup.string()
-    .min(2, "Artist name must be at least 2 characters")
-    .max(100, "Artist name must be at most 100 characters")
-    .required("Artist name is required"),
-  genre: Yup.string()
-    .max(50, "Genre must be at most 50 characters")
-    .required("Genre is required"),
-  biography: Yup.string().max(
-    1500,
-    "Biography must be at most 1500 characters",
-  ),
-});
 
 export default function ArtistSignup() {
   const { genres, genresLoading, genreLoadError } = useGenres();
@@ -47,12 +33,15 @@ export default function ArtistSignup() {
       {} as { [key in SocialPlatformLinks]?: string },
     ),
   };
+
   if (genresLoading) {
     return <div>Loading...</div>;
   }
+
   if (genreLoadError) {
     return <div>Error loading genres</div>;
   }
+
   return (
     <div className="mt-4 overflow-y-auto">
       <h1 className="text-2xl font-bold">Artist Setup</h1>
@@ -68,27 +57,22 @@ export default function ArtistSignup() {
       </ul>
       <Formik
         initialValues={initialValues}
-        validationSchema={artistSignupSchema}
+        validationSchema={artistFormValidators.artistSignupSchema}
         onSubmit={async (values) => {
           try {
             const artistSubmissionData = {
               name: values.artistName,
               genre: values.genre,
               biography: values.biography,
-              links: Object.keys(socialPlatformLinks).reduce(
+              links: Object.keys(values.links || {}).reduce(
                 (acc, key) => {
-                  const v = values.links[key as SocialPlatformLinks];
-                  if (v) {
-                    acc[key as SocialPlatformLinks] = socialPlatformLinks[
-                      key as SocialPlatformLinks
-                    ].urlPattern.replace(
-                      "{url}",
-                      values.links[key as SocialPlatformLinks],
-                    );
+                  const value = values.links?.[key];
+                  if (value && value !== "") {
+                    acc[key] = value;
                   }
                   return acc;
                 },
-                {} as { [key in SocialPlatformLinks]?: string },
+                {} as Record<string, string>,
               ),
               artistArt:
                 values.artistArt instanceof File ? values.artistArt : undefined,
@@ -136,18 +120,16 @@ export default function ArtistSignup() {
             {errors.biography && touched.biography ? (
               <ErrorText message={errors.biography} />
             ) : null}
-            {Object.values(socialPlatformLinks)
-              .filter((platform) => platform.name !== "Bandcamp")
+            {Object.keys(socialPlatformLinks)
+              .filter((platform) => platform !== "Bandcamp")
               .map((platform) => (
-                <div key={platform.name} className="flex flex-col">
-                  <label htmlFor={`links.${platform.name}`}>
-                    {platform.name}
-                  </label>
+                <div key={platform} className="flex flex-col">
+                  <label htmlFor={`links.${platform}`}>{platform}</label>
                   <Field
                     type="text"
-                    name={`links.${platform.name}`}
-                    id={`links.${platform.name}`}
-                    placeholder={`Enter your ${platform.name} link`}
+                    name={`links.${platform}`}
+                    id={`links.${platform}`}
+                    placeholder={`Enter your ${platform} link`}
                   />
                 </div>
               ))}

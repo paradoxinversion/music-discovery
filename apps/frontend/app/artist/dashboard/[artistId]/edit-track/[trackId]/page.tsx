@@ -12,6 +12,7 @@ import { musicPlatformLinks, MusicPlatformLinks } from "@common/json-data";
 import useAuth from "../../../../../../swrHooks/useAuth";
 import AccessUnauthorized from "../../../../../../commonComponents/AccessUnauthorized";
 import useGenres from "../../../../../../swrHooks/useGenres";
+import { trackFormValidators } from "@common/validation";
 
 interface TrackFormValues {
   title: string;
@@ -33,11 +34,7 @@ export default function EditTrackPage({
   const trackId = use(params).trackId;
   const artistId = use(params).artistId;
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const {
-    authenticatedUser,
-    isLoading: isAuthLoading,
-    error: isAuthError,
-  } = useAuth();
+  const { isLoading: isAuthLoading, error: isAuthError } = useAuth();
   const { genres, genresLoading, genreLoadError } = useGenres();
   const { data, error, isLoading } = useSWR(
     `tracks/${trackId}?withLinks=true`,
@@ -68,11 +65,8 @@ export default function EditTrackPage({
     genre: data.data.genre,
     isrc: data.data.isrc || undefined,
     trackArt: data.data.trackArt,
-    links: Object.keys(data.data.links).reduce((acc: any, key: string) => {
-      const re = /\/@?([^\/?#]+)\/?(\?[^#]*)?(?:#.*)?$/;
-      const match = data.data.links[key].match(re);
-      if (match === null) return acc;
-      acc[key] = match[0].slice(1);
+    links: Object.keys(data.data.links).reduce((acc, key) => {
+      acc[key] = data.data.links[key];
       return acc;
     }, {}) as {
       [key in MusicPlatformLinks]: string;
@@ -83,6 +77,7 @@ export default function EditTrackPage({
     <div className="w-full p-4 overflow-y-auto">
       <Formik
         initialValues={initialValues}
+        validationSchema={trackFormValidators.clientUpdateTrackSchema}
         onSubmit={async (values) => {
           const editData = {
             title: values.title,
@@ -91,17 +86,7 @@ export default function EditTrackPage({
             artistId: artistId,
             trackArt:
               values.trackArt instanceof File ? values.trackArt : undefined,
-            links: Object.keys(values.links).reduce(
-              (acc: any, key: string) => {
-                if (values.links && values.links[key as MusicPlatformLinks]) {
-                  acc[key] = musicPlatformLinks[
-                    key as MusicPlatformLinks
-                  ].replace("{url}", values.links[key as MusicPlatformLinks]);
-                }
-                return acc;
-              },
-              {} as { [key in MusicPlatformLinks]: string },
-            ),
+            links: values.links,
           };
           const response = await submitEditTrack(trackId, editData);
           if (response.status === 200) {

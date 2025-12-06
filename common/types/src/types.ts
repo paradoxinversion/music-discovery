@@ -1,4 +1,4 @@
-import { SocialPlatformLinks } from "@common/json-data";
+import { MusicPlatformLinks, SocialPlatformLinks } from "@common/json-data";
 /**
  * Common types for the music streaming service.
  */
@@ -38,14 +38,18 @@ interface ITrack {
   managingUserId: string;
   trackArt?: string;
   links?: {
-    [key in CommonLinkKeyMusic]?: string;
+    [key in MusicPlatformLinks]?: string;
   };
 }
 
 type TrackSubmissionData = Pick<
   ITrack,
-  "title" | "genre" | "artistId" | "isrc" | "trackArt" | "links"
->;
+  "title" | "genre" | "isrc" | "links"
+> & { trackArt?: File | string };
+
+type ICreateTrack = Pick<ITrack, "title" | "genre" | "isrc" | "links"> & {
+  trackArt?: File;
+};
 
 type EditableTrack = Partial<
   Pick<ITrack, "title" | "genre" | "isrc" | "links" | "trackArt">
@@ -78,7 +82,7 @@ interface IArtist {
   /** The artist's primary genre. */
   genre: string;
   /** A brief biography of the artist. */
-  biography: string;
+  biography?: string;
   /**
    * ID of the user managing this artist's profile.
    */
@@ -94,8 +98,32 @@ interface IArtist {
   /** S3 location to the artist's artwork/image. */
   artistArt?: string | null;
 }
+
+/**
+ * Data required for creating a new artist. This type omits fields that are
+ * automatically generated or managed by the system.
+ *
+ * This type is used by the frontend and backend when creating a new artist profile.
+ */
 type NewArtist = Omit<IArtist, "managingUserId" | "slug" | "albums" | "tracks">;
-type EditableArtist = Partial<Omit<IArtist, "managingUserId" | "slug">>;
+
+/**
+ * Client data required for editing an artist profile.
+ *
+ * This type is used by the __frontend__ when editing an artist profile.
+ */
+type ClientEditableArtist = Partial<
+  Pick<IArtist, "name" | "genre" | "biography" | "links">
+> & { artistArt: File | string };
+
+/**
+ * Server data required for editing an artist profile.
+ *
+ * This type is used by the __backend__ when editing an artist profile.
+ */
+type ServerEditableArtist = Partial<
+  Pick<IArtist, "name" | "genre" | "biography" | "links">
+>;
 
 /**
  * A user of the service.
@@ -111,25 +139,33 @@ interface IUser {
 }
 
 /**
- * Data required for user signup.
+ * Data required for user login.
+ *
+ * This type is used by the frontend and backend during the login process.
  */
-interface IUserSignup {
-  username: string;
-  email: string;
-  password: string;
-}
+type IUserLogin = Pick<IUser, "username" | "password">;
+
+/**
+ * Data required for user signup.
+ *
+ * This type is used by the frontend and backend during the signup process.
+ */
+type IUserSignup = Pick<IUser, "username" | "email" | "password">;
 
 export type {
   ITrack,
   IAlbum,
   IArtist,
   IUser,
+  IUserLogin,
   IUserSignup,
   CommonLinkKeyMusic,
   CommonLinkKeySocial,
-  EditableArtist,
+  ClientEditableArtist,
+  ServerEditableArtist,
   EditableAlbum,
   TrackSubmissionData,
   EditableTrack,
   NewArtist,
+  ICreateTrack,
 };

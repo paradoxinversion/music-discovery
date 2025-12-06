@@ -1,47 +1,22 @@
 "use client";
-import { EditableArtist } from "@common/types/src/types";
 import React from "react";
 import editArtistData from "../../../../actions/editArtistData";
 import { Button, ErrorText, ImgContainer } from "@mda/components";
 import { Formik, Field } from "formik";
-import * as Yup from "yup";
 import toast from "react-hot-toast";
 import { socialPlatformLinks } from "@common/json-data";
 import type { SocialPlatformLinks } from "@common/json-data";
-const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
+import { artistFormValidators } from "@common/validation";
+import { ClientEditableArtist } from "@common/types/src/types";
 interface EditArtistFormValues {
   artistArt: File | string;
   artistName: string;
   genre: string;
-  bio: string;
+  biography: string;
   links?: {
     [key in SocialPlatformLinks]: string;
   };
 }
-
-const editArtistSchema = Yup.object().shape({
-  artistName: Yup.string()
-    .min(2, "Artist name must be at least 2 characters")
-    .max(100, "Artist name must be at most 100 characters")
-    .required("Artist name is required"),
-  genre: Yup.string()
-    .max(50, "Genre must be at most 50 characters")
-    .required("Genre is required"),
-  bio: Yup.string().max(1500, "Bio must be at most 1500 characters"),
-  artistArt: Yup.mixed()
-    .test(
-      "fileSize",
-      "File size is too large. Maximum size is 2MB.",
-      (value) => {
-        if (value && value instanceof File) {
-          return value.size <= MAX_FILE_SIZE_BYTES;
-        }
-        return true; // If no file is provided, skip this test
-      },
-    )
-    .nullable(),
-  // Additional validations for social links can be added here
-});
 
 export default function EditArtistForm({
   artistData,
@@ -49,10 +24,10 @@ export default function EditArtistForm({
   setArtistDataAction,
   setEditArtistDataAction,
 }: {
-  artistData?: EditableArtist;
+  artistData?: ClientEditableArtist;
   artistId: string;
   setArtistDataAction: React.Dispatch<
-    React.SetStateAction<EditableArtist | undefined>
+    React.SetStateAction<ClientEditableArtist | undefined>
   >;
   setEditArtistDataAction: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
@@ -60,18 +35,11 @@ export default function EditArtistForm({
     artistArt: "",
     artistName: artistData?.name || "",
     genre: artistData?.genre || "",
-    bio: artistData?.biography || "",
-    links: Object.values(socialPlatformLinks).reduce(
+    biography: artistData?.biography || "",
+    links: Object.keys(socialPlatformLinks).reduce(
       (acc, platform) => {
-        if (artistData?.links && artistData.links[platform.name]) {
-          const re = /\/@?([^\/?#]+)\/?(\?[^#]*)?(?:#.*)?$/;
-          const match = artistData.links[platform.name].match(re);
-          if (match === null) return acc;
-
-          acc[platform.name] =
-            platform.name === "TikTok" ? match[1] : match[0].slice(1);
-        } else {
-          acc[platform.name] = "";
+        if (artistData?.links && artistData.links[platform]) {
+          acc[platform] = artistData.links[platform];
         }
         return acc;
       },
@@ -81,27 +49,17 @@ export default function EditArtistForm({
   return (
     <Formik
       initialValues={initialValues}
-      validationSchema={editArtistSchema}
+      validationSchema={artistFormValidators.editArtistSchema}
       onSubmit={async (values) => {
         try {
+          console.log("Submitting values:", values);
           const updateData = await editArtistData(artistId, {
             name: values.artistName,
             genre: values.genre,
-            biography: values.bio,
+            biography: values.biography,
             artistArt:
               values.artistArt instanceof File ? values.artistArt : undefined,
-            links: Object.values(socialPlatformLinks).reduce(
-              (acc, platform) => {
-                if (values.links[platform.name]) {
-                  acc[platform.name] = platform.urlPattern.replace(
-                    "{url}",
-                    values.links[platform.name],
-                  );
-                }
-                return acc;
-              },
-              {} as { [key in SocialPlatformLinks]: string },
-            ),
+            links: values.links,
           });
           toast.success("Artist updated successfully");
           setArtistDataAction(updateData);
@@ -152,25 +110,26 @@ export default function EditArtistForm({
             <ErrorText message={errors.genre} />
           ) : null}
 
-          <label htmlFor="bio">Bio</label>
-          <Field as="textarea" name="bio" id="bio" />
-          {errors.bio && touched.bio ? (
-            <ErrorText message={errors.bio} />
+          <label htmlFor="biography">Biography</label>
+          <Field as="textarea" name="biography" id="biography" />
+          {errors.biography && touched.biography ? (
+            <ErrorText message={errors.biography} />
           ) : null}
 
-          {Object.values(socialPlatformLinks)
-            .filter((platform) => platform.name !== "Bandcamp")
+          {Object.keys(socialPlatformLinks)
+            .filter((platform) => platform !== "Bandcamp")
             .map((platform) => (
-              <div key={platform.name} className="flex flex-col">
-                <label htmlFor={`links.${platform.name}`}>
-                  {platform.name}
-                </label>
+              <div key={platform} className="flex flex-col">
+                <label htmlFor={`links.${platform}`}>{platform}</label>
                 <Field
                   type="text"
-                  name={`links.${platform.name}`}
-                  id={`links.${platform.name}`}
-                  placeholder={`Enter your ${platform.name} link`}
+                  name={`links.${platform}`}
+                  id={`links.${platform}`}
+                  placeholder={`Enter your ${platform} link`}
                 />
+                {errors.links && touched.links && errors.links[platform] ? (
+                  <ErrorText message={errors.links[platform]} />
+                ) : null}
               </div>
             ))}
           <div className="flex gap-4">

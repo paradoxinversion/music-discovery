@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@common/json-data": "workspace:^",
+    "@common/validation": "workspace:^",
     "@google-cloud/secret-manager": "^6.1.1",
     "@google-cloud/storage": "^7.17.2",
     "bcrypt": "^6.0.0",
@@ -30,7 +31,8 @@
     "multer": "^2.0.2",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
-    "redis": "^5.8.3"
+    "redis": "^5.8.3",
+    "yup": "^1.7.1"
   },
   "devDependencies": {
     "@common/types": "workspace:^",
