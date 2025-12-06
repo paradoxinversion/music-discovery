@@ -3,30 +3,14 @@ import { Formik, Field } from "formik";
 import { useRouter } from "next/navigation";
 import { Button, ErrorText } from "@mda/components";
 import axiosInstance from "../../util/axiosInstance";
-import * as Yup from "yup";
 import toast from "react-hot-toast";
 import Link from "next/link";
-interface SignUpFormValues {
-  email: string;
-  username: string;
-  password: string;
-}
-
-const signUpSchema = Yup.object().shape({
-  email: Yup.string().email("Invalid email").required("Email is required"),
-  username: Yup.string()
-    .min(3, "Username must be at least 3 characters")
-    .max(30, "Username must be at most 30 characters")
-    .required("Username is required"),
-  password: Yup.string()
-    .min(6, "Password must be at least 6 characters")
-    .max(50, "Password must be at most 50 characters")
-    .required("Password is required"),
-});
+import { userFormValidators } from "@common/validation";
+import { IUserSignup } from "@common/types/src/types";
 
 export default function SignUpPage() {
   const router = useRouter();
-  const initialValues: SignUpFormValues = {
+  const initialValues: IUserSignup = {
     email: "",
     username: "",
     password: "",
@@ -40,7 +24,7 @@ export default function SignUpPage() {
       </Link>
       <Formik
         initialValues={initialValues}
-        validationSchema={signUpSchema}
+        validationSchema={userFormValidators.signUpSchema}
         onSubmit={async (values) => {
           try {
             // TODO: Automatically log in the user after signup
