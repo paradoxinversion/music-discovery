@@ -4,6 +4,7 @@
   "dependencies": {
     "@common/json-data": "workspace:^",
     "@common/types": "workspace:^",
+    "@common/validation": "workspace:^",
     "@mda/components": "workspace:^",
     "@reduxjs/toolkit": "^2.9.0",
     "@tailwindcss/postcss": "^4.1.13",

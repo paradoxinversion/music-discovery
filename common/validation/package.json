@@ -1,0 +1,17 @@
+{
+  "name": "@common/validation",
+  "packageManager": "yarn@4.9.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "vitest run",
+    "build": "yarn g:tsc"
+  },
+  "dependencies": {
+    "yup": "^1.7.1"
+  },
+  "devDependencies": {
+    "@common/types": "workspace:^",
+    "vitest": "^4.0.13"
+  }
+}
