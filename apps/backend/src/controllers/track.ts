@@ -9,39 +9,25 @@ import {
   deleteTrack as deleteTrackAction,
   getTrackBySlugAndArtist,
 } from "../db/actions/Track";
-import Joi from "joi";
 import { addFavoriteTrack, removeFavoriteTrack } from "../db/actions/User";
-import { ITrack, TrackSubmissionData } from "@common/types/src/types";
+import { ITrack } from "@common/types/src/types";
 import { getImageAtPath } from "../db/actions/Storage";
-import { musicPlatformLinks } from "@common/json-data";
 import {
   createTrackProfileCreatedEvent,
   createTrackProfileDeletedEvent,
   createTrackProfileUpdatedEvent,
   logServerEvent,
 } from "../serverEvents/serverEvents";
+import { trackFormValidators } from "@common/validation";
 const submitTrack = async (req: Request, res: Response) => {
-  const trackSchema = Joi.object<TrackSubmissionData>({
-    title: Joi.string().required(),
-    artistId: Joi.string().required(),
-    genre: Joi.string().required(),
-    isrc: Joi.string().allow("").optional(),
-    trackArt: Joi.any().optional(),
-    links: Joi.object()
-      // .pattern(
-      //   Joi.string().valid("spotify", "appleMusic", "youtube", "soundcloud"),
-      //   Joi.string().uri(),
-      // )
-      .optional(),
-  });
-  const managingUserId = req.user._id;
   try {
-    const { error, value } = trackSchema.validate(req.body);
-    if (error) {
-      throw new Error("Invalid track data: " + error.message);
-    }
-    const trackData: TrackSubmissionData & { managingUserId: string } = {
-      ...value,
+    const values = await trackFormValidators.serverCreateTrackSchema.validate(
+      req.body,
+    );
+
+    const managingUserId: string = req.user._id;
+    const trackData = {
+      ...values,
       managingUserId,
     };
     if (trackData.isrc === "") {
@@ -209,19 +195,6 @@ const deleteTrack = async (req: Request, res: Response) => {
 };
 
 const updateTrack = async (req: Request, res: Response) => {
-  const updateSchema = Joi.object({
-    artistId: Joi.string().optional(),
-    title: Joi.string().optional(),
-    genre: Joi.string().optional(),
-    // trackArt: Joi.any().optional(),
-    isrc: Joi.string().optional(),
-    links: Joi.object()
-      .pattern(
-        Joi.string().valid(...Object.keys(musicPlatformLinks)),
-        Joi.string().uri(),
-      )
-      .optional(),
-  });
   try {
     const { trackId } = req.params;
     const userId = req.user._id;
@@ -230,18 +203,16 @@ const updateTrack = async (req: Request, res: Response) => {
         .status(400)
         .json({ status: "ERROR", message: "trackId is required" });
     }
-    const { error, value } = updateSchema.validate(req.body);
-
-    if (error) {
-      throw new Error(error.message);
-    }
-    if (value.isrc === "") {
-      value.isrc = undefined;
+    const values = await trackFormValidators.serverUpdateTrackSchema.validate(
+      req.body,
+    );
+    if (values.isrc === "") {
+      values.isrc = undefined;
     }
     const updatedTrack = await updateTrackAction(
       userId,
       trackId,
-      value,
+      values,
       req.file,
     );
     logServerEvent(
@@ -255,17 +226,12 @@ const updateTrack = async (req: Request, res: Response) => {
   }
 };
 const setFavorite = async (req: Request, res: Response) => {
-  const favoriteSchema = Joi.object({
-    trackId: Joi.string().required(),
-    remove: Joi.boolean().default(false),
-  });
+  const values = await trackFormValidators.setFavoriteTrackSchema.validate(
+    req.body,
+  );
   const userId = req.user._id;
   try {
-    const { trackId, remove } = req.body;
-    const { error } = favoriteSchema.validate({ trackId, remove });
-    if (error) {
-      throw new Error(error.message);
-    }
+    const { trackId, remove } = values;
     if (remove) {
       const favoriteTracks = await removeFavoriteTrack(userId, trackId);
       return res.status(200).json({ status: "OK", data: favoriteTracks });
